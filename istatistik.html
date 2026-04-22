@@ -1,49 +1,469 @@
-function istatistikGoster() {
-  const res = UrlFetchApp.fetch(BASE + "/randevu_gecmisi");
-  const data = JSON.parse(res.getContentText());
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Geçmiş Randevu İstatistiği</title>
+  <style>
+    * { box-sizing: border-box; }
 
-  if (!data.documents) {
-    telegramGonder("📊 İstatistik bulunamadı.");
-    return;
-  }
-
-  const now = new Date();
-  const todayStr = Utilities.formatDate(now, "Europe/Istanbul", "yyyy-MM-dd");
-  const currentMonth = Utilities.formatDate(now, "Europe/Istanbul", "yyyy-MM");
-
-  const weekAgo = new Date();
-  weekAgo.setDate(now.getDate() - 7);
-
-  let gunluk = 0;
-  let haftalik = 0;
-  let aylik = 0;
-
-  data.documents.forEach(doc => {
-    const f = doc.fields;
-    const date = f.date.stringValue;
-
-    // Günlük
-    if (date === todayStr) {
-      gunluk++;
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+      color: #111;
+      font-family: Arial, sans-serif;
     }
 
-    // Haftalık
-    const d = new Date(date);
-    if (d >= weekAgo && d <= now) {
-      haftalik++;
+    body {
+      padding: 16px;
     }
 
-    // Aylık
-    if (date.startsWith(currentMonth)) {
-      aylik++;
+    .wrap {
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto;
     }
-  });
 
-  const mesaj =
-    "📊 RANDEVU İSTATİSTİKLERİ\n\n" +
-    "🗓 Bugün: " + gunluk + " kişi\n" +
-    "📅 Son 7 gün: " + haftalik + " kişi\n" +
-    "🗓 Bu ay: " + aylik + " kişi";
+    .card {
+      background: #fff;
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+      margin-bottom: 16px;
+      border: 1px solid #ececec;
+    }
 
-  telegramGonder(mesaj);
-}
+    .title {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 8px 0;
+      color: #111;
+    }
+
+    .sub {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 18px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .stat-box {
+      background: #fafafa;
+      border: 1px solid #ececec;
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 34px;
+      font-weight: 700;
+      color: #111;
+      line-height: 1.1;
+    }
+
+    .stat-unit {
+      font-size: 13px;
+      color: #777;
+      margin-top: 6px;
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .mini-box {
+      background: #fafafa;
+      border: 1px solid #ececec;
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    .mini-title {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+
+    .mini-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #111;
+    }
+
+    .status {
+      margin-top: 14px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0 0 14px 0;
+      color: #111;
+    }
+
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      background: #fafafa;
+      border: 1px solid #ececec;
+      border-radius: 12px;
+    }
+
+    .list-date {
+      font-size: 15px;
+      font-weight: 600;
+      color: #111;
+    }
+
+    .list-count {
+      font-size: 15px;
+      font-weight: 700;
+      color: #111;
+      white-space: nowrap;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 20px;
+      color: #777;
+      background: #fafafa;
+      border: 1px dashed #ddd;
+      border-radius: 12px;
+    }
+
+    .refresh-btn {
+      border: none;
+      background: #111;
+      color: #fff;
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .refresh-btn:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    @media (max-width: 800px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .mini-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .title {
+        font-size: 24px;
+      }
+
+      .stat-value {
+        font-size: 28px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 10px;
+      }
+
+      .card {
+        padding: 14px;
+        border-radius: 14px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .list-item {
+        padding: 12px;
+      }
+
+      .list-date,
+      .list-count {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="topbar">
+        <div>
+          <h1 class="title">Geçmiş Randevu İstatistiği</h1>
+          <div class="sub">Günlük, haftalık ve aylık tıraş sayıları</div>
+        </div>
+        <button id="refreshBtn" class="refresh-btn">Yenile</button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">Bugün</div>
+          <div class="stat-value" id="gunlukSayi">0</div>
+          <div class="stat-unit">kişi</div>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-label">Son 7 Gün</div>
+          <div class="stat-value" id="haftalikSayi">0</div>
+          <div class="stat-unit">kişi</div>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-label">Bu Ay</div>
+          <div class="stat-value" id="aylikSayi">0</div>
+          <div class="stat-unit">kişi</div>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-label">Toplam</div>
+          <div class="stat-value" id="toplamSayi">0</div>
+          <div class="stat-unit">kişi</div>
+        </div>
+      </div>
+
+      <div class="mini-grid">
+        <div class="mini-box">
+          <div class="mini-title">En Yoğun Gün</div>
+          <div class="mini-value" id="enYogunGun">-</div>
+        </div>
+
+        <div class="mini-box">
+          <div class="mini-title">En Yoğun Gün Sayısı</div>
+          <div class="mini-value" id="enYogunGunSayi">-</div>
+        </div>
+      </div>
+
+      <div class="status" id="durumMesaji">Veriler yükleniyor...</div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">Son 30 Gün Gün Gün Liste</h2>
+      <div id="gunlukListe" class="list">
+        <div class="empty">Veriler yükleniyor...</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // KENDİ FIREBASE BİLGİLERİNİ BURAYA YAZ
+    const firebaseConfig = {
+      apiKey: "BURAYA_API_KEY",
+      authDomain: "BURAYA_AUTH_DOMAIN",
+      projectId: "BURAYA_PROJECT_ID",
+      storageBucket: "BURAYA_STORAGE_BUCKET",
+      messagingSenderId: "BURAYA_MESSAGING_SENDER_ID",
+      appId: "BURAYA_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const gunlukSayiEl = document.getElementById("gunlukSayi");
+    const haftalikSayiEl = document.getElementById("haftalikSayi");
+    const aylikSayiEl = document.getElementById("aylikSayi");
+    const toplamSayiEl = document.getElementById("toplamSayi");
+    const enYogunGunEl = document.getElementById("enYogunGun");
+    const enYogunGunSayiEl = document.getElementById("enYogunGunSayi");
+    const durumMesajiEl = document.getElementById("durumMesaji");
+    const gunlukListeEl = document.getElementById("gunlukListe");
+    const refreshBtn = document.getElementById("refreshBtn");
+
+    function formatDateLocal(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function formatDateTR(ymd) {
+      if (!ymd || !ymd.includes("-")) return ymd;
+      const [y, m, d] = ymd.split("-");
+      return `${d}/${m}/${y}`;
+    }
+
+    function parseDateOnly(ymd) {
+      if (!ymd || typeof ymd !== "string" || !ymd.includes("-")) return null;
+      const [y, m, d] = ymd.split("-").map(Number);
+      return new Date(y, m - 1, d);
+    }
+
+    function startOfDay(date) {
+      const d = new Date(date);
+      d.setHours(0, 0, 0, 0);
+      return d;
+    }
+
+    function endOfDay(date) {
+      const d = new Date(date);
+      d.setHours(23, 59, 59, 999);
+      return d;
+    }
+
+    async function istatistikleriYukle() {
+      try {
+        refreshBtn.disabled = true;
+        durumMesajiEl.textContent = "Veriler yükleniyor...";
+        gunlukListeEl.innerHTML = '<div class="empty">Veriler yükleniyor...</div>';
+
+        const snapshot = await getDocs(collection(db, "randevu_gecmisi"));
+
+        const now = new Date();
+        const todayStr = formatDateLocal(now);
+
+        const todayStart = startOfDay(now);
+        const weekStart = startOfDay(now);
+        weekStart.setDate(weekStart.getDate() - 6);
+
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        monthStart.setHours(0, 0, 0, 0);
+
+        const thirtyDaysStart = startOfDay(now);
+        thirtyDaysStart.setDate(thirtyDaysStart.getDate() - 29);
+
+        let gunluk = 0;
+        let haftalik = 0;
+        let aylik = 0;
+        let toplam = 0;
+
+        const dayCounts = {};
+
+        snapshot.forEach((doc) => {
+          const data = doc.data() || {};
+          const dateStr = (data.date || "").trim();
+
+          if (!dateStr) return;
+
+          const dateObj = parseDateOnly(dateStr);
+          if (!dateObj) return;
+
+          toplam++;
+
+          if (dateStr === todayStr) {
+            gunluk++;
+          }
+
+          if (dateObj >= weekStart && dateObj <= endOfDay(now)) {
+            haftalik++;
+          }
+
+          if (dateObj >= monthStart && dateObj <= endOfDay(now)) {
+            aylik++;
+          }
+
+          if (!dayCounts[dateStr]) {
+            dayCounts[dateStr] = 0;
+          }
+          dayCounts[dateStr]++;
+        });
+
+        gunlukSayiEl.textContent = gunluk;
+        haftalikSayiEl.textContent = haftalik;
+        aylikSayiEl.textContent = aylik;
+        toplamSayiEl.textContent = toplam;
+
+        let enYogunGun = "-";
+        let enYogunGunSayi = 0;
+
+        Object.keys(dayCounts).forEach((dateKey) => {
+          if (dayCounts[dateKey] > enYogunGunSayi) {
+            enYogunGunSayi = dayCounts[dateKey];
+            enYogunGun = dateKey;
+          }
+        });
+
+        enYogunGunEl.textContent = enYogunGun === "-" ? "-" : formatDateTR(enYogunGun);
+        enYogunGunSayiEl.textContent = enYogunGunSayi > 0 ? `${enYogunGunSayi} kişi` : "-";
+
+        const last30Days = [];
+        for (let i = 0; i < 30; i++) {
+          const d = new Date(thirtyDaysStart);
+          d.setDate(thirtyDaysStart.getDate() + i);
+          const key = formatDateLocal(d);
+          last30Days.push({
+            date: key,
+            count: dayCounts[key] || 0
+          });
+        }
+
+        last30Days.sort((a, b) => b.date.localeCompare(a.date));
+
+        if (last30Days.length === 0) {
+          gunlukListeEl.innerHTML = '<div class="empty">Gösterilecek veri yok.</div>';
+        } else {
+          gunlukListeEl.innerHTML = "";
+          last30Days.forEach((item) => {
+            const div = document.createElement("div");
+            div.className = "list-item";
+            div.innerHTML = `
+              <div class="list-date">${formatDateTR(item.date)}</div>
+              <div class="list-count">${item.count} kişi</div>
+            `;
+            gunlukListeEl.appendChild(div);
+          });
+        }
+
+        durumMesajiEl.textContent = "İstatistikler başarıyla yüklendi.";
+      } catch (err) {
+        console.error("İstatistik yükleme hatası:", err);
+        durumMesajiEl.textContent = "İstatistikler yüklenemedi.";
+        gunlukListeEl.innerHTML = '<div class="empty">Veriler alınırken hata oluştu.</div>';
+      } finally {
+        refreshBtn.disabled = false;
+      }
+    }
+
+    refreshBtn.addEventListener("click", istatistikleriYukle);
+    istatistikleriYukle();
+  </script>
+</body>
+</html>
