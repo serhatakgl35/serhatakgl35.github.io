@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Haftalık Randevu Paneli</title>
+
+  <style>
+    * { box-sizing: border-box; }
+    html {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+      -webkit-text-size-adjust: 100%;
+      scroll-behavior: smooth;
+    }
+    body {
+      margin: 0;
+      padding: 8px;
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+      background: #ffffff;
+      color: #111;
+      font-family: Arial, sans-serif;
+    }
+    .page {
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+      overflow-x: hidden;
+    }
+    .box {
+      width: 100%;
+      max-width: 100%;
+      background: #fff;
+      padding: 10px;
+      border-radius: 12px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+      overflow-x: hidden;
+    }
+    h1 {
+      margin: 0 0 10px 0;
+      font-size: 20px;
+      line-height: 1.3;
+      text-align: center;
+    }
+    .info, .hafta-yazi, .debug-box {
+      font-size: 12px;
+      color: #444;
+      line-height: 1.4;
+      background: #f5f5f5;
+      border: 1px solid #e3e3e3;
+      border-radius: 10px;
+      padding: 8px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .debug-box {
+      text-align: left;
+      white-space: pre-wrap;
+      color: #111;
+    }
+    .ust-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .butonlar {
+      display: flex;
+      gap: 6px;
+    }
+    button {
+      display: block;
+      width: 100%;
+      padding: 10px 6px;
+      border: none;
+      border-radius: 10px;
+      font-size: 12px;
+      background: #111;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: Arial, sans-serif;
+    }
+    .tablo-wrap {
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      background: white;
+      width: 100%;
+      max-width: 100%;
+    }
+    table {
+      width: 100%;
+      min-width: 760px;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 6px 4px;
+      text-align: center;
+      vertical-align: middle;
+    }
+    thead th {
+      background: #ececec;
+      color: #222;
+      font-size: 11px;
+      font-weight: bold;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    .saat-baslik {
+      background: #f4f4f4;
+      font-weight: bold;
+      min-width: 58px;
+      color: #222;
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      font-size: 11px;
+    }
+    .gun-baslik { min-width: 138px; }
+    .gun-adi { font-size: 11px; font-weight: bold; margin-bottom: 2px; }
+    .gun-tarih { font-size: 10px; color: #444; }
+    .musait { background: #dff3df; color: #146214; font-weight: bold; font-size: 11px; }
+    .dolu { background: #ffd9d9; color: #8b0000; }
+    .kapali { background: #e0e0e0; color: #555; font-weight: bold; font-size: 11px; }
+    .gecmis { background: #e4e4e4; color: #666; font-weight: bold; font-size: 11px; }
+    .kapali-gun-baslik { background: #d7d7d7 !important; color: #444 !important; }
+    .dolu-icerik { line-height: 1.22; font-size: 10px; word-break: break-word; }
+    .dolu-isim { font-weight: bold; font-size: 11px; margin-bottom: 2px; }
+    .etiket {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 9px;
+      font-weight: bold;
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+    .etiket-musait { background: #c9eec9; color: #146214; }
+    .etiket-dolu { background: #ffbcbc; color: #8b0000; }
+    .etiket-kapali { background: #cfcfcf; color: #555; }
+    .etiket-gecmis { background: #d6d6d6; color: #555; }
+    .yukleniyor, .hata {
+      padding: 14px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 12px;
+    }
+    .hata { color: #a40000; }
+    .alt-bilgi {
+      margin-top: 8px;
+      font-size: 11px;
+      color: #555;
+      text-align: center;
+      line-height: 1.4;
+    }
+  </style>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <nav style="
+    width:100%;
+    background:#111;
+    color:#fff;
+    padding:14px 16px;
+    box-sizing:border-box;
+    display:flex;
+    justify-content:center;
+    gap:12px;
+    flex-wrap:wrap;
+    position:sticky;
+    top:0;
+    z-index:999;
+    box-shadow:0 2px 8px rgba(0,0,0,0.15);
+    margin-bottom:8px;
+    border-radius:12px;
+  ">
+    <a href="index.html" style="color:#fff;text-decoration:none;background:#222;padding:10px 16px;border-radius:10px;font-weight:600;">Ana Sayfa</a>
+    <a href="liste.html" style="color:#fff;text-decoration:none;background:#222;padding:10px 16px;border-radius:10px;font-weight:600;">Randevu Listesi</a>
+    <a href="takvim.html" style="color:#fff;text-decoration:none;background:#222;padding:10px 16px;border-radius:10px;font-weight:600;">Takvimli Liste</a>
+  </nav>
+
+  <div class="page">
+    <div class="box">
+      <h1>Haftalık Randevu Paneli</h1>
+
+      <div class="info">
+        Pazartesi - Cuma arası tablo görünümü.
+        <strong>Yeşil = Müsait</strong>,
+        <strong>Kırmızı = Dolu</strong>,
+        <strong>Gri = Kapalı / Geçmiş</strong>
+      </div>
+
+      <div id="debugBox" class="debug-box">Durum kontrol ediliyor...</div>
+
+      <div class="ust-bar">
+        <div class="butonlar">
+          <button id="oncekiHaftaBtn" type="button">← Önceki</button>
+          <button id="bugunHaftaBtn" type="button">Bu Hafta</button>
+          <button id="sonrakiHaftaBtn" type="button">Sonraki →</button>
+        </div>
+        <div id="haftaYazi" class="hafta-yazi">Yükleniyor...</div>
+      </div>
+
+      <div class="tablo-wrap">
+        <div id="tabloAlan">
+          <div class="yukleniyor">Yükleniyor...</div>
+        </div>
+      </div>
+
+      <div class="alt-bilgi">
+        Panel 60 saniyede bir yenilenir. Saati geçen hücreler geçmiş olarak gri görünür.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const debugBox = document.getElementById("debugBox");
+
+    function debugTemizle() {
+      debugBox.textContent = "";
+    }
+
+    function logDurum(msg) {
+      console.log(msg);
+      debugBox.textContent += (debugBox.textContent ? "\n" : "") + msg;
+    }
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",
+      authDomain: "berber-randevu-14f7f.firebaseapp.com",
+      projectId: "berber-randevu-14f7f",
+      storageBucket: "berber-randevu-14f7f.firebasestorage.app",
+      messagingSenderId: "280530860977",
+      appId: "1:280530860977:web:52c0df04c228896f211b90"
+    };
+
+    if (typeof firebase === "undefined") {
+      debugBox.textContent = "HATA: Firebase script yüklenmedi";
+      throw new Error("Firebase script yüklenmedi");
+    }
+
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+
+    const db = firebase.firestore();
+
+    const KOLEKSIYON = "randevular";
+    const KAPALI_GUNLER_KOLEKSIYON = "kapali_gunler";
+    const KAPALI_SAATLER_KOLEKSIYON = "kapali_saatler";
+    const OTOMATIK_GECMIS_DAKIKA = 1;
+
+    const SAATLER = ["08:20","09:00","09:50","10:30","11:20","13:20","14:00","14:50","15:30","16:20"];
+    const GUN_ADLARI = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma"];
+    const RESMI_TATILLER_2026 = ["2026-01-01","2026-03-19","2026-03-20","2026-03-21","2026-03-22","2026-04-23","2026-05-01","2026-05-19","2026-05-26","2026-05-27","2026-05-28","2026-05-29","2026-05-30","2026-07-15","2026-08-30","2026-10-28","2026-10-29"];
+
+    const haftaYaziEl = document.getElementById("haftaYazi");
+    const tabloAlanEl = document.getElementById("tabloAlan");
+    let aktifHaftaBaslangici = pazartesiBul(new Date());
+
+    function ikiHane(n) {
+      return String(n).padStart(2, "0");
+    }
+
+    function tarihKeyYap(dateObj) {
+      return dateObj.getFullYear() + "-" + ikiHane(dateObj.getMonth() + 1) + "-" + ikiHane(dateObj.getDate());
+    }
+
+    function tarihGoster(dateObj) {
+      return ikiHane(dateObj.getDate()) + "." + ikiHane(dateObj.getMonth() + 1) + "." + dateObj.getFullYear();
+    }
+
+    function pazartesiBul(tarih) {
+      const d = new Date(tarih);
+      d.setHours(0, 0, 0, 0);
+      const gun = d.getDay();
+      const fark = gun === 0 ? -6 : 1 - gun;
+      d.setDate(d.getDate() + fark);
+      return d;
+    }
+
+    function haftaninBesGunu(baslangic) {
+      const gunler = [];
+      for (let i = 0; i < 5; i++) {
+        const d = new Date(baslangic);
+        d.setDate(baslangic.getDate() + i);
+        d.setHours(0, 0, 0, 0);
+        gunler.push(d);
+      }
+      return gunler;
+    }
+
+    function haftaYazisiUret(gunler) {
+      return tarihGoster(gunler[0]) + " - " + tarihGoster(gunler[4]);
+    }
+
+    function normalizeDateStr(value) {
+      if (!value && value !== 0) return "";
+      let v = String(value).trim();
+      if (!v) return "";
+      if (v.includes("T")) v = v.split("T")[0];
+      v = v.replace(/\./g, "-").replace(/\//g, "-");
+      const parts = v.split("-").map(s => s.trim()).filter(Boolean);
+      if (parts.length !== 3) return "";
+
+      if (parts[0].length === 4) {
+        const y = Number(parts[0]);
+        const m = Number(parts[1]);
+        const d = Number(parts[2]);
+        if ([y, m, d].some(isNaN)) return "";
+        return y + "-" + ikiHane(m) + "-" + ikiHane(d);
+      }
+
+      if (parts[2].length === 4) {
+        const d = Number(parts[0]);
+        const m = Number(parts[1]);
+        const y = Number(parts[2]);
+        if ([y, m, d].some(isNaN)) return "";
+        return y + "-" + ikiHane(m) + "-" + ikiHane(d);
+      }
+
+      return "";
+    }
+
+    function normalizeTimeStr(value) {
+      if (!value && value !== 0) return "";
+      let v = String(value).trim();
+      if (!v) return "";
+      v = v.replace(/\./g, ":").replace(/\s+/g, "");
+      const parts = v.split(":");
+      if (parts.length < 2) return "";
+      const h = Number(parts[0]);
+      const m = Number(parts[1]);
+      if (isNaN(h) || isNaN(m)) return "";
+      return ikiHane(h) + ":" + ikiHane(m);
+    }
+
+    function kayitTarih(data) { return normalizeDateStr(data.date || data.tarih || ""); }
+    function kayitSaat(data) { return normalizeTimeStr(data.time || data.zaman || ""); }
+    function kayitAd(data) { return String(data.name || data.isim || "").trim(); }
+    function kayitTelefon(data) { return String(data.phone || data.telefon || "").trim(); }
+    function kayitHizmet(data) { return String(data.service || data.hizmet || "").trim(); }
+
+    function parseDateOnly(dateStr) {
+      const temiz = normalizeDateStr(dateStr);
+      if (!temiz) return null;
+      const [y, m, d] = temiz.split("-").map(Number);
+      if ([y, m, d].some(isNaN)) return null;
+      return new Date(y, m - 1, d, 0, 0, 0, 0);
+    }
+
+    function parseAppointmentDateTime(dateStr, timeStr) {
+      const temizTarih = normalizeDateStr(dateStr);
+      const temizSaat = normalizeTimeStr(timeStr);
+      if (!temizTarih || !temizSaat) return null;
+
+      const [y, m, d] = temizTarih.split("-").map(Number);
+      const [hh, mm] = temizSaat.split(":").map(Number);
+
+      if ([y, m, d, hh, mm].some(isNaN)) return null;
+
+      return new Date(y, m - 1, d, hh, mm, 0, 0);
+    }
+
+    function slotGecmisMi(tarih, saat, now = new Date()) {
+      const baslangic = parseAppointmentDateTime(tarih, saat);
+      if (!baslangic) return false;
+      const limit = new Date(baslangic.getTime() + OTOMATIK_GECMIS_DAKIKA * 60 * 1000);
+      return now >= limit;
+    }
+
+    function randevuGecmisMi(data, now = new Date()) {
+      return slotGecmisMi(kayitTarih(data), kayitSaat(data), now);
+    }
+
+    function haftaSonuMu(tarih) {
+      const t = parseDateOnly(tarih);
+      if (!t) return false;
+      const gun = t.getDay();
+      return gun === 0 || gun === 6;
+    }
+
+    function resmiTatilMi2026(tarih) {
+      return RESMI_TATILLER_2026.includes(normalizeDateStr(tarih));
+    }
+
+    function otomatikKapaliGunMu(tarih) {
+      return haftaSonuMu(tarih) || resmiTatilMi2026(tarih);
+    }
+
+    async function gunKapaliMi(tarih) {
+      const temizTarih = normalizeDateStr(tarih);
+      if (!temizTarih) return false;
+      if (otomatikKapaliGunMu(temizTarih)) return true;
+
+      const gunSnap = await db.collection(KAPALI_GUNLER_KOLEKSIYON).doc(temizTarih).get();
+      return gunSnap.exists;
+    }
+
+    async function kapaliSaatleriGetir(tarih) {
+      const temizTarih = normalizeDateStr(tarih);
+      if (!temizTarih) return [];
+
+      const snap = await db.collection(KAPALI_SAATLER_KOLEKSIYON).where("tarih", "==", temizTarih).get();
+      const kapaliSaatler = [];
+
+      snap.forEach(function(docItem) {
+        const data = docItem.data();
+        const saat = normalizeTimeStr(data && data.saat ? data.saat : "");
+        if (saat) kapaliSaatler.push(saat);
+      });
+
+      return kapaliSaatler;
+    }
+
+    async function haftalikVerileriHazirla(gunler) {
+      const ilkGunDate = new Date(gunler[0]);
+      ilkGunDate.setHours(0, 0, 0, 0);
+
+      const sonGunDate = new Date(gunler[4]);
+      sonGunDate.setHours(23, 59, 59, 999);
+
+      logDurum("Randevular koleksiyonu okunuyor...");
+      const randevuSnap = await db.collection(KOLEKSIYON).get();
+      logDurum("Okunan randevu sayısı: " + randevuSnap.size);
+
+      const randevuMap = {};
+      const gunKapaliMap = {};
+      const kapaliSaatMap = {};
+      const simdi = new Date();
+
+      for (const gun of gunler) {
+        const tarih = tarihKeyYap(gun);
+        gunKapaliMap[tarih] = await gunKapaliMi(tarih);
+        kapaliSaatMap[tarih] = await kapaliSaatleriGetir(tarih);
+      }
+
+      randevuSnap.forEach(function(docItem) {
+        const data = docItem.data();
+        const tarih = kayitTarih(data);
+        const saat = kayitSaat(data);
+        const isim = kayitAd(data) || "-";
+        const telefon = kayitTelefon(data) || "-";
+        const hizmet = kayitHizmet(data) || "-";
+        const gecmisMi = randevuGecmisMi(data, simdi);
+
+        if (!tarih || !saat) return;
+
+        const randevuDate = parseDateOnly(tarih);
+        if (!randevuDate) return;
+
+        if (randevuDate < ilkGunDate || randevuDate > sonGunDate) return;
+
+        const key = tarih + "_" + saat;
+        randevuMap[key] = { isim, telefon, hizmet, gecmis: gecmisMi };
+      });
+
+      logDurum("Haftalık filtre sonrası görünen randevu anahtar sayısı: " + Object.keys(randevuMap).length);
+
+      return { randevuMap, gunKapaliMap, kapaliSaatMap };
+    }
+
+    function tabloHTMLUret(gunler, randevuMap, gunKapaliMap, kapaliSaatMap) {
+      let html = "<table><thead><tr><th class='saat-baslik'>Saat</th>";
+
+      gunler.forEach(function(gun, i) {
+        const tarih = tarihKeyYap(gun);
+        const kapaliGun = !!gunKapaliMap[tarih];
+        html += '<th class="gun-baslik' + (kapaliGun ? ' kapali-gun-baslik' : '') + '">';
+        html += '<div class="gun-adi">' + GUN_ADLARI[i] + '</div>';
+        html += '<div class="gun-tarih">' + tarihGoster(gun) + '</div>';
+        if (kapaliGun) html += '<div class="etiket etiket-kapali">KAPALI GÜN</div>';
+        html += "</th>";
+      });
+
+      html += "</tr></thead><tbody>";
+
+      const simdi = new Date();
+
+      SAATLER.forEach(function(saat) {
+        const temizSaat = normalizeTimeStr(saat);
+        html += "<tr><td class='saat-baslik'>" + temizSaat + "</td>";
+
+        gunler.forEach(function(gun) {
+          const tarih = tarihKeyYap(gun);
+          const key = tarih + "_" + temizSaat;
+          const kapaliGun = !!gunKapaliMap[tarih];
+          const kapaliSaatler = (kapaliSaatMap[tarih] || []).map(normalizeTimeStr).filter(Boolean);
+          const kapaliSaat = kapaliSaatler.includes(temizSaat);
+          const r = randevuMap[key];
+          const slotGecmis = slotGecmisMi(tarih, temizSaat, simdi);
+
+          if (kapaliGun) {
+            html += '<td class="kapali"><div>KAPALI</div><div class="etiket etiket-kapali">GÜN</div></td>';
+          } else if (kapaliSaat) {
+            html += '<td class="kapali"><div>KAPALI</div><div class="etiket etiket-kapali">SAAT</div></td>';
+          } else if (r) {
+            if (r.gecmis) {
+              html += '<td class="gecmis"><div class="dolu-icerik"><div class="dolu-isim">' + r.isim + '</div><div>' + r.telefon + '</div><div>' + r.hizmet + '</div><div class="etiket etiket-gecmis">GEÇMİŞ</div></div></td>';
+            } else {
+              html += '<td class="dolu"><div class="dolu-icerik"><div class="dolu-isim">' + r.isim + '</div><div>' + r.telefon + '</div><div>' + r.hizmet + '</div><div class="etiket etiket-dolu">DOLU</div></div></td>';
+            }
+          } else if (slotGecmis) {
+            html += '<td class="gecmis"><div>GEÇMİŞ</div><div class="etiket etiket-gecmis">SÜRE GEÇTİ</div></td>';
+          } else {
+            html += '<td class="musait"><div>MÜSAİT</div><div class="etiket etiket-musait">BOŞ</div></td>';
+          }
+        });
+
+        html += "</tr>";
+      });
+
+      html += "</tbody></table>";
+      return html;
+    }
+
+    async function paneliCiz() {
+      try {
+        debugTemizle();
+        logDurum("Sayfa açıldı");
+        logDurum("Firebase script yüklendi");
+        logDurum("Firestore nesnesi oluşturuldu");
+
+        tabloAlanEl.innerHTML = '<div class="yukleniyor">Yükleniyor...</div>';
+
+        const gunler = haftaninBesGunu(aktifHaftaBaslangici);
+        haftaYaziEl.textContent = haftaYazisiUret(gunler);
+
+        const veriler = await haftalikVerileriHazirla(gunler);
+
+        tabloAlanEl.innerHTML = tabloHTMLUret(
+          gunler,
+          veriler.randevuMap,
+          veriler.gunKapaliMap,
+          veriler.kapaliSaatMap
+        );
+
+        logDurum("Panel başarıyla çizildi");
+      } catch (err) {
+        console.error(err);
+        logDurum("HATA: " + (err.message || err));
+        tabloAlanEl.innerHTML = '<div class="hata">Panel yüklenirken hata oluştu: ' + (err.message || err) + '</div>';
+      }
+    }
+
+    document.getElementById("oncekiHaftaBtn").addEventListener("click", async function() {
+      aktifHaftaBaslangici = new Date(aktifHaftaBaslangici);
+      aktifHaftaBaslangici.setDate(aktifHaftaBaslangici.getDate() - 7);
+      aktifHaftaBaslangici.setHours(0, 0, 0, 0);
+      await paneliCiz();
+    });
+
+    document.getElementById("bugunHaftaBtn").addEventListener("click", async function() {
+      aktifHaftaBaslangici = pazartesiBul(new Date());
+      await paneliCiz();
+    });
+
+    document.getElementById("sonrakiHaftaBtn").addEventListener("click", async function() {
+      aktifHaftaBaslangici = new Date(aktifHaftaBaslangici);
+      aktifHaftaBaslangici.setDate(aktifHaftaBaslangici.getDate() + 7);
+      aktifHaftaBaslangici.setHours(0, 0, 0, 0);
+      await paneliCiz();
+    });
+
+    paneliCiz();
+    setInterval(paneliCiz, 60000);
+  </script>
+</body>
+</html>
