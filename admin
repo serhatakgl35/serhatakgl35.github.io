@@ -179,9 +179,9 @@
 <body>
 
   <nav class="topbar">
-    <a href="index.html">Ana Sayfa</a>
-    <a href="liste.html">Randevu Listesi</a>
-    <a href="takvim.html">Takvimli Liste</a>
+    <a href="randevual.html">Randevu Al</a>
+    <a href="haftaliktakvim.html">Haftalık Randevu</a>
+    <a href="liste.html">Takvimli Liste</a>
     <button id="logoutBtn" class="hidden">Çıkış Yap</button>
   </nav>
 
