@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Haftalık Randevu Paneli</title>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:8px;background:#fff;color:#111;font-family:Arial}
+
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid #ddd;padding:6px;text-align:center;font-size:11px}
+
+.musait{background:#dff3df;color:#146214;font-weight:bold}
+.dolu{background:#ffd9d9;color:#8b0000;font-weight:bold}
+.kapali{background:#e0e0e0;color:#555;font-weight:bold}
+.gecmis{background:#e4e4e4;color:#666;font-weight:bold}
+
+.cell-btn{
+  padding:6px 8px;
+  border-radius:8px;
+  transition:0.2s;
+}
+.musait .cell-btn{background:#c9eec9}
+.dolu .cell-btn{background:#ffbcbc}
+.gecmis .cell-btn{background:#d6d6d6}
+.kapali .cell-btn{background:#cfcfcf}
+</style>
+</head>
+
+<body>
+
+<h2 style="text-align:center">Haftalık Randevu Paneli</h2>
+<table id="tablo"></table>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",
+  authDomain: "berber-randevu-14f7f.firebaseapp.com",
+  projectId: "berber-randevu-14f7f"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const SAATLER=["08:20","09:00","09:50","10:30","11:20","13:20","14:00","14:50","15:30","16:20"];
+const GUNLER=["Pzt","Sal","Çar","Per","Cum"];
+
+function pazartesi(){
+ const d=new Date();
+ const g=d.getDay();
+ const f=g===0?-6:1-g;
+ d.setDate(d.getDate()+f);
+ return d;
+}
+
+function key(d){
+ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+
+async function yukle(){
+ const tablo=document.getElementById("tablo");
+ const start=pazartesi();
+
+ const snap=await getDocs(collection(db,"randevular"));
+ const dolu={};
+
+ snap.forEach(doc=>{
+  const x=doc.data();
+  dolu[x.date+"_"+x.time]=true;
+ });
+
+ let html="<tr><th>Saat</th>";
+ let gunler=[];
+
+ for(let i=0;i<5;i++){
+  const d=new Date(start);
+  d.setDate(start.getDate()+i);
+  gunler.push(d);
+  html+=`<th>${GUNLER[i]}<br>${key(d)}</th>`;
+ }
+
+ html+="</tr>";
+
+ SAATLER.forEach(s=>{
+  html+="<tr>";
+  html+=`<td>${s}</td>`;
+
+  gunler.forEach(g=>{
+   const k=key(g)+"_"+s;
+
+   if(dolu[k]){
+    html+=`<td class="dolu"><div class="cell-btn">DOLU</div></td>`;
+   }else{
+    html+=`<td class="musait"><div class="cell-btn">MÜSAİT</div></td>`;
+   }
+  });
+
+  html+="</tr>";
+ });
+
+ tablo.innerHTML=html;
+}
+
+yukle();
+</script>
+
+</body>
+</html>
