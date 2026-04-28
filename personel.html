@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personel Randevu Sistemi</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #fff;
+      color: #111;
+    }
+
+    nav {
+      width: 100%;
+      background: #111;
+      color: #fff;
+      padding: 14px 16px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    nav a, nav button {
+      color: #fff;
+      text-decoration: none;
+      background: #222;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+    }
+
+    .container {
+      max-width: 520px;
+      margin: 24px auto;
+      padding: 16px;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #eee;
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      margin-bottom: 18px;
+    }
+
+    h2, h3 {
+      margin-top: 0;
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin-top: 12px;
+      margin-bottom: 6px;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #ddd;
+      font-size: 16px;
+    }
+
+    button {
+      background: #111;
+      color: #fff;
+      font-weight: 700;
+      margin-top: 14px;
+      cursor: pointer;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .info {
+      background: #f6f6f6;
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .randevu {
+      border: 1px solid #eee;
+      border-radius: 14px;
+      padding: 12px;
+      margin-top: 10px;
+      background: #fafafa;
+      line-height: 1.6;
+    }
+
+    .bos {
+      color: #777;
+      text-align: center;
+      padding: 16px;
+    }
+  </style>
+</head>
+
+<body>
+
+<nav>
+  <a href="index.html">Ana Sayfa</a>
+  <a href="liste.html">Randevu Listesi</a>
+  <a href="takvim.html">Takvimli Liste</a>
+  <button id="logoutBtn" class="hidden">Çıkış Yap</button>
+</nav>
+
+<div class="container">
+
+  <div id="loginBox" class="card">
+    <h2>Personel Girişi</h2>
+
+    <label>E-posta</label>
+    <input type="email" id="email" placeholder="E-posta adresiniz">
+
+    <label>Şifre</label>
+    <input type="password" id="password" placeholder="Şifreniz">
+
+    <button id="loginBtn">Giriş Yap</button>
+  </div>
+
+  <div id="panelBox" class="hidden">
+
+    <div class="card">
+      <h2>Randevu Al</h2>
+
+      <div class="info" id="personelInfo"></div>
+
+      <label>Tarih</label>
+      <input type="date" id="tarih">
+
+      <label>Saat</label>
+      <select id="saat">
+        <option value="">Saat seçiniz</option>
+      </select>
+
+      <label>Hizmet</label>
+      <select id="hizmet">
+        <option value="Saç Kesimi">Saç Kesimi</option>
+        <option value="Sakal Tıraşı">Sakal Tıraşı</option>
+        <option value="Saç + Sakal">Saç + Sakal</option>
+      </select>
+
+      <button id="randevuAlBtn">Randevu Al</button>
+    </div>
+
+    <div class="card">
+      <h3>Benim Randevularım</h3>
+      <div id="randevularim"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getAuth,
+    signInWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  import {
+    getFirestore,
+    doc,
+    getDoc,
+    collection,
+    addDoc,
+    getDocs,
+    query,
+    where,
+    orderBy,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "BURAYA_API_KEY",
+    authDomain: "berber-randevu-14f7f.firebaseapp.com",
+    projectId: "berber-randevu-14f7f",
+    storageBucket: "berber-randevu-14f7f.appspot.com",
+    messagingSenderId: "BURAYA_MESSAGING_ID",
+    appId: "BURAYA_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const SAATLER = [
+    "08:20",
+    "09:00",
+    "09:50",
+    "10:30",
+    "13:10",
+    "13:50",
+    "14:40",
+    "15:20"
+  ];
+
+  let aktifPersonel = null;
+  let aktifUser = null;
+
+  const loginBox = document.getElementById("loginBox");
+  const panelBox = document.getElementById("panelBox");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const loginBtn = document.getElementById("loginBtn");
+  const randevuAlBtn = document.getElementById("randevuAlBtn");
+
+  const emailInput = document.getElementById("email");
+  const passwordInput = document.getElementById("password");
+  const tarihInput = document.getElementById("tarih");
+  const saatSelect = document.getElementById("saat");
+  const hizmetSelect = document.getElementById("hizmet");
+  const personelInfo = document.getElementById("personelInfo");
+  const randevularim = document.getElementById("randevularim");
+
+  function bugunKey() {
+    const d = new Date();
+    return tarihFormat(d);
+  }
+
+  function tarihFormat(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const g = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${g}`;
+  }
+
+  function tarihTR(tarih) {
+    const p = tarih.split("-");
+    return `${p[2]}.${p[1]}.${p[0]}`;
+  }
+
+  function tarihSiniriAyarla() {
+    const bugun = new Date();
+    const max = new Date();
+    max.setDate(bugun.getDate() + 15);
+
+    tarihInput.min = tarihFormat(bugun);
+    tarihInput.max = tarihFormat(max);
+    tarihInput.value = tarihFormat(bugun);
+  }
+
+  function saatleriYukle() {
+    saatSelect.innerHTML = `<option value="">Saat seçiniz</option>`;
+
+    SAATLER.forEach(saat => {
+      const opt = document.createElement("option");
+      opt.value = saat;
+      opt.textContent = saat;
+      saatSelect.appendChild(opt);
+    });
+  }
+
+  function seciliTarihGecerliMi(tarih) {
+    const bugun = new Date(bugunKey() + "T00:00:00");
+    const max = new Date(bugun);
+    max.setDate(bugun.getDate() + 15);
+
+    const secilen = new Date(tarih + "T00:00:00");
+
+    return secilen >= bugun && secilen <= max;
+  }
+
+  async function personelBilgisiGetir(uid) {
+    const ref = doc(db, "personeller", uid);
+    const snap = await getDoc(ref);
+
+    if (!snap.exists()) {
+      throw new Error("Bu kullanıcı personeller listesinde bulunamadı.");
+    }
+
+    const data = snap.data();
+
+    if (data.aktif === false) {
+      throw new Error("Bu personel hesabı pasif durumda.");
+    }
+
+    return data;
+  }
+
+  async function doluSaatMi(tarih, saat) {
+    const q = query(
+      collection(db, "randevular"),
+      where("tarih", "==", tarih),
+      where("saat", "==", saat)
+    );
+
+    const snap = await getDocs(q);
+    return !snap.empty;
+  }
+
+  async function randevuAl() {
+    if (!aktifUser || !aktifPersonel) {
+      alert("Önce giriş yapmalısınız.");
+      return;
+    }
+
+    const tarih = tarihInput.value;
+    const saat = saatSelect.value;
+    const hizmet = hizmetSelect.value;
+
+    if (!tarih || !saat) {
+      alert("Lütfen tarih ve saat seçiniz.");
+      return;
+    }
+
+    if (!seciliTarihGecerliMi(tarih)) {
+      alert("En fazla önümüzdeki 15 gün için randevu alabilirsiniz.");
+      return;
+    }
+
+    const dolu = await doluSaatMi(tarih, saat);
+
+    if (dolu) {
+      alert("Bu saat dolu. Lütfen başka bir saat seçiniz.");
+      return;
+    }
+
+    await addDoc(collection(db, "randevular"), {
+      personelUid: aktifUser.uid,
+      isim: aktifPersonel.isim || "",
+      telefon: aktifPersonel.telefon || "",
+      email: aktifUser.email || "",
+      tarih: tarih,
+      saat: saat,
+      hizmet: hizmet,
+      createdAt: serverTimestamp()
+    });
+
+    alert("Randevunuz başarıyla oluşturuldu.");
+    await randevularimiYukle();
+  }
+
+  async function randevularimiYukle() {
+    randevularim.innerHTML = "Yükleniyor...";
+
+    const q = query(
+      collection(db, "randevular"),
+      where("personelUid", "==", aktifUser.uid),
+      orderBy("tarih", "asc"),
+      orderBy("saat", "asc")
+    );
+
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      randevularim.innerHTML = `<div class="bos">Henüz randevunuz yok.</div>`;
+      return;
+    }
+
+    let html = "";
+
+    snap.forEach(docSnap => {
+      const r = docSnap.data();
+
+      html += `
+        <div class="randevu">
+          <b>📅 ${tarihTR(r.tarih)} - ${r.saat}</b><br>
+          👤 ${r.isim || "-"}<br>
+          📞 ${r.telefon || "-"}<br>
+          ✂️ ${r.hizmet || "-"}
+        </div>
+      `;
+    });
+
+    randevularim.innerHTML = html;
+  }
+
+  loginBtn.addEventListener("click", async () => {
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
+
+    if (!email || !password) {
+      alert("E-posta ve şifre giriniz.");
+      return;
+    }
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (e) {
+      alert("Giriş başarısız: " + e.message);
+    }
+  });
+
+  logoutBtn.addEventListener("click", async () => {
+    await signOut(auth);
+  });
+
+  randevuAlBtn.addEventListener("click", randevuAl);
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      aktifUser = null;
+      aktifPersonel = null;
+
+      loginBox.classList.remove("hidden");
+      panelBox.classList.add("hidden");
+      logoutBtn.classList.add("hidden");
+      return;
+    }
+
+    try {
+      aktifUser = user;
+      aktifPersonel = await personelBilgisiGetir(user.uid);
+
+      loginBox.classList.add("hidden");
+      panelBox.classList.remove("hidden");
+      logoutBtn.classList.remove("hidden");
+
+      personelInfo.innerHTML = `
+        <b>Giriş yapan personel:</b><br>
+        👤 ${aktifPersonel.isim || "-"}<br>
+        📞 ${aktifPersonel.telefon || "-"}<br>
+        ✉️ ${user.email || "-"}
+      `;
+
+      tarihSiniriAyarla();
+      saatleriYukle();
+      await randevularimiYukle();
+
+    } catch (e) {
+      alert(e.message);
+      await signOut(auth);
+    }
+  });
+</script>
+
+</body>
+</html>
