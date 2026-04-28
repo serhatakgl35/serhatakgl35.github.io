@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Berber Randevu Sistemi</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    html {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+      -webkit-text-size-adjust: 100%;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+      background: #ffffff;
+      color: #111;
+      font-family: Arial, sans-serif;
+      touch-action: pan-y;
+      overscroll-behavior-x: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .topnav {
+      width: 100%;
+      background: #111;
+      color: #fff;
+      padding: 14px 16px;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .topnav a {
+      color: #fff;
+      text-decoration: none;
+      background: #222;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    .topnav a.active {
+      background: #2d2d2d;
+      font-weight: 700;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+      overflow-x: hidden;
+      padding: 10px;
+    }
+
+    .box {
+      width: 100%;
+      max-width: 100%;
+      background: #fff;
+      padding: 14px;
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+      overflow-x: hidden;
+    }
+
+    h1, h2 {
+      margin-top: 0;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 18px;
+    }
+
+    h2 {
+      font-size: 20px;
+      margin-bottom: 12px;
+      margin-top: 22px;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #222;
+    }
+
+    input,
+    select,
+    button {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      padding: 12px;
+      margin-top: 0;
+      margin-bottom: 14px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 16px;
+      line-height: 1.2;
+      background: #fff;
+      appearance: none;
+      -webkit-appearance: none;
+      font-family: Arial, sans-serif;
+    }
+
+    input,
+    select {
+      color: #111;
+    }
+
+    button {
+      border: none;
+      background: #111;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s ease, transform 0.05s ease;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    button:hover { opacity: 0.94; }
+    button:active { transform: scale(0.995); }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    li {
+      width: 100%;
+      max-width: 100%;
+      background: #fff;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      padding: 12px;
+      border: 1px solid #eee;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .appointment-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .appointment-main {
+      min-width: 0;
+      flex: 1 1 220px;
+    }
+
+    .mine { border-left: 5px solid #111; }
+
+    .badge {
+      display: inline-block;
+      max-width: 100%;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      background: #efefef;
+      margin-left: 6px;
+      margin-top: 4px;
+      vertical-align: middle;
+      overflow-wrap: anywhere;
+    }
+
+    .info {
+      font-size: 14px;
+      color: #555;
+      margin-top: -6px;
+      margin-bottom: 14px;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    .note {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+
+    .login-panel {
+      margin-bottom: 20px;
+      padding: 14px;
+      border: 1px solid #eee;
+      border-radius: 14px;
+      background: #fafafa;
+    }
+
+    .login-panel h2,
+    .login-panel h3 {
+      margin-top: 0;
+    }
+
+    .login-divider {
+      border: none;
+      border-top: 1px solid #e5e5e5;
+      margin: 18px 0;
+    }
+
+    .personel-durum {
+      display: none;
+      margin-bottom: 16px;
+      padding: 12px;
+      border-radius: 12px;
+      background: #f1f1f1;
+      line-height: 1.45;
+      font-size: 14px;
+    }
+
+    .personel-durum button {
+      margin-top: 10px;
+      margin-bottom: 0;
+    }
+
+    .empty {
+      color: #666;
+      font-style: italic;
+    }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .kod-kutusu {
+      display: none;
+      background: #f7f7f7;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: -4px;
+      margin-bottom: 14px;
+      width: 100%;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+    }
+
+    .kod-kutusu strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .kod-deger {
+      font-size: 22px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      word-break: break-all;
+    }
+
+    .cancel-box {
+      margin-top: 24px;
+      padding-top: 12px;
+      border-top: 1px solid #eee;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .cancel-btn { background: #c62828; }
+    .calendar-btn { margin-top: 12px; margin-bottom: 0; background: #111; }
+
+    @media (max-width: 600px) {
+      .page { padding: 8px; }
+      .box { padding: 12px; border-radius: 12px; }
+      h1 { font-size: 21px; }
+      h2 { font-size: 18px; }
+      .row-2 { grid-template-columns: 1fr; gap: 0; }
+      input, select, button { font-size: 16px; padding: 12px; }
+      .kod-deger { font-size: 20px; letter-spacing: 1px; }
+      .badge { margin-left: 0; margin-right: 6px; }
+    }
+
+    @media (max-width: 380px) {
+      .page { padding: 6px; }
+      .box { padding: 10px; }
+      h1 { font-size: 19px; }
+      h2 { font-size: 17px; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="topnav">
+    <a href="index.html" class="active">Ana Sayfa</a>
+    <a href="takvim.html">Takvimli Liste</a>
+    <a href="istatistik.html">İstatistik</a>
+  </nav>
+
+  <div class="page">
+    <div class="box">
+      <h1>💈 Berber Randevu Sistemi</h1>
+
+      <div id="loginPanel" class="login-panel">
+        <h2>🔐 Personel Girişi</h2>
+        <div class="note" style="margin-bottom:12px;">
+          Randevu alabilmek için önce telefon numarası ve şifre ile giriş yapın. İlk defa kullanıyorsanız aşağıdaki İlk Kayıt bölümünden kayıt olun.
+        </div>
+
+        <label for="loginPhone">Telefon</label>
+        <input type="tel" id="loginPhone" placeholder="Telefon numaranız" inputmode="tel" autocomplete="tel" />
+
+        <label for="loginPass">Şifre</label>
+        <input type="password" id="loginPass" placeholder="Şifreniz" autocomplete="current-password" />
+
+        <button id="btnLogin" type="button">Giriş Yap</button>
+
+        <hr class="login-divider" />
+
+        <h3>İlk Kayıt Ol</h3>
+
+        <label for="regName">Ad Soyad</label>
+        <input type="text" id="regName" placeholder="Ad Soyad" autocomplete="name" />
+
+        <label for="regPhone">Telefon</label>
+        <input type="tel" id="regPhone" placeholder="Telefon numaranız" inputmode="tel" autocomplete="tel" />
+
+        <label for="regPass">Şifre Belirle</label>
+        <input type="password" id="regPass" placeholder="En az 4 karakter" autocomplete="new-password" />
+
+        <label for="regCode">Kayıt Kodu</label>
+        <input type="text" id="regCode" placeholder="Personel kayıt kodu" autocomplete="off" />
+
+        <button id="btnRegister" type="button">Kayıt Ol</button>
+      </div>
+
+      <div id="personelDurum" class="personel-durum"></div>
+
+      <label for="name">İsim</label>
+      <input type="text" id="name" placeholder="Adınızı girin" autocomplete="name" />
+
+      <label for="phone">Telefon</label>
+      <input type="tel" id="phone" placeholder="Telefon numaranızı girin" inputmode="tel" autocomplete="tel" />
+
+      <div class="row-2">
+        <div>
+          <label for="service">Hizmet</label>
+          <select id="service">
+            <option>Saç Kesimi</option>
+            <option>Saç Kesimi + Yıkama</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div>
+          <label for="date">Tarih</label>
+          <input type="date" id="date" />
+        </div>
+
+        <div>
+          <label for="time">Saat</label>
+          <select id="time"></select>
+        </div>
+      </div>
+
+      <div class="info" id="selectedInfo">Lütfen tarih seçin.</div>
+
+      <button id="btnRandevu" type="button">Randevu Al</button>
+
+      <div id="kodKutusu" class="kod-kutusu">
+        <strong>Silme Kodunuz</strong>
+        <div id="silmeKoduYazi" class="kod-deger"></div>
+        <div class="note" id="takvimNotu" style="margin:8px 0 0 0;">
+          Bu kodu kaydedin. Randevu iptali için telefon numaranızla birlikte gerekli olacaktır.
+        </div>
+        <button id="btnTakvimeEkle" class="calendar-btn" type="button" style="display:none;">Takvime Ekle</button>
+      </div>
+
+
+      <div class="cancel-box">
+        <h2>Randevu İptal Et</h2>
+
+        <input type="tel" id="cancelPhone" placeholder="Telefon numaranız" inputmode="tel" autocomplete="tel" />
+        <input type="text" id="cancelCode" placeholder="Silme kodunuz" autocomplete="one-time-code" />
+        <button id="btnIptal" class="cancel-btn" type="button">Randevuyu İptal Et</button>
+
+        <div class="note">
+          Randevu iptali için randevu alırken verilen telefon numarası ve silme kodu birlikte gereklidir.
+        </div>
+      </div>
+
+      <div class="note" style="margin-top:16px;">
+        Not: Randevu alındıktan sonraki 9 gün içinde tekrar randevu alınamaz. İki randevu arasında en az 10 gün fark olmalıdır.
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      getDocs,
+      deleteDoc,
+      doc,
+      query,
+      where,
+      getDoc,
+      setDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",
+      authDomain: "berber-randevu-14f7f.firebaseapp.com",
+      projectId: "berber-randevu-14f7f",
+      storageBucket: "berber-randevu-14f7f.firebasestorage.app",
+      messagingSenderId: "280530860977",
+      appId: "1:280530860977:web:52c0df04c228896f211b90"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const TELEGRAM_BOT_TOKEN = "8635739693:AAFYGCIgGW7WTwvMIhh5Yvy_wXttPR2kC28";
+    const TELEGRAM_CHAT_ID = "-1003670319520";
+
+    const nameInput = document.getElementById("name");
+    const phoneInput = document.getElementById("phone");
+    const serviceSelect = document.getElementById("service");
+    const dateInput = document.getElementById("date");
+    const timeSelect = document.getElementById("time");
+    const btnRandevu = document.getElementById("btnRandevu");
+    const liste = document.getElementById("liste");
+    const selectedInfo = document.getElementById("selectedInfo");
+    const kodKutusu = document.getElementById("kodKutusu");
+    const silmeKoduYazi = document.getElementById("silmeKoduYazi");
+    const takvimNotu = document.getElementById("takvimNotu");
+    const btnTakvimeEkle = document.getElementById("btnTakvimeEkle");
+    const cancelPhoneInput = document.getElementById("cancelPhone");
+    const cancelCodeInput = document.getElementById("cancelCode");
+    const btnIptal = document.getElementById("btnIptal");
+
+    const loginPanel = document.getElementById("loginPanel");
+    const personelDurum = document.getElementById("personelDurum");
+    const loginPhoneInput = document.getElementById("loginPhone");
+    const loginPassInput = document.getElementById("loginPass");
+    const btnLogin = document.getElementById("btnLogin");
+    const regNameInput = document.getElementById("regName");
+    const regPhoneInput = document.getElementById("regPhone");
+    const regPassInput = document.getElementById("regPass");
+    const regCodeInput = document.getElementById("regCode");
+    const btnRegister = document.getElementById("btnRegister");
+
+    const saatler = ["08:20", "09:00", "09:50", "10:30", "11:20", "13:20", "14:00", "14:50", "15:30"];
+
+    const KOLEKSIYON = "randevular";
+    const GECMIS_KOLEKSIYON = "randevu_gecmisi";
+    const KAPALI_GUNLER_KOLEKSIYON = "kapali_gunler";
+    const KAPALI_SAATLER_KOLEKSIYON = "kapali_saatler";
+    const HATIRLATMALAR_KOLEKSIYON = "hatirlatmalar";
+    const PERSONELLER_KOLEKSIYON = "personeller";
+    const PERSONEL_KAYIT_KODU = "KANTIN10";
+    const MAKSIMUM_RANDEVU_GUNU = 15;
+
+    const OTOMATIK_GIZLEME_DAKIKA = 1;
+    const TEMIZLIK_KONTROL_SURESI_MS = 120000;
+
+    const RESMI_TATILLER_2026 = [
+      "2026-01-01","2026-03-19","2026-03-20","2026-03-21","2026-03-22",
+      "2026-04-23","2026-05-01","2026-05-19","2026-05-26","2026-05-27",
+      "2026-05-28","2026-05-29","2026-05-30","2026-07-15","2026-08-30",
+      "2026-10-28","2026-10-29"
+    ];
+
+    let userId = localStorage.getItem("berberUserId");
+    if (!userId) {
+      userId = crypto.randomUUID();
+      localStorage.setItem("berberUserId", userId);
+    }
+
+    let aktifRandevularCache = [];
+    let personelGirisYapildi = false;
+    let aktifPersonelAd = "";
+    let aktifPersonelTelefon = "";
+
+    function telegramMesajGonder(mesaj) {
+      if (!TELEGRAM_BOT_TOKEN || TELEGRAM_BOT_TOKEN === "BURAYA_BOT_TOKEN") return;
+      if (!TELEGRAM_CHAT_ID || TELEGRAM_CHAT_ID === "BURAYA_CHAT_ID") return;
+
+      fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: mesaj, parse_mode: "HTML" })
+      })
+      .then(r => r.json())
+      .then(data => console.log("Telegram sonucu:", data))
+      .catch(err => console.error("Telegram hatası:", err));
+    }
+
+    function temizMetin(value) {
+      return String(value || "").trim();
+    }
+
+    function formatDateLocal(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function temizleTel(tel) {
+      return temizMetin(tel).replace(/\D/g, "");
+    }
+
+    function telefonuDuzenle(tel) {
+      let temiz = temizleTel(tel);
+      if (!temiz) return "";
+      if (temiz.startsWith("90")) temiz = "0" + temiz.slice(2);
+      if (!temiz.startsWith("0")) temiz = "0" + temiz;
+      return temiz.slice(0, 11);
+    }
+
+    function telefonInputDuzenle(input) {
+      input.value = telefonuDuzenle(input.value);
+    }
+
+    function personelPaneliniAc(ad, telefon) {
+      personelGirisYapildi = true;
+      aktifPersonelAd = temizMetin(ad);
+      aktifPersonelTelefon = telefonuDuzenle(telefon);
+
+      nameInput.value = aktifPersonelAd;
+      phoneInput.value = aktifPersonelTelefon;
+      nameInput.readOnly = true;
+      phoneInput.readOnly = true;
+
+      loginPanel.style.display = "none";
+      personelDurum.style.display = "block";
+      personelDurum.innerHTML =
+        "<b>Giriş yapan personel:</b><br>" +
+        "👤 " + kacisHtml(aktifPersonelAd || "-") + "<br>" +
+        "📞 " + kacisHtml(aktifPersonelTelefon || "-") +
+        '<button id="btnPersonelCikis" type="button">Çıkış Yap</button>';
+
+      document.getElementById("btnPersonelCikis").addEventListener("click", function () {
+        sessionStorage.removeItem("personelTelefon");
+        sessionStorage.removeItem("personelSifre");
+        location.reload();
+      });
+    }
+
+    async function personelKayitOl() {
+      const ad = temizMetin(regNameInput.value);
+      const telefon = telefonuDuzenle(regPhoneInput.value);
+      const sifre = temizMetin(regPassInput.value);
+      const kod = temizMetin(regCodeInput.value);
+
+      regPhoneInput.value = telefon;
+
+      if (!ad) return alert("Lütfen ad soyad girin.");
+      if (!telefon || telefon.length !== 11) return alert("Telefon numarasını 05391234567 şeklinde girin.");
+      if (!sifre || sifre.length < 4) return alert("Şifre en az 4 karakter olmalıdır.");
+      if (kod !== PERSONEL_KAYIT_KODU) return alert("Kayıt kodu yanlış.");
+
+      btnRegister.disabled = true;
+      try {
+        const ref = doc(db, PERSONELLER_KOLEKSIYON, telefon);
+        const snap = await getDoc(ref);
+
+        if (snap.exists()) {
+          alert("Bu telefon numarası daha önce kayıt olmuş. Giriş yapabilirsiniz.");
+          return;
+        }
+
+        await setDoc(ref, {
+          isim: ad,
+          telefon: telefon,
+          sifre: sifre,
+          aktif: true,
+          createdAt: new Date().toISOString()
+        });
+
+        alert("Kayıt başarılı. Şimdi giriş yapabilirsiniz.");
+        loginPhoneInput.value = telefon;
+        loginPassInput.value = sifre;
+        regNameInput.value = "";
+        regPhoneInput.value = "";
+        regPassInput.value = "";
+        regCodeInput.value = "";
+      } catch (error) {
+        console.error(error);
+        alert("Kayıt hatası: " + error.message);
+      } finally {
+        btnRegister.disabled = false;
+      }
+    }
+
+    async function personelGirisYap() {
+      const telefon = telefonuDuzenle(loginPhoneInput.value);
+      const sifre = temizMetin(loginPassInput.value);
+
+      loginPhoneInput.value = telefon;
+
+      if (!telefon || telefon.length !== 11) return alert("Telefon numarasını 05391234567 şeklinde girin.");
+      if (!sifre) return alert("Lütfen şifre girin.");
+
+      btnLogin.disabled = true;
+      try {
+        const ref = doc(db, PERSONELLER_KOLEKSIYON, telefon);
+        const snap = await getDoc(ref);
+
+        if (!snap.exists()) {
+          alert("Bu telefon numarası kayıtlı değil. Önce İlk Kayıt Ol bölümünden kayıt olun.");
+          return;
+        }
+
+        const data = snap.data();
+        if (data.aktif === false) {
+          alert("Bu personel hesabı pasif durumda.");
+          return;
+        }
+
+        if (String(data.sifre || "") !== sifre) {
+          alert("Şifre hatalı.");
+          return;
+        }
+
+        sessionStorage.setItem("personelTelefon", telefon);
+        sessionStorage.setItem("personelSifre", sifre);
+        personelPaneliniAc(data.isim || "", telefon);
+      } catch (error) {
+        console.error(error);
+        alert("Giriş hatası: " + error.message);
+      } finally {
+        btnLogin.disabled = false;
+      }
+    }
+
+    async function otomatikPersonelGirisKontrol() {
+      const telefon = sessionStorage.getItem("personelTelefon");
+      const sifre = sessionStorage.getItem("personelSifre");
+      if (!telefon || !sifre) return;
+      loginPhoneInput.value = telefon;
+      loginPassInput.value = sifre;
+      await personelGirisYap();
+    }
+
+    function generateDeleteCode() {
+      return Math.floor(100000 + Math.random() * 900000).toString();
+    }
+
+    function parseDateOnly(dateStr) {
+      const parts = temizMetin(dateStr).split("-").map(Number);
+      if (parts.length !== 3 || parts.some(isNaN)) return null;
+      return new Date(parts[0], parts[1] - 1, parts[2], 12, 0, 0, 0);
+    }
+
+    function seciliTarih15GunIcindeMi(tarih) {
+      const secilen = parseDateOnly(tarih);
+      if (!secilen) return false;
+      const bugun = parseDateOnly(formatDateLocal(new Date()));
+      const max = new Date(bugun);
+      max.setDate(max.getDate() + MAKSIMUM_RANDEVU_GUNU);
+      return secilen >= bugun && secilen <= max;
+    }
+
+    function diffInDays(a, b) {
+      return Math.floor((a.getTime() - b.getTime()) / 86400000);
+    }
+
+    function kacisHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function parseAppointmentDateTime(dateStr, timeStr) {
+      const d = temizMetin(dateStr).split("-").map(Number);
+      const t = temizMetin(timeStr).split(":").map(Number);
+      if (d.length !== 3 || t.length !== 2 || d.some(isNaN) || t.some(isNaN)) return null;
+      return new Date(d[0], d[1] - 1, d[2], t[0], t[1], 0, 0);
+    }
+
+    function kayitTarih(data) { return temizMetin(data.date || data.tarih || ""); }
+    function kayitSaat(data) { return temizMetin(data.time || data.zaman || ""); }
+    function kayitAd(data) { return temizMetin(data.name || data.isim || ""); }
+    function kayitTelefon(data) { return temizMetin(data.phone || data.telefon || ""); }
+    function kayitHizmet(data) { return temizMetin(data.service || data.hizmet || ""); }
+    function kayitUserId(data) { return temizMetin(data.userId || data["Kullanıcı kimliği"] || ""); }
+    function kayitSilmeKodu(data) { return temizMetin(data.silmeKodu || data.deleteCode || ""); }
+
+    function randevuGecmisMi(data, now = new Date()) {
+      const baslangic = parseAppointmentDateTime(kayitTarih(data), kayitSaat(data));
+      if (!baslangic) return false;
+      const silinmeAni = new Date(baslangic);
+      silinmeAni.setMinutes(silinmeAni.getMinutes() + OTOMATIK_GIZLEME_DAKIKA);
+      return now.getTime() >= silinmeAni.getTime();
+    }
+
+    function secilenSaatGecmisMi(tarih, saat, now = new Date()) {
+      const randevuTarihi = parseAppointmentDateTime(tarih, saat);
+      if (!randevuTarihi) return false;
+      return now.getTime() >= randevuTarihi.getTime();
+    }
+
+    function gecmisSaatleriGetir(tarih, now = new Date()) {
+      const temizTarih = temizMetin(tarih);
+      if (!temizTarih || temizTarih !== formatDateLocal(now)) return [];
+      return saatler.filter(saat => secilenSaatGecmisMi(temizTarih, saat, now));
+    }
+
+    function haftaSonuMu(tarih) {
+      const p = temizMetin(tarih).split("-").map(Number);
+      if (p.length !== 3 || p.some(isNaN)) return false;
+      const gun = new Date(p[0], p[1] - 1, p[2], 12, 0, 0, 0).getDay();
+      return gun === 0 || gun === 6;
+    }
+
+    function resmiTatilMi2026(tarih) {
+      return RESMI_TATILLER_2026.includes(temizMetin(tarih));
+    }
+
+    function otomatikKapaliGunMu(tarih) {
+      return haftaSonuMu(tarih) || resmiTatilMi2026(tarih);
+    }
+
+    async function loadAktifRandevular(force = false) {
+      if (!force && Array.isArray(aktifRandevularCache) && aktifRandevularCache.length >= 0) {
+        return aktifRandevularCache;
+      }
+      const snap = await getDocs(collection(db, KOLEKSIYON));
+      aktifRandevularCache = [];
+      snap.forEach(d => aktifRandevularCache.push({ id: d.id, ...d.data() }));
+      return aktifRandevularCache;
+    }
+
+    async function gunKapaliMi(tarih) {
+      const temizTarih = temizMetin(tarih);
+      if (!temizTarih) return false;
+      if (otomatikKapaliGunMu(temizTarih)) return true;
+      try {
+        const gunRef = doc(db, KAPALI_GUNLER_KOLEKSIYON, temizTarih);
+        const gunSnap = await getDoc(gunRef);
+        return gunSnap.exists();
+      } catch (error) {
+        console.error("Kapalı gün kontrol hatası:", error);
+        return false;
+      }
+    }
+
+    async function kapaliSaatleriGetir(tarih) {
+      const temizTarih = temizMetin(tarih);
+      if (!temizTarih) return [];
+      try {
+        const q = query(collection(db, KAPALI_SAATLER_KOLEKSIYON), where("tarih", "==", temizTarih));
+        const snap = await getDocs(q);
+        const kapaliSaatler = [];
+        snap.forEach(docItem => {
+          const saat = temizMetin(docItem.data()?.saat || "");
+          if (saat) kapaliSaatler.push(saat);
+        });
+        return kapaliSaatler;
+      } catch (error) {
+        console.error("Kapalı saatler alınamadı:", error);
+        return [];
+      }
+    }
+
+    async function hatirlatmaKaydiOlustur(randevuId, name, phone, service, date, time, silmeKodu) {
+      try {
+        const [yil, ay, gun] = temizMetin(date).split("-").map(Number);
+        const [ss, dd] = temizMetin(time).split(":").map(Number);
+        if ([yil, ay, gun, ss, dd].some(isNaN)) return;
+
+        const randevuDate = new Date(yil, ay - 1, gun, ss, dd, 0, 0);
+        const hatirlatmaDate = new Date(randevuDate.getTime() - 10 * 60 * 1000);
+
+        await addDoc(collection(db, HATIRLATMALAR_KOLEKSIYON), {
+          randevuId,
+          isim: name,
+          telefon: phone,
+          hizmet: service,
+          tarih: date,
+          saat: time,
+          silmeKodu,
+          randevuZamani: randevuDate.toISOString(),
+          gonderimZamani: hatirlatmaDate.toISOString(),
+          gonderildi: false,
+          createdAt: new Date().toISOString()
+        });
+      } catch (error) {
+        console.error("Hatırlatma kaydı oluşturma hatası:", error);
+      }
+    }
+
+    async function ilgiliHatirlatmalariSil(randevuData, randevuId = "") {
+      try {
+        const snap = await getDocs(collection(db, HATIRLATMALAR_KOLEKSIYON));
+        const silinecekler = [];
+        snap.forEach(docItem => {
+          const data = docItem.data();
+          const ayniRandevuId = randevuId && data.randevuId === randevuId;
+          const ayniIcerik =
+            telefonuDuzenle(data.telefon) === telefonuDuzenle(kayitTelefon(randevuData)) &&
+            temizMetin(data.tarih) === kayitTarih(randevuData) &&
+            temizMetin(data.saat) === kayitSaat(randevuData) &&
+            temizMetin(data.silmeKodu) === kayitSilmeKodu(randevuData);
+          if (ayniRandevuId || ayniIcerik) {
+            silinecekler.push(deleteDoc(doc(db, HATIRLATMALAR_KOLEKSIYON, docItem.id)));
+          }
+        });
+        if (silinecekler.length) await Promise.all(silinecekler);
+      } catch (error) {
+        console.error("İlgili hatırlatmaları silme hatası:", error);
+      }
+    }
+
+    async function gecmiseTasiVeSil(docId, data, reason) {
+      try {
+        const hedefData = {
+          ...data,
+          originalId: data.originalId || docId,
+          archivedAt: new Date().toISOString(),
+          archiveReason: reason || data.archiveReason || "otomatik_gecmise_tasindi"
+        };
+        await setDoc(doc(db, GECMIS_KOLEKSIYON, docId), hedefData, { merge: true });
+        await deleteDoc(doc(db, KOLEKSIYON, docId));
+        await ilgiliHatirlatmalariSil(data, docId);
+      } catch (error) {
+        console.error("Geçmişe taşıma hatası:", docId, error);
+      }
+    }
+
+    async function gecmisRandevulariTemizle() {
+      try {
+        const kayitlar = await loadAktifRandevular(true);
+        const simdi = new Date();
+        const isler = kayitlar
+          .filter(data => kayitTarih(data) && kayitSaat(data) && randevuGecmisMi(data, simdi))
+          .map(data => gecmiseTasiVeSil(data.id, data, "saati_gecen_randevu_tasindi"));
+
+        if (isler.length) {
+          await Promise.all(isler);
+          await loadAktifRandevular(true);
+        }
+      } catch (error) {
+        console.error("Geçmiş randevu temizleme hatası:", error);
+      }
+    }
+
+    async function getOccupiedTimesForDate(selectedDate) {
+      const temizTarih = temizMetin(selectedDate);
+      const kayitlar = await loadAktifRandevular();
+      return kayitlar
+        .filter(data => kayitTarih(data) === temizTarih && kayitSaat(data) && !randevuGecmisMi(data))
+        .map(data => kayitSaat(data));
+    }
+
+    function buildTimeOptions(occupiedTimes, closedTimes, pastTimes) {
+      timeSelect.innerHTML = "";
+      saatler.forEach(saat => {
+        const option = document.createElement("option");
+        option.value = saat;
+        if (pastTimes.includes(saat)) {
+          option.textContent = `${saat} - GEÇMİŞ`;
+          option.disabled = true;
+        } else if (closedTimes.includes(saat)) {
+          option.textContent = `${saat} - KAPALI`;
+          option.disabled = true;
+        } else if (occupiedTimes.includes(saat)) {
+          option.textContent = `${saat} - DOLU`;
+          option.disabled = true;
+        } else {
+          option.textContent = `${saat} - Müsait`;
+        }
+        timeSelect.appendChild(option);
+      });
+
+      const firstAvailable = Array.from(timeSelect.options).find(opt => !opt.disabled);
+      if (firstAvailable) {
+        timeSelect.value = firstAvailable.value;
+        timeSelect.disabled = false;
+      } else {
+        timeSelect.disabled = true;
+      }
+    }
+
+    async function updateTimeOptions() {
+      const selectedDate = temizMetin(dateInput.value);
+      if (!selectedDate) {
+        buildTimeOptions([], [], []);
+        selectedInfo.textContent = "Lütfen tarih seçin.";
+        btnRandevu.disabled = false;
+        return;
+      }
+
+      const gunKapali = await gunKapaliMi(selectedDate);
+      if (gunKapali) {
+        timeSelect.innerHTML = '<option value="">Bu gün randevuya kapalı</option>';
+        timeSelect.disabled = true;
+        btnRandevu.disabled = true;
+        if (haftaSonuMu(selectedDate)) {
+          selectedInfo.textContent = `${selectedDate} hafta sonu olduğu için randevuya kapalı.`;
+        } else if (resmiTatilMi2026(selectedDate)) {
+          selectedInfo.textContent = `${selectedDate} resmi tatil olduğu için randevuya kapalı.`;
+        } else {
+          selectedInfo.textContent = `${selectedDate} tarihi randevuya kapalı.`;
+        }
+        return;
+      }
+
+      const [occupied, closedTimes] = await Promise.all([
+        getOccupiedTimesForDate(selectedDate),
+        kapaliSaatleriGetir(selectedDate)
+      ]);
+      const pastTimes = gecmisSaatleriGetir(selectedDate);
+      buildTimeOptions(occupied, closedTimes, pastTimes);
+
+      const kullanilamayanSaatler = new Set([...occupied, ...closedTimes, ...pastTimes]);
+      const doluSayisi = occupied.length;
+      const kapaliSayisi = closedTimes.length;
+      const gecmisSayisi = pastTimes.length;
+      const musait = saatler.length - kullanilamayanSaatler.size;
+
+      btnRandevu.disabled = musait <= 0;
+      if (musait <= 0) {
+        selectedInfo.textContent = `${selectedDate} için müsait saat kalmadı. ${doluSayisi} dolu, ${kapaliSayisi} kapalı, ${gecmisSayisi} geçmiş saat var.`;
+      } else {
+        selectedInfo.textContent = `${selectedDate} için ${musait} müsait, ${doluSayisi} dolu, ${kapaliSayisi} kapalı, ${gecmisSayisi} geçmiş saat var.`;
+      }
+    }
+
+    async function kontrol9GunTel(phone, yeniTarih) {
+      const temizTel = telefonuDuzenle(phone);
+      const yeniRandevuTarihi = parseDateOnly(yeniTarih);
+      if (!yeniRandevuTarihi) return { engelVar: false, enErkenTarih: null };
+
+      const tumKayitlar = await loadAktifRandevular();
+      let engelVar = false;
+      let enErkenTarih = null;
+
+      tumKayitlar.forEach(data => {
+        const kayitTel = telefonuDuzenle(kayitTelefon(data));
+        const tarih = kayitTarih(data);
+        if (!kayitTel || !tarih || kayitTel !== temizTel) return;
+        const eskiRandevuTarihi = parseDateOnly(tarih);
+        if (!eskiRandevuTarihi) return;
+        const farkGun = Math.abs(diffInDays(yeniRandevuTarihi, eskiRandevuTarihi));
+        if (farkGun < 10) {
+          engelVar = true;
+          const izinTarihi = new Date(eskiRandevuTarihi);
+          izinTarihi.setDate(izinTarihi.getDate() + 10);
+          if (!enErkenTarih || izinTarihi > enErkenTarih) enErkenTarih = izinTarihi;
+        }
+      });
+
+      return { engelVar, enErkenTarih: enErkenTarih ? formatDateLocal(enErkenTarih) : null };
+    }
+
+    async function listele() {
+      // Herkese açık müşteri sayfasında randevu alan kişilerin isim/telefon bilgileri gösterilmez.
+      // Saat dolu/müsait kontrolü arka planda çalışmaya devam eder.
+      if (liste) liste.innerHTML = "";
+    }
+
+    function ikiHane(value) {
+      return String(value).padStart(2, "0");
+    }
+
+    function formatDateTimeForICS(dateObj) {
+      return dateObj.getFullYear() +
+        ikiHane(dateObj.getMonth() + 1) +
+        ikiHane(dateObj.getDate()) + "T" +
+        ikiHane(dateObj.getHours()) +
+        ikiHane(dateObj.getMinutes()) +
+        ikiHane(dateObj.getSeconds());
+    }
+
+    function formatTarihSaatGosterim(tarih, saat) {
+      const tarihObj = parseAppointmentDateTime(tarih, saat);
+      if (!tarihObj) return `${tarih} ${saat}`;
+      return `${ikiHane(tarihObj.getDate())}/${ikiHane(tarihObj.getMonth() + 1)}/${tarihObj.getFullYear()} ${ikiHane(tarihObj.getHours())}:${ikiHane(tarihObj.getMinutes())}`;
+    }
+
+    function icsMetniKacir(metin) {
+      return String(metin || "")
+        .replace(/\\/g, "\\\\")
+        .replace(/\r\n/g, "\n")
+        .replace(/\n/g, "\\n")
+        .replace(/,/g, "\\,")
+        .replace(/;/g, "\\;");
+    }
+
+    function takvimIcsIcerigiOlustur(data) {
+      const baslangic = parseAppointmentDateTime(data.date, data.time);
+      if (!baslangic) return "";
+
+      const bitis = new Date(baslangic.getTime() + 45 * 60 * 1000);
+      const olusturma = new Date();
+      const aciklama =
+        `İsim: ${data.name}\n` +
+        `Telefon: ${data.phone}\n` +
+        `Hizmet: ${data.service}\n` +
+        `Tarih: ${formatTarihSaatGosterim(data.date, data.time)}\n` +
+        `Silme Kodu: ${data.silmeKodu}\n\n` +
+        "Bu kodu kaydedin. Randevu iptali için telefon numaranızla birlikte gereklidir.";
+
+      const uid = `randevu-${Date.now()}-${Math.random().toString(36).slice(2)}@kantin10.com.tr`;
+
+      return [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "CALSCALE:GREGORIAN",
+        "METHOD:PUBLISH",
+        "BEGIN:VEVENT",
+        "UID:" + uid,
+        "DTSTAMP:" + formatDateTimeForICS(olusturma),
+        "DTSTART:" + formatDateTimeForICS(baslangic),
+        "DTEND:" + formatDateTimeForICS(bitis),
+        "SUMMARY:" + icsMetniKacir("Berber Randevusu"),
+        "DESCRIPTION:" + icsMetniKacir(aciklama),
+        "BEGIN:VALARM",
+        "TRIGGER:-P1D",
+        "ACTION:DISPLAY",
+        "DESCRIPTION:" + icsMetniKacir("Berber Randevusu - 1 gün kaldı"),
+        "END:VALARM",
+        "BEGIN:VALARM",
+        "TRIGGER:-PT1H",
+        "ACTION:DISPLAY",
+        "DESCRIPTION:" + icsMetniKacir("Berber Randevusu - 1 saat kaldı"),
+        "END:VALARM",
+        "END:VEVENT",
+        "END:VCALENDAR"
+      ].join("\r\n");
+    }
+
+    function takvimeEkleButonunuHazirla(data) {
+      const icsIcerik = takvimIcsIcerigiOlustur(data);
+      if (!icsIcerik) {
+        btnTakvimeEkle.style.display = "none";
+        return;
+      }
+
+      btnTakvimeEkle.style.display = "block";
+      btnTakvimeEkle.onclick = function () {
+        try {
+          const blob = new Blob([icsIcerik], { type: "text/calendar;charset=utf-8" });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `berber-randevu-${data.date}-${data.time.replace(":", "-")}.ics`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        } catch (error) {
+          console.error("Takvim dosyası oluşturma hatası:", error);
+          alert("Takvim dosyası oluşturulurken bir hata oluştu.");
+        }
+      };
+    }
+
+    async function arayuzuYenile(skipCleanup = false) {
+      if (!skipCleanup) await gecmisRandevulariTemizle();
+      await loadAktifRandevular(true);
+      await updateTimeOptions();
+      await listele();
+    }
+
+    const today = new Date();
+    dateInput.value = formatDateLocal(today);
+    dateInput.min = formatDateLocal(today);
+    const maxRandevuTarihi = new Date(today);
+    maxRandevuTarihi.setDate(maxRandevuTarihi.getDate() + MAKSIMUM_RANDEVU_GUNU);
+    dateInput.max = formatDateLocal(maxRandevuTarihi);
+
+    phoneInput.addEventListener("input", () => {
+      phoneInput.value = telefonuDuzenle(phoneInput.value);
+    });
+
+    loginPhoneInput.addEventListener("input", () => telefonInputDuzenle(loginPhoneInput));
+    regPhoneInput.addEventListener("input", () => telefonInputDuzenle(regPhoneInput));
+    btnRegister.addEventListener("click", personelKayitOl);
+    btnLogin.addEventListener("click", personelGirisYap);
+
+    cancelPhoneInput.addEventListener("input", () => {
+      cancelPhoneInput.value = telefonuDuzenle(cancelPhoneInput.value);
+    });
+
+    btnRandevu.addEventListener("click", async function () {
+      if (!personelGirisYapildi) {
+        alert("Randevu alabilmek için önce personel girişi yapmalısınız.");
+        return;
+      }
+
+      const name = aktifPersonelAd;
+      const phone = aktifPersonelTelefon;
+      nameInput.value = name;
+      phoneInput.value = phone;
+
+      const service = serviceSelect.value;
+      const date = temizMetin(dateInput.value);
+      const time = temizMetin(timeSelect.value);
+
+      phoneInput.value = phone;
+
+      if (!name) return alert("Lütfen isim girin.");
+      if (!phone) return alert("Lütfen telefon girin.");
+      if (phone.length < 10) return alert("Geçerli bir telefon numarası girin.");
+      if (!date) return alert("Lütfen tarih seçin.");
+      if (!seciliTarih15GunIcindeMi(date)) return alert("En fazla önümüzdeki 15 gün için randevu alabilirsiniz.");
+      if (!time || timeSelect.disabled) return alert("Uygun saat kalmadı.");
+
+      btnRandevu.disabled = true;
+      try {
+        await arayuzuYenile();
+
+        const gunKapali = await gunKapaliMi(date);
+        if (gunKapali) {
+          if (haftaSonuMu(date)) {
+            alert("Seçtiğiniz tarih hafta sonu olduğu için randevuya kapalı.");
+          } else if (resmiTatilMi2026(date)) {
+            alert("Seçtiğiniz tarih resmi tatil olduğu için randevuya kapalı.");
+          } else {
+            alert("Seçtiğiniz gün randevuya kapalı.");
+          }
+          return;
+        }
+
+        if (secilenSaatGecmisMi(date, time)) {
+          alert("Seçtiğiniz saat geçtiği için bu saate randevu alınamaz.");
+          return;
+        }
+
+        const kapaliSaatler = await kapaliSaatleriGetir(date);
+        if (kapaliSaatler.includes(time)) {
+          alert("Seçtiğiniz saat randevuya kapalı.");
+          return;
+        }
+
+        const kontrol = await kontrol9GunTel(phone, date);
+        if (kontrol.engelVar) {
+          alert(`Sistemde eski randevu kaydınız bulunmuştur. 9 gün içinde tekrar randevu alınamaz. En erken ${kontrol.enErkenTarih} tarihinde randevu alabilirsiniz.`);
+          return;
+        }
+
+        const occupiedTimes = await getOccupiedTimesForDate(date);
+        if (occupiedTimes.includes(time)) {
+          alert("Bu saat dolu. Lütfen başka saat seçin.");
+          return;
+        }
+
+        const silmeKodu = generateDeleteCode();
+        const yeniRandevuRef = await addDoc(collection(db, KOLEKSIYON), {
+          name, phone, service, date, time, userId, silmeKodu,
+          personelTelefon: aktifPersonelTelefon,
+          personelGirisli: true,
+          createdAt: new Date().toISOString()
+        });
+
+        await hatirlatmaKaydiOlustur(yeniRandevuRef.id, name, phone, service, date, time, silmeKodu);
+
+        telegramMesajGonder(
+          "📅 <b>YENİ RANDEVU</b>\n\n" +
+          `👤 ${name}\n` +
+          `📞 ${phone}\n` +
+          `💇 Hizmet: ${service}\n` +
+          `📅 Tarih: ${date}\n` +
+          `🕒 Saat: ${time}\n` +
+          `🔑 Silme Kodu: ${silmeKodu}`
+        );
+
+        silmeKoduYazi.textContent = silmeKodu;
+        takvimNotu.textContent = `Bu kodu kaydedin. Randevu iptali için telefon numaranızla birlikte gerekli olacaktır. Silme kodunuz: ${silmeKodu}`;
+        kodKutusu.style.display = "block";
+        takvimeEkleButonunuHazirla({ name, phone, service, date, time, silmeKodu });
+
+        nameInput.value = "";
+        phoneInput.value = "";
+        await arayuzuYenile(true);
+        alert("Randevu başarıyla oluşturuldu.");
+      } catch (error) {
+        console.error(error);
+        alert("Kayıt hatası: " + error.message);
+      } finally {
+        btnRandevu.disabled = false;
+      }
+    });
+
+    btnIptal.addEventListener("click", async function () {
+      const phone = telefonuDuzenle(cancelPhoneInput.value);
+      const code = temizMetin(cancelCodeInput.value);
+      cancelPhoneInput.value = phone;
+
+      if (!phone) return alert("Lütfen telefon numaranızı girin.");
+      if (phone.length < 10) return alert("Geçerli bir telefon numarası girin.");
+      if (!code) return alert("Lütfen silme kodunu girin.");
+
+      btnIptal.disabled = true;
+      try {
+        await arayuzuYenile();
+        const kayitlar = await loadAktifRandevular();
+        const bulundu = kayitlar.find(item =>
+          telefonuDuzenle(kayitTelefon(item)) === phone && kayitSilmeKodu(item) === code
+        );
+
+        if (!bulundu) {
+          alert("Telefon numarası veya silme kodu yanlış.");
+          return;
+        }
+
+        await deleteDoc(doc(db, KOLEKSIYON, bulundu.id));
+        await ilgiliHatirlatmalariSil(bulundu, bulundu.id);
+
+        telegramMesajGonder(
+          "❌ <b>RANDEVU İPTAL EDİLDİ</b>\n\n" +
+          `👤 ${kayitAd(bulundu)}\n` +
+          `📞 ${kayitTelefon(bulundu)}\n` +
+          `💇 Hizmet: ${kayitHizmet(bulundu)}\n` +
+          `📅 Tarih: ${kayitTarih(bulundu)}\n` +
+          `🕒 Saat: ${kayitSaat(bulundu)}`
+        );
+
+        const mesaj =
+          "❌ RANDEVU İPTAL EDİLDİ%0A%0A" +
+          `👤 İsim: ${kayitAd(bulundu)}%0A` +
+          `📞 Telefon: ${kayitTelefon(bulundu)}%0A` +
+          `💇 Hizmet: ${kayitHizmet(bulundu)}%0A` +
+          `📅 Tarih: ${kayitTarih(bulundu)}%0A` +
+          `🕒 Saat: ${kayitSaat(bulundu)}%0A%0A` +
+          "Bilginize.";
+
+        window.open("https://wa.me/905469066565?text=" + mesaj, "_blank");
+        alert("Randevu iptal edildi.");
+
+        cancelPhoneInput.value = "";
+        cancelCodeInput.value = "";
+        await arayuzuYenile(true);
+      } catch (error) {
+        console.error(error);
+        alert("İptal hatası: " + error.message);
+      } finally {
+        btnIptal.disabled = false;
+      }
+    });
+
+    dateInput.addEventListener("change", async function () {
+      await arayuzuYenile();
+    });
+
+    async function sistemBaslat() {
+      try {
+        await otomatikPersonelGirisKontrol();
+        await arayuzuYenile();
+        setInterval(async function () {
+          await arayuzuYenile();
+        }, TEMIZLIK_KONTROL_SURESI_MS);
+      } catch (error) {
+        console.error(error);
+        alert("Başlatma hatası: " + error.message);
+      }
+    }
+
+    sistemBaslat();
+  </script>
+</body>
+</html>
