@@ -3,451 +3,188 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Personel Randevu Sistemi</title>
+<title>Personel Randevu</title>
 
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#fff;color:#111}
-nav{width:100%;background:#111;color:#fff;padding:14px 16px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:999}
-nav a,nav button{color:#fff;text-decoration:none;background:#222;padding:10px 16px;border-radius:10px;font-weight:600;border:none;cursor:pointer}
-.container{max-width:520px;margin:24px auto;padding:16px}
-.card{background:#fff;border:1px solid #eee;border-radius:18px;padding:18px;box-shadow:0 8px 24px rgba(0,0,0,.08);margin-bottom:18px}
-h2,h3{margin-top:0}
-label{display:block;font-weight:700;margin-top:12px;margin-bottom:6px}
-input,select,button{width:100%;padding:12px;border-radius:12px;border:1px solid #ddd;font-size:16px}
-button{background:#111;color:#fff;font-weight:700;margin-top:14px;cursor:pointer}
+body{margin:0;font-family:Arial;background:#fff;color:#111}
+.container{max-width:500px;margin:auto;padding:20px}
+.card{border:1px solid #eee;border-radius:16px;padding:16px;margin-bottom:15px}
+input,button,select{width:100%;padding:12px;margin-top:8px;border-radius:10px;border:1px solid #ddd}
+button{background:#111;color:#fff;font-weight:bold}
 .hidden{display:none}
-.info{background:#f6f6f6;padding:12px;border-radius:12px;margin-bottom:12px;line-height:1.5}
-.randevu{border:1px solid #eee;border-radius:14px;padding:12px;margin-top:10px;background:#fafafa;line-height:1.6}
-.bos{color:#777;text-align:center;padding:16px}
-.ayrac{border-top:1px solid #eee;margin:20px 0;padding-top:18px}
 </style>
 </head>
 
 <body>
 
-<nav>
-  <a href="index.html">Ana Sayfa</a>
-  <a href="liste.html">Randevu Listesi</a>
-  <a href="takvim.html">Takvimli Liste</a>
-  <button id="logoutBtn" class="hidden">Çıkış Yap</button>
-</nav>
-
 <div class="container">
 
-  <div id="loginBox" class="card">
-    <h2>Personel Girişi</h2>
+<div id="loginBox" class="card">
+<h2>Giriş Yap</h2>
 
-    <label>Telefon</label>
-    <input type="tel" id="telefon" placeholder="05391234567">
+<input id="girisTel" placeholder="Telefon">
+<input id="girisSifre" type="password" placeholder="Şifre">
+<button onclick="girisYap()">Giriş</button>
 
-    <label>Şifre</label>
-    <input type="password" id="sifre" placeholder="Şifreniz">
+<hr>
 
-    <button id="loginBtn">Giriş Yap</button>
+<h3>Kayıt Ol</h3>
+<input id="adSoyad" placeholder="Ad Soyad">
+<input id="kayitTel" placeholder="Telefon">
+<input id="kayitSifre" type="password" placeholder="Şifre">
+<input id="kayitKod" placeholder="Kayıt Kodu">
+<button onclick="kayitOl()">Kayıt Ol</button>
+</div>
 
-    <div class="ayrac">
-      <h3>İlk Kayıt Ol</h3>
+<div id="panel" class="hidden card">
+<h2>Randevu Al</h2>
 
-      <label>Telefon</label>
-      <input type="tel" id="kayitTelefon" placeholder="05391234567">
+<div id="bilgi"></div>
 
-      <label>Şifre Belirle</label>
-      <input type="password" id="kayitSifre" placeholder="En az 4 karakter">
+<input type="date" id="tarih">
+<select id="saat"></select>
 
-      <button id="kayitBtn">İlk Kayıt Ol</button>
-    </div>
-  </div>
+<button onclick="randevuAl()">Randevu Al</button>
 
-  <div id="panelBox" class="hidden">
+<h3>Randevularım</h3>
+<div id="liste"></div>
 
-    <div class="card">
-      <h2>Randevu Al</h2>
-
-      <div class="info" id="personelInfo"></div>
-
-      <label>Tarih</label>
-      <input type="date" id="tarih">
-
-      <label>Saat</label>
-      <select id="saat">
-        <option value="">Saat seçiniz</option>
-      </select>
-
-      <label>Hizmet</label>
-      <select id="hizmet">
-        <option value="Saç Kesimi">Saç Kesimi</option>
-        <option value="Saç Kesimi + Yıkama">Saç Kesimi + Yıkama</option>
-      </select>
-
-      <button id="randevuAlBtn">Randevu Al</button>
-    </div>
-
-    <div class="card">
-      <h3>Benim Randevularım</h3>
-      <div id="randevularim"></div>
-    </div>
-
-  </div>
+<button onclick="cikis()">Çıkış</button>
+</div>
 
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
 import {
-  getFirestore,
-  doc,
-  getDoc,
-  setDoc,
-  collection,
-  addDoc,
-  getDocs,
-  query,
-  where,
-  orderBy,
-  serverTimestamp
+getFirestore, doc, getDoc, setDoc,
+collection, addDoc, getDocs, query, where
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",
-  authDomain: "berber-randevu-14f7f.firebaseapp.com",
-  projectId: "berber-randevu-14f7f",
-  storageBucket: "berber-randevu-14f7f.appspot.com",
-  messagingSenderId: "280530860977",
-  appId: "1:280530860977:web:52c0df04c228896f211b90"
+apiKey:"AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",
+authDomain:"berber-randevu-14f7f.firebaseapp.com",
+projectId:"berber-randevu-14f7f"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const SAATLER = [
-  "08:20",
-  "09:00",
-  "09:50",
-  "10:30",
-  "13:10",
-  "13:50",
-  "14:40",
-  "15:20"
-];
+const PERSONEL_KAYIT_KODU = "KANTIN10";
 
-let aktifPersonel = null;
-let aktifTelefon = null;
+const SAATLER=["08:20","09:00","09:50","10:30","13:10","13:50","14:40","15:20"];
 
-const loginBox = document.getElementById("loginBox");
-const panelBox = document.getElementById("panelBox");
-const logoutBtn = document.getElementById("logoutBtn");
+let aktifTel="",aktifAd="";
 
-const telefonInput = document.getElementById("telefon");
-const sifreInput = document.getElementById("sifre");
-const loginBtn = document.getElementById("loginBtn");
-
-const kayitTelefonInput = document.getElementById("kayitTelefon");
-const kayitSifreInput = document.getElementById("kayitSifre");
-const kayitBtn = document.getElementById("kayitBtn");
-
-const tarihInput = document.getElementById("tarih");
-const saatSelect = document.getElementById("saat");
-const hizmetSelect = document.getElementById("hizmet");
-const randevuAlBtn = document.getElementById("randevuAlBtn");
-
-const personelInfo = document.getElementById("personelInfo");
-const randevularim = document.getElementById("randevularim");
-
-function telefonTemizle(tel) {
-  tel = String(tel || "").replace(/\D/g, "");
-
-  if (tel.startsWith("90")) {
-    tel = tel.substring(2);
-  }
-
-  if (!tel.startsWith("0")) {
-    tel = "0" + tel;
-  }
-
-  return tel;
+function telDuzenle(t){
+t=t.replace(/\D/g,"");
+if(!t.startsWith("0")) t="0"+t;
+return t;
 }
 
-function tarihFormat(d) {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const g = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${g}`;
+function tarihSinir(){
+let d=new Date();
+let max=new Date();
+max.setDate(d.getDate()+15);
+tarih.min=d.toISOString().split("T")[0];
+tarih.max=max.toISOString().split("T")[0];
 }
 
-function bugunKey() {
-  return tarihFormat(new Date());
+function saatYukle(){
+saat.innerHTML="";
+SAATLER.forEach(s=>{
+let o=document.createElement("option");
+o.value=s;o.textContent=s;
+saat.appendChild(o);
+});
 }
 
-function tarihTR(tarih) {
-  if (!tarih) return "-";
-  const p = tarih.split("-");
-  return `${p[2]}.${p[1]}.${p[0]}`;
+window.girisYap=async()=>{
+let tel=telDuzenle(girisTel.value);
+let sifre=girisSifre.value;
+
+let ref=doc(db,"personeller",tel);
+let snap=await getDoc(ref);
+
+if(!snap.exists()) return alert("Kayıt yok");
+
+let data=snap.data();
+if(data.sifre!==sifre) return alert("Şifre hatalı");
+
+aktifTel=tel;
+aktifAd=data.isim;
+
+localStorage.setItem("tel",tel);
+localStorage.setItem("sifre",sifre);
+
+panelAc();
 }
 
-function tarihSiniriAyarla() {
-  const bugun = new Date();
-  const max = new Date();
-  max.setDate(bugun.getDate() + 15);
+window.kayitOl=async()=>{
+let ad=adSoyad.value;
+let tel=telDuzenle(kayitTel.value);
+let sifre=kayitSifre.value;
+let kod=kayitKod.value;
 
-  tarihInput.min = tarihFormat(bugun);
-  tarihInput.max = tarihFormat(max);
-  tarihInput.value = tarihFormat(bugun);
+if(kod!==PERSONEL_KAYIT_KODU) return alert("Kayıt kodu yanlış");
+
+await setDoc(doc(db,"personeller",tel),{
+isim:ad,
+telefon:tel,
+sifre:sifre
+});
+
+alert("Kayıt tamam");
 }
 
-function seciliTarihGecerliMi(tarih) {
-  const bugun = new Date(bugunKey() + "T00:00:00");
-  const max = new Date(bugun);
-  max.setDate(bugun.getDate() + 15);
+function panelAc(){
+loginBox.classList.add("hidden");
+panel.classList.remove("hidden");
 
-  const secilen = new Date(tarih + "T00:00:00");
-  return secilen >= bugun && secilen <= max;
+bilgi.innerHTML="👤 "+aktifAd+"<br>📞 "+aktifTel;
+
+tarihSinir();
+saatYukle();
+listele();
 }
 
-function saatleriYukle() {
-  saatSelect.innerHTML = `<option value="">Saat seçiniz</option>`;
-
-  SAATLER.forEach(saat => {
-    const opt = document.createElement("option");
-    opt.value = saat;
-    opt.textContent = saat;
-    saatSelect.appendChild(opt);
-  });
+window.cikis=()=>{
+localStorage.clear();
+location.reload();
 }
 
-async function ilkKayitOl() {
-  const telefon = telefonTemizle(kayitTelefonInput.value);
-  const sifre = kayitSifreInput.value.trim();
-
-  if (!telefon || telefon.length !== 11) {
-    alert("Telefon numarasını 05391234567 şeklinde giriniz.");
-    return;
-  }
-
-  if (!sifre || sifre.length < 4) {
-    alert("Şifre en az 4 karakter olmalıdır.");
-    return;
-  }
-
-  const personelRef = doc(db, "personeller", telefon);
-  const personelSnap = await getDoc(personelRef);
-
-  if (personelSnap.exists()) {
-    alert("Bu telefon numarası daha önce kayıt olmuş. Giriş yapabilirsiniz.");
-    return;
-  }
-
-  const izinRef = doc(db, "izinli_personeller", telefon);
-  const izinSnap = await getDoc(izinRef);
-
-  if (!izinSnap.exists()) {
-    alert("Bu telefon numarası izinli personel listesinde yok.");
-    return;
-  }
-
-  const izinData = izinSnap.data();
-
-  if (izinData.aktif === false) {
-    alert("Bu personel pasif durumda. Kayıt yapılamaz.");
-    return;
-  }
-
-  await setDoc(personelRef, {
-    isim: izinData.isim || "",
-    telefon: telefon,
-    sifre: sifre,
-    aktif: true,
-    createdAt: serverTimestamp()
-  });
-
-  alert("Kayıt başarılı. Artık giriş yapabilirsiniz.");
-
-  telefonInput.value = telefon;
-  sifreInput.value = sifre;
-  kayitTelefonInput.value = "";
-  kayitSifreInput.value = "";
+window.randevuAl=async()=>{
+await addDoc(collection(db,"randevular"),{
+isim:aktifAd,
+telefon:aktifTel,
+tarih:tarih.value,
+saat:saat.value
+});
+alert("Kaydedildi");
+listele();
 }
 
-async function girisYap() {
-  const telefon = telefonTemizle(telefonInput.value);
-  const sifre = sifreInput.value.trim();
+async function listele(){
+let q=query(collection(db,"randevular"),where("telefon","==",aktifTel));
+let snap=await getDocs(q);
 
-  if (!telefon || telefon.length !== 11) {
-    alert("Telefon numarasını 05391234567 şeklinde giriniz.");
-    return;
-  }
-
-  if (!sifre) {
-    alert("Şifre giriniz.");
-    return;
-  }
-
-  const ref = doc(db, "personeller", telefon);
-  const snap = await getDoc(ref);
-
-  if (!snap.exists()) {
-    alert("Bu telefon numarası kayıtlı değil. Önce İlk Kayıt Ol bölümünden kayıt olun.");
-    return;
-  }
-
-  const data = snap.data();
-
-  if (data.aktif === false) {
-    alert("Bu personel hesabı pasif durumda.");
-    return;
-  }
-
-  if (String(data.sifre || "") !== sifre) {
-    alert("Şifre hatalı.");
-    return;
-  }
-
-  aktifTelefon = telefon;
-  aktifPersonel = data;
-
-  localStorage.setItem("personelTelefon", telefon);
-  localStorage.setItem("personelSifre", sifre);
-
-  paneliAc();
+liste.innerHTML="";
+snap.forEach(d=>{
+let r=d.data();
+liste.innerHTML+=`<div>${r.tarih} ${r.saat}</div>`;
+});
 }
 
-async function otomatikGirisKontrol() {
-  const telefon = localStorage.getItem("personelTelefon");
-  const sifre = localStorage.getItem("personelSifre");
+(async()=>{
+let tel=localStorage.getItem("tel");
+let sifre=localStorage.getItem("sifre");
+if(!tel) return;
 
-  if (!telefon || !sifre) return;
-
-  telefonInput.value = telefon;
-  sifreInput.value = sifre;
-
-  await girisYap();
-}
-
-function paneliAc() {
-  loginBox.classList.add("hidden");
-  panelBox.classList.remove("hidden");
-  logoutBtn.classList.remove("hidden");
-
-  personelInfo.innerHTML = `
-    <b>Giriş yapan personel:</b><br>
-    👤 ${aktifPersonel.isim || "-"}<br>
-    📞 ${aktifTelefon}
-  `;
-
-  tarihSiniriAyarla();
-  saatleriYukle();
-  randevularimiYukle();
-}
-
-function cikisYap() {
-  aktifPersonel = null;
-  aktifTelefon = null;
-
-  localStorage.removeItem("personelTelefon");
-  localStorage.removeItem("personelSifre");
-
-  loginBox.classList.remove("hidden");
-  panelBox.classList.add("hidden");
-  logoutBtn.classList.add("hidden");
-
-  telefonInput.value = "";
-  sifreInput.value = "";
-}
-
-async function doluSaatMi(tarih, saat) {
-  const q = query(
-    collection(db, "randevular"),
-    where("tarih", "==", tarih),
-    where("saat", "==", saat)
-  );
-
-  const snap = await getDocs(q);
-  return !snap.empty;
-}
-
-async function randevuAl() {
-  if (!aktifPersonel || !aktifTelefon) {
-    alert("Önce giriş yapmalısınız.");
-    return;
-  }
-
-  const tarih = tarihInput.value;
-  const saat = saatSelect.value;
-  const hizmet = hizmetSelect.value;
-
-  if (!tarih || !saat) {
-    alert("Lütfen tarih ve saat seçiniz.");
-    return;
-  }
-
-  if (!seciliTarihGecerliMi(tarih)) {
-    alert("En fazla önümüzdeki 15 gün için randevu alabilirsiniz.");
-    return;
-  }
-
-  const dolu = await doluSaatMi(tarih, saat);
-
-  if (dolu) {
-    alert("Bu saat dolu. Lütfen başka bir saat seçiniz.");
-    return;
-  }
-
-  await addDoc(collection(db, "randevular"), {
-    isim: aktifPersonel.isim || "",
-    telefon: aktifTelefon,
-    tarih: tarih,
-    saat: saat,
-    hizmet: hizmet,
-    personelTelefon: aktifTelefon,
-    createdAt: serverTimestamp()
-  });
-
-  alert("Randevunuz başarıyla oluşturuldu.");
-  await randevularimiYukle();
-}
-
-async function randevularimiYukle() {
-  randevularim.innerHTML = "Yükleniyor...";
-
-  const q = query(
-    collection(db, "randevular"),
-    where("telefon", "==", aktifTelefon),
-    orderBy("tarih", "asc"),
-    orderBy("saat", "asc")
-  );
-
-  const snap = await getDocs(q);
-
-  if (snap.empty) {
-    randevularim.innerHTML = `<div class="bos">Henüz randevunuz yok.</div>`;
-    return;
-  }
-
-  let html = "";
-
-  snap.forEach(docSnap => {
-    const r = docSnap.data();
-
-    html += `
-      <div class="randevu">
-        <b>📅 ${tarihTR(r.tarih)} - ${r.saat}</b><br>
-        👤 ${r.isim || "-"}<br>
-        📞 ${r.telefon || "-"}<br>
-        ✂️ ${r.hizmet || "-"}
-      </div>
-    `;
-  });
-
-  randevularim.innerHTML = html;
-}
-
-kayitBtn.addEventListener("click", ilkKayitOl);
-loginBtn.addEventListener("click", girisYap);
-logoutBtn.addEventListener("click", cikisYap);
-randevuAlBtn.addEventListener("click", randevuAl);
-
-otomatikGirisKontrol();
+girisTel.value=tel;
+girisSifre.value=sifre;
+await girisYap();
+})();
 </script>
 
 </body>
