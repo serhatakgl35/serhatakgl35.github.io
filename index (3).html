@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Personel Girişi - Berber Randevu Sistemi</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    html {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+      -webkit-text-size-adjust: 100%;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+      background: #ffffff;
+      color: #111;
+      font-family: Arial, sans-serif;
+      touch-action: pan-y;
+      overscroll-behavior-x: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .topnav {
+      width: 100%;
+      background: #111;
+      color: #fff;
+      padding: 14px 16px;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .topnav a {
+      color: #fff;
+      text-decoration: none;
+      background: #222;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    .topnav a.active {
+      background: #2d2d2d;
+      font-weight: 700;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+      overflow-x: hidden;
+      padding: 10px;
+    }
+
+    .box {
+      width: 100%;
+      max-width: 100%;
+      background: #fff;
+      padding: 14px;
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+      overflow-x: hidden;
+    }
+
+    h1, h2 {
+      margin-top: 0;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 18px;
+    }
+
+    h2 {
+      font-size: 20px;
+      margin-bottom: 12px;
+      margin-top: 22px;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #222;
+    }
+
+    input,
+    select,
+    button {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      padding: 12px;
+      margin-top: 0;
+      margin-bottom: 14px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 16px;
+      line-height: 1.2;
+      background: #fff;
+      appearance: none;
+      -webkit-appearance: none;
+      font-family: Arial, sans-serif;
+    }
+
+    input,
+    select {
+      color: #111;
+    }
+
+    button {
+      border: none;
+      background: #111;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s ease, transform 0.05s ease;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    button:hover { opacity: 0.94; }
+    button:active { transform: scale(0.995); }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    li {
+      width: 100%;
+      max-width: 100%;
+      background: #fff;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      padding: 12px;
+      border: 1px solid #eee;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .appointment-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .appointment-main {
+      min-width: 0;
+      flex: 1 1 220px;
+    }
+
+    .mine { border-left: 5px solid #111; }
+
+    .badge {
+      display: inline-block;
+      max-width: 100%;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      background: #efefef;
+      margin-left: 6px;
+      margin-top: 4px;
+      vertical-align: middle;
+      overflow-wrap: anywhere;
+    }
+
+    .info {
+      font-size: 14px;
+      color: #555;
+      margin-top: -6px;
+      margin-bottom: 14px;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    .note {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+
+    .login-panel {
+      margin-bottom: 20px;
+      padding: 14px;
+      border: 1px solid #eee;
+      border-radius: 14px;
+      background: #fafafa;
+    }
+
+    .login-panel h2,
+    .login-panel h3 {
+      margin-top: 0;
+    }
+
+    .login-divider {
+      border: none;
+      border-top: 1px solid #e5e5e5;
+      margin: 18px 0;
+    }
+
+    .personel-durum {
+      display: none;
+      margin-bottom: 16px;
+      padding: 12px;
+      border-radius: 12px;
+      background: #f1f1f1;
+      line-height: 1.45;
+      font-size: 14px;
+    }
+
+    .personel-durum button {
+      margin-top: 10px;
+      margin-bottom: 0;
+    }
+
+    .empty {
+      color: #666;
+      font-style: italic;
+    }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .kod-kutusu {
+      display: none;
+      background: #f7f7f7;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: -4px;
+      margin-bottom: 14px;
+      width: 100%;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+    }
+
+    .kod-kutusu strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .kod-deger {
+      font-size: 22px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      word-break: break-all;
+    }
+
+    .cancel-box {
+      margin-top: 24px;
+      padding-top: 12px;
+      border-top: 1px solid #eee;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .cancel-btn { background: #c62828; }
+    .calendar-btn { margin-top: 12px; margin-bottom: 0; background: #111; }
+
+    @media (max-width: 600px) {
+      .page { padding: 8px; }
+      .box { padding: 12px; border-radius: 12px; }
+      h1 { font-size: 21px; }
+      h2 { font-size: 18px; }
+      .row-2 { grid-template-columns: 1fr; gap: 0; }
+      input, select, button { font-size: 16px; padding: 12px; }
+      .kod-deger { font-size: 20px; letter-spacing: 1px; }
+      .badge { margin-left: 0; margin-right: 6px; }
+    }
+
+    @media (max-width: 380px) {
+      .page { padding: 6px; }
+      .box { padding: 10px; }
+      h1 { font-size: 19px; }
+      h2 { font-size: 17px; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="topnav">
+    <a href="index.html" class="active">Personel Girişi</a>
+    <a href="takvim.html">Takvimli Liste</a>
+    <a href="istatistik.html">İstatistik</a>
+  </nav>
+  <div class="page"><div class="box">
+    <h1>💈 Berber Randevu Sistemi</h1>
+    <div id="loginPanel" class="login-panel">
+      <h2>🔐 Personel Girişi</h2>
+      <div class="note" style="margin-bottom:12px;">Randevu alabilmek için telefon numarası ve şifre ile giriş yapın. İlk defa kullanıyorsanız İlk Kayıt bölümünden hesap oluşturun.</div>
+      <label for="loginPhone">Telefon</label><input type="tel" id="loginPhone" placeholder="Telefon numaranız" inputmode="tel" autocomplete="tel" />
+      <label for="loginPass">Şifre</label><input type="password" id="loginPass" placeholder="Şifreniz" autocomplete="current-password" />
+      <button id="btnLogin" type="button">Giriş Yap</button>
+      <hr class="login-divider" />
+      <h3>İlk Kayıt Ol</h3>
+      <label for="regName">Ad Soyad</label><input type="text" id="regName" placeholder="Ad Soyad" autocomplete="name" />
+      <label for="regPhone">Telefon</label><input type="tel" id="regPhone" placeholder="Telefon numaranız" inputmode="tel" autocomplete="tel" />
+      <label for="regPass">Şifre Belirle</label><input type="password" id="regPass" placeholder="En az 4 karakter" autocomplete="new-password" />
+      <label for="regCode">Kayıt Kodu</label><input type="text" id="regCode" placeholder="Personel kayıt kodu" autocomplete="off" />
+      <button id="btnRegister" type="button">Kayıt Ol</button>
+    </div>
+    <div class="note" style="margin-top:16px;">Not: Giriş başarılı olunca randevu alma sayfasına yönlendirileceksiniz.</div>
+  </div></div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  const firebaseConfig = {
+      apiKey: "AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",
+      authDomain: "berber-randevu-14f7f.firebaseapp.com",
+      projectId: "berber-randevu-14f7f",
+      storageBucket: "berber-randevu-14f7f.firebasestorage.app",
+      messagingSenderId: "280530860977",
+      appId: "1:280530860977:web:52c0df04c228896f211b90"
+    };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const PERSONELLER_KOLEKSIYON = "personeller";
+  const PERSONEL_KAYIT_KODU = "KANTIN10";
+  const loginPhoneInput = document.getElementById("loginPhone");
+  const loginPassInput = document.getElementById("loginPass");
+  const btnLogin = document.getElementById("btnLogin");
+  const regNameInput = document.getElementById("regName");
+  const regPhoneInput = document.getElementById("regPhone");
+  const regPassInput = document.getElementById("regPass");
+  const regCodeInput = document.getElementById("regCode");
+  const btnRegister = document.getElementById("btnRegister");
+  function temizMetin(value) { return String(value || "").trim(); }
+  function temizleTel(tel) { return temizMetin(tel).replace(/\D/g, ""); }
+  function telefonuDuzenle(tel) { let temiz = temizleTel(tel); if (!temiz) return ""; if (temiz.startsWith("90")) temiz = "0" + temiz.slice(2); if (!temiz.startsWith("0")) temiz = "0" + temiz; return temiz.slice(0, 11); }
+  function telefonInputDuzenle(input) { input.value = telefonuDuzenle(input.value); }
+  loginPhoneInput.addEventListener("input", () => telefonInputDuzenle(loginPhoneInput));
+  regPhoneInput.addEventListener("input", () => telefonInputDuzenle(regPhoneInput));
+  async function personelKayitOl() {
+    const ad = temizMetin(regNameInput.value); const telefon = telefonuDuzenle(regPhoneInput.value); const sifre = temizMetin(regPassInput.value); const kod = temizMetin(regCodeInput.value); regPhoneInput.value = telefon;
+    if (!ad) return alert("Lütfen ad soyad girin.");
+    if (!telefon || telefon.length !== 11) return alert("Telefon numarasını 05391234567 şeklinde girin.");
+    if (!sifre || sifre.length < 4) return alert("Şifre en az 4 karakter olmalıdır.");
+    if (kod !== PERSONEL_KAYIT_KODU) return alert("Kayıt kodu yanlış.");
+    btnRegister.disabled = true;
+    try { const ref = doc(db, PERSONELLER_KOLEKSIYON, telefon); const snap = await getDoc(ref); if (snap.exists()) { alert("Bu telefon numarası daha önce kayıt olmuş. Giriş yapabilirsiniz."); return; } await setDoc(ref, { isim: ad, telefon, sifre, aktif: true, createdAt: new Date().toISOString() }); alert("Kayıt başarılı. Şimdi giriş yapabilirsiniz."); loginPhoneInput.value = telefon; loginPassInput.value = sifre; regNameInput.value = ""; regPhoneInput.value = ""; regPassInput.value = ""; regCodeInput.value = ""; } catch (error) { console.error(error); alert("Kayıt hatası: " + error.message); } finally { btnRegister.disabled = false; }
+  }
+  async function personelGirisYap() {
+    const telefon = telefonuDuzenle(loginPhoneInput.value); const sifre = temizMetin(loginPassInput.value); loginPhoneInput.value = telefon;
+    if (!telefon || telefon.length !== 11) return alert("Telefon numarasını 05391234567 şeklinde girin.");
+    if (!sifre) return alert("Lütfen şifre girin.");
+    btnLogin.disabled = true;
+    try { const ref = doc(db, PERSONELLER_KOLEKSIYON, telefon); const snap = await getDoc(ref); if (!snap.exists()) { alert("Bu telefon numarası kayıtlı değil. Önce İlk Kayıt Ol bölümünden kayıt olun."); return; } const data = snap.data(); if (data.aktif === false) { alert("Bu personel hesabı pasif durumda."); return; } if (String(data.sifre || "") !== sifre) { alert("Şifre hatalı."); return; } sessionStorage.setItem("personelTelefon", telefon); sessionStorage.setItem("personelSifre", sifre); sessionStorage.setItem("personelAd", data.isim || ""); window.location.href = "randevu.html"; } catch (error) { console.error(error); alert("Giriş hatası: " + error.message); } finally { btnLogin.disabled = false; }
+  }
+  btnRegister.addEventListener("click", personelKayitOl); btnLogin.addEventListener("click", personelGirisYap);
+  if (sessionStorage.getItem("personelTelefon") && sessionStorage.getItem("personelSifre")) { window.location.href = "randevu.html"; }
+</script></body></html>
