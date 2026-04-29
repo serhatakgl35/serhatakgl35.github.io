@@ -355,7 +355,31 @@
         font-size: 11px;
       }
     }
-  </style>
+  
+<style>
+/* PRO PANEL EK */
+td.musait { background:#e8f5e9; }
+td.dolu { background:#ffebee; }
+td.gecmis { background:#eeeeee; }
+td.kapali { background:#e0e0e0; }
+
+td.today {
+  outline: 2px solid #111;
+  background: #fffde7 !important;
+  font-weight: bold;
+}
+
+table {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+button {
+  border-radius: 12px !important;
+}
+</style>
+
+</style>
 </head>
 <body>
   <div class="page">
@@ -487,8 +511,7 @@ function haftaninBesGunu(baslangic) {
   const bugun = new Date();
   bugun.setHours(0,0,0,0);
 
-  let i = 0;
-  while (gunler.length < 5) {
+  for (let i = 0; i < 10; i++) {
     const d = new Date(baslangic);
     d.setDate(baslangic.getDate() + i);
     d.setHours(0,0,0,0);
@@ -496,7 +519,8 @@ function haftaninBesGunu(baslangic) {
     if (d >= bugun) {
       gunler.push(d);
     }
-    i++;
+
+    if (gunler.length === 5) break;
   }
 
   return gunler;
@@ -682,7 +706,16 @@ function haftaninBesGunu(baslangic) {
       };
     }
 
-    function tabloHTMLUret(gunler, randevuMap, gunKapaliMap, kapaliSaatMap) {
+    
+function isToday(dateStr) {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth()+1).padStart(2,"0");
+  const d = String(now.getDate()).padStart(2,"0");
+  return dateStr === `${y}-${m}-${d}`;
+}
+
+function tabloHTMLUret(gunler, randevuMap, gunKapaliMap, kapaliSaatMap) {
       let html = "<table>";
       html += "<thead><tr>";
       html += '<th class="saat-baslik">Saat</th>';
@@ -719,34 +752,34 @@ function haftaninBesGunu(baslangic) {
           const slotGecmis = slotGecmisMi(tarih, saat, simdi);
 
           if (kapaliGun) {
-            html += '<td class="kapali">';
+            html += `<td class="kapali ${isToday(tarih) ? "today" : ""}">`;
             html += "<div>KAPALI</div>";
             html += '<div class="etiket etiket-kapali">GÜN</div>';
             html += "</td>";
           } else if (kapaliSaat) {
-            html += '<td class="kapali">';
+            html += `<td class="kapali ${isToday(tarih) ? "today" : ""}">`;
             html += "<div>KAPALI</div>";
             html += '<div class="etiket etiket-kapali">SAAT</div>';
             html += "</td>";
           } else if (r) {
             if (r.gecmis) {
-              html += '<td class="gecmis">';
+              html += `<td class="gecmis ${isToday(tarih) ? "today" : ""}">`;
               html += "<div>GEÇMİŞ</div>";
               html += '<div class="etiket etiket-gecmis">GEÇMİŞ</div>';
               html += "</td>";
             } else {
-              html += '<td class="dolu">';
+              html += `<td class="dolu ${isToday(tarih) ? "today" : ""}">`;
               html += "<div>DOLU</div>";
               html += '<div class="etiket etiket-dolu">DOLU</div>';
               html += "</td>";
             }
           } else if (slotGecmis) {
-            html += '<td class="gecmis">';
+            html += `<td class="gecmis ${isToday(tarih) ? "today" : ""}">`;
             html += "<div>GEÇMİŞ</div>";
             html += '<div class="etiket etiket-gecmis">SÜRE GEÇTİ</div>';
             html += "</td>";
           } else {
-            html += '<td class="musait">';
+            html += `<td class="musait ${isToday(tarih) ? "today" : ""}">`;
             html += "<div>MÜSAİT</div>";
             html += '<div class="etiket etiket-musait">BOŞ</div>';
             html += "</td>";
