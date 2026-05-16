@@ -3,6 +3,7 @@
   <button id="reklamKapat">✕</button>
 
   <iframe
+    id="reklamFrame"
     src="reklam.html"
     frameborder="0"
     allowfullscreen>
@@ -17,7 +18,7 @@
   height:100%;
   background:#000;
   z-index:999999;
-  display:flex;
+  display:none;
   align-items:center;
   justify-content:center;
   animation:reklamFade .35s ease;
@@ -78,52 +79,70 @@
 }
 </style>
 
-<script>
-<script>
-const iframe = document.querySelector("#reklamPopup iframe");
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
-iframe.onload = () => {
+import {
+  getFirestore,
+  collection,
+  query,
+  where,
+  limit,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",
+  authDomain: "berber-randevu-14f7f.firebaseapp.com",
+  projectId: "berber-randevu-14f7f"
+};
+
+const reklamApp = initializeApp(firebaseConfig, "reklamKontrol");
+const reklamDb = getFirestore(reklamApp);
+
+const reklamPopup =
+  document.getElementById("reklamPopup");
+
+const reklamKapat =
+  document.getElementById("reklamKapat");
+
+reklamKapat.onclick = () => {
+  reklamPopup.style.display = "none";
+};
+
+async function reklamKontrol(){
 
   try{
 
-    const iframeDoc =
-      iframe.contentWindow.document;
+    const q = query(
+      collection(reklamDb, "reklamlar"),
+      where("aktif", "==", true),
+      limit(1)
+    );
 
-    const yazi =
-      iframeDoc.body.innerText || "";
+    const snap = await getDocs(q);
 
-    if(
-      yazi.includes("Aktif reklam bulunamadı") ||
-      yazi.includes("Reklamlar yüklenirken hata oluştu")
-    ){
+    if(!snap.empty){
 
-      document
-        .getElementById("reklamPopup")
-        .style.display = "none";
+      reklamPopup.style.display = "flex";
 
-      return;
+    }else{
+
+      reklamPopup.remove();
+
     }
 
-  }catch(e){}
+  }catch(err){
 
-};
+    console.log(err);
 
-document
-  .getElementById("reklamKapat")
-  .onclick = () => {
+    reklamPopup.remove();
 
-    document
-      .getElementById("reklamPopup")
-      .style.display = "none";
+  }
 
-  };
-</script>
+}
 
-    document
-      .getElementById("reklamPopup")
-      .style.display = "none";
-
-  };
+reklamKontrol();
 </script>
 <!DOCTYPE html>
 <html lang="tr">
