@@ -224,11 +224,10 @@
       timer = setInterval(reklamGoster, 8000);
     }
 
-    const q = query(
-      collection(db, "reklamlar"),
-      where("aktif", "==", true),
-      orderBy("createdAt", "desc")
-    );
+   const q = query(
+  collection(db, "reklamlar"),
+  where("aktif", "==", true)
+);
 
     onSnapshot(q, (snap) => {
       reklamlar = snap.docs.map(doc => ({
