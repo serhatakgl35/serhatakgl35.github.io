@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kantin Reklam Ekranı</title>
+
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      width:100vw;
+      height:100vh;
+      overflow:hidden;
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif;
+      background:#000;
+      color:#fff;
+    }
+
+    .screen{
+      width:100vw;
+      height:100vh;
+      position:relative;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:40px;
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,.18), transparent 35%),
+        linear-gradient(135deg,#050505,#111,#000);
+    }
+
+    .card{
+      width:100%;
+      height:100%;
+      border-radius:42px;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.18);
+      box-shadow:0 40px 100px rgba(0,0,0,.6);
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      overflow:hidden;
+      backdrop-filter:blur(20px);
+    }
+
+    .imageArea{
+      position:relative;
+      background:#111;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+    }
+
+    .imageArea img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+    }
+
+    .noImage{
+      font-size:90px;
+      opacity:.8;
+    }
+
+    .content{
+      padding:70px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:28px;
+    }
+
+    .badge{
+      display:inline-flex;
+      width:max-content;
+      padding:14px 24px;
+      border-radius:999px;
+      background:#fff;
+      color:#000;
+      font-size:28px;
+      font-weight:900;
+      letter-spacing:.5px;
+    }
+
+    .title{
+      font-size:54px;
+      font-weight:900;
+      color:#ffd36a;
+    }
+
+    .product{
+      font-size:88px;
+      line-height:1;
+      font-weight:950;
+      letter-spacing:-3px;
+    }
+
+    .desc{
+      font-size:34px;
+      line-height:1.35;
+      color:rgba(255,255,255,.82);
+    }
+
+    .price{
+      font-size:86px;
+      font-weight:950;
+      color:#7CFF9B;
+    }
+
+    .footer{
+      position:absolute;
+      left:50%;
+      bottom:28px;
+      transform:translateX(-50%);
+      font-size:24px;
+      color:rgba(255,255,255,.65);
+      white-space:nowrap;
+    }
+
+    .loading{
+      font-size:46px;
+      font-weight:800;
+      text-align:center;
+      color:#fff;
+    }
+
+    @media(max-width:900px){
+      .screen{padding:16px}
+      .card{
+        grid-template-columns:1fr;
+        border-radius:28px;
+      }
+      .imageArea{height:42vh}
+      .content{
+        padding:34px;
+        gap:18px;
+      }
+      .badge{font-size:18px}
+      .title{font-size:30px}
+      .product{font-size:48px}
+      .desc{font-size:22px}
+      .price{font-size:52px}
+      .footer{font-size:15px}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="screen">
+    <div id="app" class="loading">Reklamlar yükleniyor...</div>
+    <div class="footer">KANTİN10 • Yeni ürün ve duyurular</div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      query,
+      where,
+      orderBy,
+      onSnapshot
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",
+      authDomain: "berber-randevu-14f7f.firebaseapp.com",
+      projectId: "berber-randevu-14f7f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const appDiv = document.getElementById("app");
+
+    let reklamlar = [];
+    let aktifIndex = 0;
+    let timer = null;
+
+    function temizleMetin(v, varsayilan = "") {
+      return v === undefined || v === null || v === "" ? varsayilan : String(v);
+    }
+
+    function reklamGoster() {
+      if (!reklamlar.length) {
+        appDiv.className = "loading";
+        appDiv.innerHTML = "Aktif reklam bulunamadı.";
+        return;
+      }
+
+      const r = reklamlar[aktifIndex];
+
+      const baslik = temizleMetin(r.baslik, "KANTİNE YENİ GELDİ");
+      const urunAdi = temizleMetin(r.urunAdi, "Yeni Ürün");
+      const aciklama = temizleMetin(r.aciklama, "Bugün kantinde satışta.");
+      const fiyat = temizleMetin(r.fiyat, "");
+      const resim = temizleMetin(r.resim, "");
+
+      appDiv.className = "card";
+      appDiv.innerHTML = `
+        <div class="imageArea">
+          ${
+            resim
+              ? `<img src="${resim}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=noImage>🛒</div>'">`
+              : `<div class="noImage">🛒</div>`
+          }
+        </div>
+
+        <div class="content">
+          <div class="badge">🔥 STOKTA VAR</div>
+          <div class="title">${baslik}</div>
+          <div class="product">${urunAdi}</div>
+          <div class="desc">${aciklama}</div>
+          ${fiyat ? `<div class="price">${fiyat}</div>` : ""}
+        </div>
+      `;
+
+      aktifIndex = (aktifIndex + 1) % reklamlar.length;
+    }
+
+    function sliderBaslat() {
+      if (timer) clearInterval(timer);
+      reklamGoster();
+      timer = setInterval(reklamGoster, 8000);
+    }
+
+    const q = query(
+      collection(db, "reklamlar"),
+      where("aktif", "==", true),
+      orderBy("createdAt", "desc")
+    );
+
+    onSnapshot(q, (snap) => {
+      reklamlar = snap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      aktifIndex = 0;
+      sliderBaslat();
+    }, (err) => {
+      console.error(err);
+      appDiv.className = "loading";
+      appDiv.innerHTML = "Reklamlar yüklenirken hata oluştu.";
+    });
+  </script>
+</body>
+</html>
