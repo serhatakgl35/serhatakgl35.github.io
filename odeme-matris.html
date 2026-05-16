@@ -8,276 +8,101 @@
 <style>
 *{box-sizing:border-box}
 :root{
-  --bg:#f5f5f7;
-  --text:#111;
-  --muted:#6b7280;
-  --line:#e5e7eb;
+  --bg:#f5f5f7;--text:#111;--muted:#6b7280;--line:#e5e7eb;
   --shadow:0 14px 40px rgba(0,0,0,.08);
 }
-body{
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif;
-}
-.topbar{
-  position:sticky;
-  top:0;
-  z-index:50;
-  background:rgba(17,17,17,.94);
-  backdrop-filter:blur(16px);
-  padding:13px 16px;
-  display:flex;
-  justify-content:center;
-  gap:10px;
-  flex-wrap:wrap;
-}
-.topbar a,.topbar button{
-  background:#fff;
-  color:#111;
-  border:0;
-  border-radius:999px;
-  padding:10px 15px;
-  font-weight:900;
-  text-decoration:none;
-  cursor:pointer;
-}
-.wrap{
-  width:min(1500px,100%);
-  margin:24px auto;
-  padding:0 14px 40px;
-}
-.card{
-  background:#fff;
-  border:1px solid rgba(0,0,0,.06);
-  border-radius:24px;
-  padding:20px;
-  box-shadow:var(--shadow);
-  margin-bottom:16px;
-}
-h1{
-  margin:0 0 8px;
-  font-size:34px;
-  font-weight:1000;
-  letter-spacing:-.7px;
-}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(17,17,17,.94);backdrop-filter:blur(16px);padding:13px 16px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.topbar a,.topbar button{background:#fff;color:#111;border:0;border-radius:999px;padding:10px 15px;font-weight:900;text-decoration:none;cursor:pointer}
+.wrap{width:min(1500px,100%);margin:24px auto;padding:0 14px 40px}
+.card{background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:24px;padding:20px;box-shadow:var(--shadow);margin-bottom:16px}
+h1{margin:0 0 8px;font-size:34px;font-weight:1000;letter-spacing:-.7px}
 p{color:var(--muted);line-height:1.45}
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-  gap:12px;
-  align-items:end;
-}
-label{
-  display:block;
-  font-size:13px;
-  font-weight:900;
-  margin-bottom:6px;
-}
-input,select,textarea{
-  width:100%;
-  border:1px solid var(--line);
-  border-radius:15px;
-  padding:12px 13px;
-  font:inherit;
-  outline:none;
-  background:#f8fafc;
-}
-button.main{
-  width:100%;
-  border:0;
-  border-radius:16px;
-  padding:13px 15px;
-  background:#111;
-  color:#fff;
-  font-weight:950;
-  cursor:pointer;
-}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;align-items:end}
+label{display:block;font-size:13px;font-weight:900;margin-bottom:6px}
+input,select,textarea{width:100%;border:1px solid var(--line);border-radius:15px;padding:12px 13px;font:inherit;outline:none;background:#f8fafc}
+button.main{width:100%;border:0;border-radius:16px;padding:13px 15px;background:#111;color:#fff;font-weight:950;cursor:pointer}
 button.green{background:#15803d}
-.summary{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
-  gap:12px;
-}
-.sumBox{
-  background:#f8fafc;
-  border:1px solid var(--line);
-  border-radius:18px;
-  padding:14px;
-}
-.sumBox b{
-  display:block;
-  font-size:24px;
-  margin-top:5px;
-}
-.tableWrap{
-  overflow:auto;
-  border:1px solid var(--line);
-  border-radius:22px;
-  background:#fff;
-  max-height:72vh;
-}
-table{
-  width:100%;
-  border-collapse:separate;
-  border-spacing:0;
-  min-width:950px;
-}
-th,td{
-  border-bottom:1px solid #eee;
-  border-right:1px solid #eee;
-  padding:10px;
-  font-size:13px;
-  text-align:center;
-  vertical-align:middle;
-  white-space:nowrap;
-}
-th{
-  position:sticky;
-  top:0;
-  z-index:5;
-  background:#111;
-  color:white;
-  font-weight:950;
-}
-th:first-child{
-  left:0;
-  z-index:7;
-}
-td:first-child{
-  position:sticky;
-  left:0;
-  z-index:3;
-  background:#fff !important;
-  text-align:left;
-  font-weight:950;
-  min-width:230px;
-  max-width:260px;
-  white-space:normal;
-}
-.personelSub{
-  display:block;
-  font-size:12px;
-  color:#444;
-  font-weight:800;
-  margin-top:4px;
-}
-.cell{
-  display:block;
-  border-radius:12px;
-  padding:9px 10px;
-  font-weight:950;
-  min-width:95px;
-  cursor:pointer;
-  user-select:none;
-  transition:.15s;
-}
-.cell:hover{
-  transform:scale(1.03);
-  box-shadow:0 8px 20px rgba(0,0,0,.12);
-}
-.odendi{background:#dcfce7;color:#166534}
-.bekliyor{background:#fef3c7;color:#92400e}
-.reddedildi{background:#fee2e2;color:#991b1b}
-.fazla{background:#dbeafe;color:#1d4ed8}
-.bos{background:#f3f4f6;color:#6b7280}
-.genelBorc{background:#fee2e2;color:#991b1b}
-.genelFazla{background:#dbeafe;color:#1d4ed8}
-.genelTamam{background:#dcfce7;color:#166534}
-.small{
-  display:block;
-  font-size:11px;
-  opacity:.85;
-  margin-top:3px;
-}
-.loading{
-  padding:30px;
-  text-align:center;
-  color:var(--muted);
-  font-weight:900;
-}
-.msg{
-  margin-top:10px;
-  font-weight:900;
-  color:#166534;
-}
-.modalBg{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.52);
-  backdrop-filter:blur(10px);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:9999;
-  padding:16px;
-}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.sumBox{background:#f8fafc;border:1px solid var(--line);border-radius:18px;padding:14px}
+.sumBox b{display:block;font-size:24px;margin-top:5px}
+.tableWrap{overflow:auto;border:1px solid var(--line);border-radius:22px;background:#fff;max-height:72vh}
+table{width:100%;border-collapse:separate;border-spacing:0;min-width:950px}
+th,td{border-bottom:1px solid #eee;border-right:1px solid #eee;padding:10px;font-size:13px;text-align:center;vertical-align:middle;white-space:nowrap}
+th{position:sticky;top:0;z-index:5;background:#111;color:white;font-weight:950}
+th:first-child{left:0;z-index:7}
+td:first-child{position:sticky;left:0;z-index:3;background:#fff!important;text-align:left;font-weight:950;min-width:230px;max-width:260px;white-space:normal}
+.personelSub{display:block;font-size:12px;color:#444;font-weight:800;margin-top:4px}
+.cell{display:block;border-radius:12px;padding:9px 10px;font-weight:950;min-width:95px;cursor:pointer;user-select:none;transition:.15s}
+.cell:hover{transform:scale(1.03);box-shadow:0 8px 20px rgba(0,0,0,.12)}
+.odendi{background:#dcfce7;color:#166534}.bekliyor{background:#fef3c7;color:#92400e}.reddedildi{background:#fee2e2;color:#991b1b}.fazla{background:#dbeafe;color:#1d4ed8}.bos{background:#f3f4f6;color:#6b7280}
+.genelBorc{background:#fee2e2;color:#991b1b}.genelFazla{background:#dbeafe;color:#1d4ed8}.genelTamam{background:#dcfce7;color:#166534}
+.small{display:block;font-size:11px;opacity:.85;margin-top:3px}
+.loading{padding:30px;text-align:center;color:var(--muted);font-weight:900}
+.msg{margin-top:10px;font-weight:900;color:#166534}
+
+/* MOBİL KART GÖRÜNÜMÜ */
+.mobileList{display:none}
+.personCard{background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:0 8px 24px rgba(0,0,0,.055);padding:15px;margin-bottom:12px}
+.personHead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:12px}
+.personName{font-size:18px;font-weight:1000;line-height:1.15}
+.personTel{font-size:12px;color:#555;font-weight:800;margin-top:4px}
+.personBalance{border-radius:999px;padding:8px 10px;font-size:12px;font-weight:1000;white-space:nowrap}
+.monthRows{display:grid;gap:8px}
+.monthRow{border:1px solid var(--line);border-radius:16px;padding:11px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;cursor:pointer}
+.monthTitle{font-weight:1000}
+.monthDetail{font-size:12px;color:#555;font-weight:800;margin-top:3px}
+.monthStatus{border-radius:999px;padding:7px 9px;font-size:11px;font-weight:1000;text-align:center;min-width:82px}
+.noMobile{display:block}
+
+.modalBg{position:fixed;inset:0;background:rgba(0,0,0,.52);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;z-index:9999;padding:16px}
 .modalBg.show{display:flex}
-.modal{
-  width:min(460px,100%);
-  background:white;
-  border-radius:28px;
-  padding:22px;
-  box-shadow:0 25px 80px rgba(0,0,0,.35);
-}
-.modalTop{
-  display:flex;
-  justify-content:space-between;
-  gap:12px;
-  align-items:flex-start;
-  margin-bottom:14px;
-}
-.modal h2{
-  margin:0;
-  font-size:24px;
-  letter-spacing:-.4px;
-}
-.closeBtn{
-  width:42px;
-  height:42px;
-  border:0;
-  border-radius:50%;
-  background:#111;
-  color:#fff;
-  font-size:22px;
-  font-weight:950;
-  cursor:pointer;
-}
-.modalActions{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin-top:12px;
-}
-.modalActions button{
-  border:0;
-  border-radius:15px;
-  padding:13px;
-  font-weight:950;
-  cursor:pointer;
-  color:white;
-}
-.saveBtn{background:#15803d}
-.cancelBtn{background:#4b5563}
-.deleteBtn{background:#b91c1c;grid-column:1/-1}
-.modalInfo{
-  background:#f8fafc;
-  border:1px solid var(--line);
-  border-radius:18px;
-  padding:12px;
-  color:#374151;
-  font-weight:800;
-  line-height:1.45;
-  margin-bottom:12px;
-}
+.modal{width:min(460px,100%);background:white;border-radius:28px;padding:22px;box-shadow:0 25px 80px rgba(0,0,0,.35)}
+.modalTop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:14px}
+.modal h2{margin:0;font-size:24px;letter-spacing:-.4px}
+.closeBtn{width:42px;height:42px;border:0;border-radius:50%;background:#111;color:#fff;font-size:22px;font-weight:950;cursor:pointer}
+.modalActions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.modalActions button{border:0;border-radius:15px;padding:13px;font-weight:950;cursor:pointer;color:white}
+.saveBtn{background:#15803d}.cancelBtn{background:#4b5563}.deleteBtn{background:#b91c1c;grid-column:1/-1}
+.modalInfo{background:#f8fafc;border:1px solid var(--line);border-radius:18px;padding:12px;color:#374151;font-weight:800;line-height:1.45;margin-bottom:12px}
+
 @media(max-width:760px){
-  h1{font-size:27px}
-  .card{padding:15px;border-radius:20px}
+  body{background:#f5f5f7}
+  .wrap{margin:14px auto;padding:0 10px 28px}
+  h1{font-size:26px}
+  p{font-size:14px}
+  .card{padding:14px;border-radius:20px;margin-bottom:12px}
+  .topbar{padding:10px 8px}
   .topbar a,.topbar button{font-size:12px;padding:8px 11px}
-  th,td{font-size:12px;padding:8px}
-  td:first-child{min-width:190px}
-  .cell{min-width:85px}
+  .grid{grid-template-columns:1fr;gap:10px}
+  .summary{grid-template-columns:repeat(2,1fr);gap:8px}
+  .sumBox{padding:11px;border-radius:15px;font-size:12px}
+  .sumBox b{font-size:19px}
+  .tableWrap{display:none}
+  .mobileList{display:block}
+  .noMobile{display:none}
+  .modal{border-radius:22px;padding:17px}
+  .modal h2{font-size:21px}
 }
+
+/* EK ARAÇLAR: CSV İÇE AKTAR + WHATSAPP */
+.toolsPanel{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.toolBox{background:#f8fafc;border:1px dashed rgba(0,0,0,.16);border-radius:20px;padding:15px}
+.toolBox h3{margin:0 0 8px;font-size:18px}
+.toolActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.miniBtn{background:#111;color:white;border:0;border-radius:14px;padding:11px 13px;font-weight:950;cursor:pointer}
+.miniBtn.green{background:#15803d}
+.miniBtn.gray{background:#4b5563}
+.miniMsg{font-size:13px;font-weight:900;margin-top:8px;color:#166534;min-height:18px}
+.smsInfo{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:10px 0}
+.smsPill{background:white;border-radius:14px;padding:10px;font-weight:950;box-shadow:0 4px 12px rgba(0,0,0,.04);font-size:13px}
+.waQueueBox{display:none;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:18px;padding:14px;margin-top:12px;box-shadow:0 4px 12px rgba(0,0,0,.04)}
+.waQueueBox.show{display:block}
+.waProgress{font-weight:950;color:#111;margin-bottom:8px}
+.waCurrent{color:#166534;font-weight:950;margin-bottom:10px}
+.waActions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+@media(max-width:760px){.toolsPanel{grid-template-columns:1fr}.toolActions{display:block}.miniBtn{width:100%;margin-top:8px}.waActions{grid-template-columns:1fr}}
 </style>
 </head>
 
@@ -295,26 +120,13 @@ td:first-child{
   <div class="card">
     <h1>Çay Ocağı Ödeme Matrisi</h1>
     <p>
-      Tüm dönemleri tek tabloda gör. Hücreye tıklayınca ödeme düzenleme penceresi açılır.
-      Kaydettiğinde sadece ilgili kişinin ilgili dönemi güncellenir.
+      Masaüstünde tablo, mobilde kart görünümü kullanılır. Karttaki aya veya tablodaki hücreye basınca düzenleme penceresi açılır.
     </p>
 
     <div class="grid">
-      <div>
-        <label>Başlangıç Dönemi</label>
-        <input id="baslangicAy" type="month">
-      </div>
-
-      <div>
-        <label>Bitiş Dönemi</label>
-        <input id="bitisAy" type="month">
-      </div>
-
-      <div>
-        <label>Personel Ara</label>
-        <input id="arama" placeholder="İsim veya telefon ara">
-      </div>
-
+      <div><label>Başlangıç Dönemi</label><input id="baslangicAy" type="month"></div>
+      <div><label>Bitiş Dönemi</label><input id="bitisAy" type="month"></div>
+      <div><label>Personel Ara</label><input id="arama" placeholder="İsim veya telefon ara"></div>
       <div>
         <label>Filtre</label>
         <select id="filtre">
@@ -324,17 +136,69 @@ td:first-child{
           <option value="tamam">Borcu Olmayanlar</option>
         </select>
       </div>
-
-      <div>
-        <button class="main" onclick="verileriYukle()">Listeyi Yükle</button>
-      </div>
-
-      <div>
-        <button class="main green" onclick="csvIndir()">CSV İndir</button>
-      </div>
+      <div><button class="main" onclick="verileriYukle()">Listeyi Yükle</button></div>
+      <div><button class="main green" onclick="csvIndir()">CSV İndir</button></div>
     </div>
 
     <div id="msg" class="msg"></div>
+  </div>
+
+
+  <div class="card">
+    <div class="toolsPanel">
+      <div class="toolBox">
+        <h3>Ödeme Tablosu İçe Aktar</h3>
+        <p>Excel/CSV içinde <b>Personel</b> ve <b>Tutar</b> sütunları olmalı. Eşleşme isimden yapılır.</p>
+
+        <label>İçe Aktarılacak Dönem</label>
+        <input id="importAy" type="month">
+
+        <label>Excel / CSV Dosyası</label>
+        <input id="dekontExcel" type="file" accept=".csv,.txt,.xlsx,.xls">
+
+        <div class="toolActions">
+          <button class="miniBtn green" onclick="dekontIceriAktar()">Excel / CSV Yükle ve İşle</button>
+          <button class="miniBtn" onclick="ornekDekontCsvIndir()">Excel Şablonu İndir</button>
+        </div>
+
+        <div id="importMsg" class="miniMsg"></div>
+      </div>
+
+      <div class="toolBox">
+        <h3>Borçlulara WhatsApp Gönder</h3>
+        <p>Seçilen dönemde ödeme bekleyen personelleri hazırlar ve WhatsApp sohbetlerini sırayla açar.</p>
+
+        <label>Mesaj Dönemi</label>
+        <input id="mesajAy" type="month">
+
+        <div class="smsInfo">
+          <div class="smsPill">Alıcı: Borçlu personel</div>
+          <div class="smsPill">Durum: Ödeme Bekliyor</div>
+        </div>
+
+        <label>WhatsApp Mesajı</label>
+        <textarea id="smsMesaj">{AD},
+
+{DONEM} dönemi çay ocağı aidat borcunuz bulunmaktadır.
+
+Lütfen en kısa sürede ödemenizi yapınız.
+
+www.kantin10.com.tr sitesinden ödeme durumlarınızı görebilirsiniz.</textarea>
+
+        <button class="main green" onclick="borclularaWhatsAppGonder()">Borçluları Hazırla ve İlk Kişiyi Aç</button>
+
+        <div class="waQueueBox" id="waQueueBox">
+          <div class="waProgress" id="waProgress">Hazırlanıyor...</div>
+          <div class="waCurrent" id="waCurrent">Sıradaki kişi bekleniyor.</div>
+          <div class="waActions">
+            <button class="main green" onclick="whatsappSiradakiAc()">Sonraki Kişiye Geç</button>
+            <button class="main" style="background:#4b5563" onclick="whatsappSirayiSifirla()">Sırayı Sıfırla</button>
+          </div>
+        </div>
+
+        <div id="smsMsg" class="miniMsg"></div>
+      </div>
+    </div>
   </div>
 
   <div class="card">
@@ -343,16 +207,16 @@ td:first-child{
     </div>
   </div>
 
-  <div class="card">
+  <div class="card noMobile">
     <div class="tableWrap">
       <table id="matrisTable">
-        <tbody>
-          <tr>
-            <td class="loading">Listeyi yüklemek için butona bas.</td>
-          </tr>
-        </tbody>
+        <tbody><tr><td class="loading">Listeyi yüklemek için butona bas.</td></tr></tbody>
       </table>
     </div>
+  </div>
+
+  <div id="mobileList" class="mobileList">
+    <div class="loading">Listeyi yüklemek için butona bas.</div>
   </div>
 
 </div>
@@ -392,390 +256,273 @@ td:first-child{
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth,onAuthStateChanged,signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore,collection,getDocs,getDoc,doc,query,where,setDoc,serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import * as XLSX from "https://cdn.sheetjs.com/xlsx-0.20.2/package/xlsx.mjs";
 
-import {
-  getAuth,
-  onAuthStateChanged,
-  signOut
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+const firebaseConfig={apiKey:"AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",authDomain:"berber-randevu-14f7f.firebaseapp.com",projectId:"berber-randevu-14f7f",storageBucket:"berber-randevu-14f7f.firebasestorage.app",messagingSenderId:"280530860977",appId:"1:280530860977:web:52c0df04c228896f211b90"};
 
-import {
-  getFirestore,
-  collection,
-  getDocs,
-  getDoc,
-  doc,
-  query,
-  where,
-  setDoc,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
+const auth=getAuth(app);
 
-const firebaseConfig = {
-  apiKey:"AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",
-  authDomain:"berber-randevu-14f7f.firebaseapp.com",
-  projectId:"berber-randevu-14f7f",
-  storageBucket:"berber-randevu-14f7f.firebasestorage.app",
-  messagingSenderId:"280530860977",
-  appId:"1:280530860977:web:52c0df04c228896f211b90"
-};
+const PERSONEL_COLLECTION="personeller";
+const ODEME_COLLECTION="cay_odemeler";
+const AYAR_COLLECTION="cay_ayarlar";
+const VARSAYILAN_AIDAT=300;
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+let personeller=[];
+let odemeMap={};
+let ayarlarMap={};
+let aylar=[];
+let sonSatirlar=[];
+let aktifEdit=null;
+let whatsappKuyruk=[];
+let whatsappIndex=0;
+let whatsappAktifDonem="";
+let whatsappMesajSablon="";
 
-const PERSONEL_COLLECTION = "personeller";
-const ODEME_COLLECTION = "cay_odemeler";
-const AYAR_COLLECTION = "cay_ayarlar";
-const VARSAYILAN_AIDAT = 300;
+const $=id=>document.getElementById(id);
 
-let personeller = [];
-let odemeMap = {};
-let ayarlarMap = {};
-let aylar = [];
-let sonSatirlar = [];
-let aktifEdit = null;
+function esc(s){return String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]))}
+function temizTelefon(tel){tel=String(tel||"").replace(/\D/g,"");if(tel.startsWith("90"))tel="0"+tel.slice(2);if(tel&&!tel.startsWith("0"))tel="0"+tel;return tel.slice(0,11)}
+function getAd(p){return p.isim||p.adSoyad||p.ad||p.name||p.fullName||"İsimsiz Personel"}
+function getTelefonFromDoc(id,p){return temizTelefon(p.telefon||p.phone||p.tel||p.gsm||id||"")}
+function getAktif(p){if(p.aktif===false)return false;if(p.active===false)return false;if(p.durum==="pasif")return false;return true}
+function getBakiye(p){const n=Number(p.bakiye??p.gecmisBakiye??0);return Number.isFinite(n)?n:0}
+function normalizeTR(v){return String(v||"").toLocaleLowerCase("tr-TR").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/ı/g,"i").replace(/ğ/g,"g").replace(/ü/g,"u").replace(/ş/g,"s").replace(/ö/g,"o").replace(/ç/g,"c").replace(/[^a-z0-9 ]/gi," ").replace(/\s+/g," ").trim()}
+function ayAdi(key){const m=Number(String(key||"").split("-")[1]);return["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"][m-1]||key}
+function addMonthsKey(key,delta){const[y,m]=String(key).split("-").map(Number);const d=new Date(y,m-1+delta,1);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")}
+function donemKey(date=new Date()){const y=date.getFullYear(),m=date.getMonth()+1;if(date.getDate()>=15)return y+"-"+String(m).padStart(2,"0");const d=new Date(y,m-2,1);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")}
+function donemLabel(key){const next=addMonthsKey(key,1);return"15 "+ayAdi(key)+" - 14 "+ayAdi(next)}
+function ayAraligiOlustur(start,end){const arr=[];let cur=start;while(cur<=end&&arr.length<24){arr.push(cur);cur=addMonthsKey(cur,1)}return arr}
+function para(n){return Number(n||0).toLocaleString("tr-TR")+" TL"}
+function bakiyeText(net){net=Number(net||0);if(net>0)return para(net)+" Fazla";if(net<0)return para(Math.abs(net))+" Borç";return"0 TL"}
+function odemeDocKey(tel,ay){return ay+"_"+temizTelefon(tel)}
+function durumClass(durum,net){if(durum==="reddedildi")return"reddedildi";if(net>0)return"fazla";if(durum==="odendi")return"odendi";if(net<0)return"bekliyor";return"bos"}
+function genelClass(net){return net<0?"genelBorc":net>0?"genelFazla":"genelTamam"}
+function durumText(durum){if(durum==="odendi")return"Ödendi";if(durum==="reddedildi")return"Reddedildi";return"Bekliyor"}
+function csvEscape(v){v=String(v??"");if(v.includes('"')||v.includes(";")||v.includes("\n"))return'"'+v.replaceAll('"','""')+'"';return v}
+function csvSatir(arr){return arr.map(csvEscape).join(";")}
 
-const $ = id => document.getElementById(id);
-
-function esc(s){
-  return String(s ?? "").replace(/[&<>"]/g,m=>({
-    "&":"&amp;",
-    "<":"&lt;",
-    ">":"&gt;",
-    '"':"&quot;"
-  }[m]));
+function smsTelefonFormatla(tel){
+  let t=String(tel||"").replace(/\D/g,"");
+  if(t.startsWith("90")) return t.slice(0,12);
+  if(t.startsWith("0")) return "90"+t.slice(1);
+  if(t.startsWith("5")) return "90"+t;
+  return t;
 }
 
-function temizTelefon(tel){
-  tel = String(tel || "").replace(/\D/g,"");
-  if(tel.startsWith("90")) tel = "0" + tel.slice(2);
-  if(tel && !tel.startsWith("0")) tel = "0" + tel;
-  return tel.slice(0,11);
+function kelimeler(v){
+  return normalizeTR(v).split(" ").filter(x=>x.length>=2);
 }
 
-function getAd(p){
-  return p.isim || p.adSoyad || p.ad || p.name || p.fullName || "İsimsiz Personel";
+function isimEslesir(gelenAd,sistemAd){
+  const gNorm=normalizeTR(gelenAd);
+  const sNorm=normalizeTR(sistemAd);
+  if(!gNorm||!sNorm)return false;
+  if(gNorm===sNorm)return true;
+  if(gNorm.includes(sNorm)||sNorm.includes(gNorm))return true;
+  const gKelimeler=kelimeler(gelenAd);
+  const sKelimeler=kelimeler(sistemAd);
+  if(gKelimeler.length===0||sKelimeler.length===0)return false;
+  return sKelimeler.every(k=>gKelimeler.includes(k))||gKelimeler.every(k=>sKelimeler.includes(k));
 }
 
-function getTelefonFromDoc(id,p){
-  return temizTelefon(p.telefon || p.phone || p.tel || p.gsm || id || "");
+function eslesenKisiyiBul(gelenAd,personellerListesi){
+  const adNorm=normalizeTR(gelenAd);
+  if(!adNorm)return null;
+  let tam=personellerListesi.filter(p=>p.norm===adNorm);
+  if(tam.length===1)return tam[0];
+  let benzer=personellerListesi.filter(p=>isimEslesir(gelenAd,p.ad));
+  if(benzer.length===1)return benzer[0];
+  return null;
 }
 
-function getAktif(p){
-  if(p.aktif === false) return false;
-  if(p.active === false) return false;
-  if(p.durum === "pasif") return false;
-  return true;
+function parseMoney(v){
+  let raw=String(v??"").trim();
+  if(!raw)return null;
+  raw=raw.replace(/TL|₺/gi,"").replace(/\s/g,"");
+  if(raw.includes(",")&&raw.includes("."))raw=raw.replace(/\./g,"").replace(",",".");
+  else if(raw.includes(","))raw=raw.replace(",",".");
+  const n=Number(raw.replace(/[^0-9.-]/g,""));
+  return Number.isFinite(n)?n:null;
 }
 
-function getBakiye(p){
-  const n = Number(p.bakiye ?? p.gecmisBakiye ?? 0);
-  return Number.isFinite(n) ? n : 0;
-}
-
-function normalizeTR(v){
-  return String(v || "")
-    .toLocaleLowerCase("tr-TR")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g,"")
-    .replace(/ı/g,"i")
-    .replace(/ğ/g,"g")
-    .replace(/ü/g,"u")
-    .replace(/ş/g,"s")
-    .replace(/ö/g,"o")
-    .replace(/ç/g,"c")
-    .replace(/[^a-z0-9 ]/gi," ")
-    .replace(/\s+/g," ")
-    .trim();
-}
-
-function ayAdi(key){
-  const m = Number(String(key || "").split("-")[1]);
-  return ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"][m-1] || key;
-}
-
-function addMonthsKey(key,delta){
-  const [y,m] = String(key).split("-").map(Number);
-  const d = new Date(y,m-1+delta,1);
-  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0");
-}
-
-function donemKey(date = new Date()){
-  const y = date.getFullYear();
-  const m = date.getMonth()+1;
-
-  if(date.getDate() >= 15){
-    return y + "-" + String(m).padStart(2,"0");
+function getAlan(obj,adaylar){
+  const keys=Object.keys(obj||{});
+  for(const aday of adaylar){
+    const nk=normalizeTR(aday);
+    const found=keys.find(k=>normalizeTR(k)===nk||normalizeTR(k).includes(nk));
+    if(found)return obj[found];
   }
-
-  const d = new Date(y,m-2,1);
-  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0");
+  return "";
 }
 
-function donemLabel(key){
-  const next = addMonthsKey(key,1);
-  return "15 " + ayAdi(key) + " - 14 " + ayAdi(next);
-}
-
-function ayAraligiOlustur(start,end){
-  const arr = [];
-  let cur = start;
-
-  while(cur <= end && arr.length < 24){
-    arr.push(cur);
-    cur = addMonthsKey(cur,1);
-  }
-
-  return arr;
-}
-
-function para(n){
-  n = Number(n || 0);
-  return n.toLocaleString("tr-TR") + " TL";
-}
-
-function bakiyeText(net){
-  net = Number(net || 0);
-
-  if(net > 0) return para(net) + " Fazla";
-  if(net < 0) return para(Math.abs(net)) + " Borç";
-
-  return "0 TL";
-}
-
-function odemeDocKey(tel,ay){
-  return ay + "_" + temizTelefon(tel);
-}
-
-function durumClass(durum,net){
-  if(durum === "reddedildi") return "reddedildi";
-  if(net > 0) return "fazla";
-  if(durum === "odendi") return "odendi";
-  if(net < 0) return "bekliyor";
-  return "bos";
-}
-
-function durumText(durum){
-  if(durum === "odendi") return "Ödendi";
-  if(durum === "reddedildi") return "Reddedildi";
-  return "Bekliyor";
-}
-
-function csvEscape(v){
-  v = String(v ?? "");
-  if(v.includes('"') || v.includes(";") || v.includes("\n")){
-    return '"' + v.replaceAll('"','""') + '"';
-  }
-  return v;
-}
-
-function csvSatir(arr){
-  return arr.map(csvEscape).join(";");
-}
 
 async function adminMi(user){
   try{
-    const snap = await getDoc(doc(db,"admins",user.uid));
-    if(!snap.exists()) return false;
-
-    const d = snap.data() || {};
-    return d.aktif === true && (!d.role || d.role === "admin");
-  }catch(e){
-    console.error(e);
-    return false;
-  }
+    const snap=await getDoc(doc(db,"admins",user.uid));
+    if(!snap.exists())return false;
+    const d=snap.data()||{};
+    return d.aktif===true&&(!d.role||d.role==="admin");
+  }catch(e){console.error(e);return false}
 }
 
 async function personelleriYukle(){
-  const snap = await getDocs(collection(db,PERSONEL_COLLECTION));
-
-  personeller = [];
-
+  const snap=await getDocs(collection(db,PERSONEL_COLLECTION));
+  personeller=[];
   snap.forEach(d=>{
-    const p = {id:d.id,...d.data()};
-
-    if(!getAktif(p)) return;
-
-    const tel = getTelefonFromDoc(d.id,p);
-    const ad = getAd(p);
-
-    if(!tel || !ad) return;
-
-    personeller.push({
-      id:d.id,
-      ad,
-      tel,
-      bakiye:getBakiye(p),
-      norm:normalizeTR(ad + " " + tel)
-    });
+    const p={id:d.id,...d.data()};
+    if(!getAktif(p))return;
+    const tel=getTelefonFromDoc(d.id,p);
+    const ad=getAd(p);
+    if(!tel||!ad)return;
+    personeller.push({id:d.id,ad,tel,bakiye:getBakiye(p),norm:normalizeTR(ad+" "+tel)});
   });
-
   personeller.sort((a,b)=>a.ad.localeCompare(b.ad,"tr",{sensitivity:"base"}));
 }
 
 async function ayarlariYukle(){
-  ayarlarMap = {};
-
+  ayarlarMap={};
   for(const ay of aylar){
     try{
-      const snap = await getDoc(doc(db,AYAR_COLLECTION,ay));
-
+      const snap=await getDoc(doc(db,AYAR_COLLECTION,ay));
       if(snap.exists()){
-        const t = Number(snap.data().aylikTutar || 0);
-        ayarlarMap[ay] = t > 0 ? t : VARSAYILAN_AIDAT;
+        const t=Number(snap.data().aylikTutar||0);
+        ayarlarMap[ay]=t>0?t:VARSAYILAN_AIDAT;
       }else{
-        ayarlarMap[ay] = VARSAYILAN_AIDAT;
+        ayarlarMap[ay]=VARSAYILAN_AIDAT;
       }
     }catch{
-      ayarlarMap[ay] = VARSAYILAN_AIDAT;
+      ayarlarMap[ay]=VARSAYILAN_AIDAT;
     }
   }
 }
 
 async function odemeleriYukle(){
-  odemeMap = {};
-
+  odemeMap={};
   for(const ay of aylar){
-    const q = query(
-      collection(db,ODEME_COLLECTION),
-      where("ay","==",ay)
-    );
-
-    const snap = await getDocs(q);
-
+    const q=query(collection(db,ODEME_COLLECTION),where("ay","==",ay));
+    const snap=await getDocs(q);
     snap.forEach(d=>{
-      const o = {id:d.id,...d.data()};
-      const tel = temizTelefon(o.telefon || o.personelId || "");
-
-      if(!tel) return;
-
-      odemeMap[odemeDocKey(tel,ay)] = o;
+      const o={id:d.id,...d.data()};
+      const tel=temizTelefon(o.telefon||o.personelId||"");
+      if(!tel)return;
+      odemeMap[odemeDocKey(tel,ay)]=o;
     });
   }
 }
 
+function satirVerisiOlustur(p){
+  let genelNet=Number(p.bakiye||0);
+  let toplamSatirOdenen=0;
+  let toplamSatirBeklenen=0;
+  const cells=[];
+
+  for(const ay of aylar){
+    const aidat=Number(ayarlarMap[ay]||VARSAYILAN_AIDAT);
+    const odeme=odemeMap[odemeDocKey(p.tel,ay)]||null;
+    let durum=odeme?(odeme.durum||"odeme_bekliyor"):"odeme_bekliyor";
+    let tutar=odeme&&odeme.tutar!==undefined?Number(odeme.tutar||0):aidat;
+    let odenen=odeme?(durum==="odeme_bekliyor"?0:tutar):0;
+    const net=odenen-aidat;
+
+    genelNet+=net;
+    toplamSatirOdenen+=odenen;
+    toplamSatirBeklenen+=aidat;
+
+    cells.push({
+      ay,aidat,tutar,odenen,net,durum,
+      text: odeme ? durumText(durum) : "Kayıt yok",
+      not: odeme?.adminNot || ""
+    });
+  }
+
+  return {genelNet,toplamSatirOdenen,toplamSatirBeklenen,cells};
+}
+
 function tabloCiz(){
-  const arama = normalizeTR($("arama").value);
-  const filtre = $("filtre").value;
+  const arama=normalizeTR($("arama").value);
+  const filtre=$("filtre").value;
 
-  let toplamPersonel = 0;
-  let borclu = 0;
-  let fazla = 0;
-  let tamam = 0;
-  let toplamBeklenen = 0;
-  let toplamOdenen = 0;
-  let toplamGenelNet = 0;
+  let toplamPersonel=0,borclu=0,fazla=0,tamam=0,toplamBeklenen=0,toplamOdenen=0,toplamGenelNet=0;
+  sonSatirlar=[];
 
-  sonSatirlar = [];
-
-  let thead = `
-    <thead>
-      <tr>
-        <th>Personel</th>
-        ${aylar.map(a=>`<th>${ayAdi(a)}<br><span class="small">${a}</span></th>`).join("")}
-        <th>Genel Bakiye</th>
-      </tr>
-    </thead>
-  `;
-
-  let tbody = "<tbody>";
+  let thead=`<thead><tr><th>Personel</th>${aylar.map(a=>`<th>${ayAdi(a)}<br><span class="small">${a}</span></th>`).join("")}<th>Genel Bakiye</th></tr></thead>`;
+  let tbody="<tbody>";
+  let mobileHtml="";
 
   for(const p of personeller){
-    if(arama && !p.norm.includes(arama)) continue;
+    if(arama&&!p.norm.includes(arama))continue;
 
-    let genelNet = Number(p.bakiye || 0);
-    let toplamSatirOdenen = 0;
-    let toplamSatirBeklenen = 0;
+    const data=satirVerisiOlustur(p);
+    const genelNet=data.genelNet;
 
-    const cells = [];
-
-    for(const ay of aylar){
-      const aidat = Number(ayarlarMap[ay] || VARSAYILAN_AIDAT);
-      const odeme = odemeMap[odemeDocKey(p.tel,ay)] || null;
-
-      let durum = odeme ? (odeme.durum || "odeme_bekliyor") : "odeme_bekliyor";
-      let tutar = odeme && odeme.tutar !== undefined ? Number(odeme.tutar || 0) : aidat;
-      let odenen = odeme ? (durum === "odeme_bekliyor" ? 0 : tutar) : 0;
-
-      const net = odenen - aidat;
-      genelNet += net;
-
-      toplamSatirOdenen += odenen;
-      toplamSatirBeklenen += aidat;
-
-      toplamBeklenen += aidat;
-      toplamOdenen += odenen;
-
-      let text = odeme ? durumText(durum) : "Kayıt yok";
-
-      cells.push({
-        ay,
-        aidat,
-        tutar,
-        odenen,
-        net,
-        durum,
-        text,
-        not: odeme?.adminNot || ""
-      });
-    }
-
-    if(filtre === "borclu" && genelNet >= 0) continue;
-    if(filtre === "fazla" && genelNet <= 0) continue;
-    if(filtre === "tamam" && genelNet !== 0) continue;
+    if(filtre==="borclu"&&genelNet>=0)continue;
+    if(filtre==="fazla"&&genelNet<=0)continue;
+    if(filtre==="tamam"&&genelNet!==0)continue;
 
     toplamPersonel++;
-    toplamGenelNet += genelNet;
-
-    if(genelNet < 0) borclu++;
-    else if(genelNet > 0) fazla++;
-    else tamam++;
+    toplamGenelNet+=genelNet;
+    toplamBeklenen+=data.toplamSatirBeklenen;
+    toplamOdenen+=data.toplamSatirOdenen;
+    if(genelNet<0)borclu++;else if(genelNet>0)fazla++;else tamam++;
 
     sonSatirlar.push({
       personel:p.ad,
       telefon:p.tel,
       genelBakiye:bakiyeText(genelNet),
-      toplamOdenen:toplamSatirOdenen,
-      toplamBeklenen:toplamSatirBeklenen,
-      cells
+      toplamOdenen:data.toplamSatirOdenen,
+      toplamBeklenen:data.toplamSatirBeklenen,
+      cells:data.cells
     });
 
-    const genelClass = genelNet < 0 ? "genelBorc" : genelNet > 0 ? "genelFazla" : "genelTamam";
-
-    tbody += `
+    tbody+=`
       <tr>
-        <td>
-          ${esc(p.ad)}
-          <span class="personelSub">${esc(p.tel)}</span>
-        </td>
-
-        ${cells.map(c=>`
+        <td>${esc(p.ad)}<span class="personelSub">${esc(p.tel)}</span></td>
+        ${data.cells.map(c=>`
           <td>
-            <span
-              class="cell ${durumClass(c.durum,c.net)}"
-              onclick="modalAc('${p.tel}','${esc(p.ad).replaceAll("'","\\'")}','${c.ay}')">
+            <span class="cell ${durumClass(c.durum,c.net)}" onclick="modalAc('${p.tel}','${esc(p.ad).replaceAll("'","\\'")}','${c.ay}')">
               ${esc(c.text)}
-              <span class="small">${c.tutar ? "Tutar: " + para(c.tutar) : "Tutar yok"}</span>
-              <span class="small">${c.net < 0 ? para(Math.abs(c.net)) + " borç" : c.net > 0 ? para(c.net) + " fazla" : "tamam"}</span>
+              <span class="small">${c.tutar?"Tutar: "+para(c.tutar):"Tutar yok"}</span>
+              <span class="small">${c.net<0?para(Math.abs(c.net))+" borç":c.net>0?para(c.net)+" fazla":"tamam"}</span>
             </span>
           </td>
         `).join("")}
-
-        <td>
-          <span class="cell ${genelClass}">
-            ${bakiyeText(genelNet)}
-          </span>
-        </td>
+        <td><span class="cell ${genelClass(genelNet)}">${bakiyeText(genelNet)}</span></td>
       </tr>
+    `;
+
+    mobileHtml+=`
+      <div class="personCard">
+        <div class="personHead">
+          <div>
+            <div class="personName">${esc(p.ad)}</div>
+            <div class="personTel">${esc(p.tel)}</div>
+          </div>
+          <div class="personBalance ${genelClass(genelNet)}">${bakiyeText(genelNet)}</div>
+        </div>
+        <div class="monthRows">
+          ${data.cells.map(c=>`
+            <div class="monthRow" onclick="modalAc('${p.tel}','${esc(p.ad).replaceAll("'","\\'")}','${c.ay}')">
+              <div>
+                <div class="monthTitle">${ayAdi(c.ay)} <span class="small">${c.ay}</span></div>
+                <div class="monthDetail">Tutar: ${para(c.tutar)} · ${c.net<0?para(Math.abs(c.net))+" borç":c.net>0?para(c.net)+" fazla":"tamam"}</div>
+              </div>
+              <div class="monthStatus ${durumClass(c.durum,c.net)}">${esc(c.text)}</div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
     `;
   }
 
-  tbody += "</tbody>";
+  tbody+="</tbody>";
+  $("matrisTable").innerHTML=thead+tbody;
+  $("mobileList").innerHTML=mobileHtml || `<div class="loading">Kayıt bulunamadı.</div>`;
 
-  $("matrisTable").innerHTML = thead + tbody;
-
-  $("ozet").innerHTML = `
+  $("ozet").innerHTML=`
     <div class="sumBox">Personel <b>${toplamPersonel}</b></div>
     <div class="sumBox">Borçlu <b>${borclu}</b></div>
     <div class="sumBox">Fazla Ödeyen <b>${fazla}</b></div>
@@ -786,206 +533,477 @@ function tabloCiz(){
   `;
 }
 
-window.verileriYukle = async function(){
+window.verileriYukle=async function(){
   try{
-    const bas = $("baslangicAy").value;
-    const bit = $("bitisAy").value;
+    const bas=$("baslangicAy").value;
+    const bit=$("bitisAy").value;
 
-    if(!bas || !bit){
-      alert("Başlangıç ve bitiş dönemi seç.");
-      return;
-    }
+    if(!bas||!bit){alert("Başlangıç ve bitiş dönemi seç.");return}
+    if(bas>bit){alert("Başlangıç dönemi bitişten büyük olamaz.");return}
 
-    if(bas > bit){
-      alert("Başlangıç dönemi bitişten büyük olamaz.");
-      return;
-    }
-
-    aylar = ayAraligiOlustur(bas,bit);
-
-    $("msg").textContent = "Veriler yükleniyor...";
-    $("matrisTable").innerHTML = `<tbody><tr><td class="loading">Veriler yükleniyor...</td></tr></tbody>`;
+    aylar=ayAraligiOlustur(bas,bit);
+    $("msg").textContent="Veriler yükleniyor...";
+    $("matrisTable").innerHTML=`<tbody><tr><td class="loading">Veriler yükleniyor...</td></tr></tbody>`;
+    $("mobileList").innerHTML=`<div class="loading">Veriler yükleniyor...</div>`;
 
     await personelleriYukle();
     await ayarlariYukle();
     await odemeleriYukle();
 
     tabloCiz();
-
-    $("msg").textContent =
-      personeller.length + " personel ve " + aylar.length + " dönem yüklendi.";
-
+    $("msg").textContent=personeller.length+" personel ve "+aylar.length+" dönem yüklendi.";
   }catch(err){
     console.error(err);
-    $("msg").textContent = "Hata oluştu: " + err.message;
-    $("matrisTable").innerHTML = `<tbody><tr><td class="loading">Veriler yüklenemedi.</td></tr></tbody>`;
+    $("msg").textContent="Hata oluştu: "+err.message;
+    $("matrisTable").innerHTML=`<tbody><tr><td class="loading">Veriler yüklenemedi.</td></tr></tbody>`;
+    $("mobileList").innerHTML=`<div class="loading">Veriler yüklenemedi.</div>`;
   }
 };
 
-window.modalAc = function(tel,ad,ay){
-  const cleanTel = temizTelefon(tel);
-  const odeme = odemeMap[odemeDocKey(cleanTel,ay)] || null;
-  const aidat = Number(ayarlarMap[ay] || VARSAYILAN_AIDAT);
+window.modalAc=function(tel,ad,ay){
+  const cleanTel=temizTelefon(tel);
+  const odeme=odemeMap[odemeDocKey(cleanTel,ay)]||null;
+  const aidat=Number(ayarlarMap[ay]||VARSAYILAN_AIDAT);
+  const durum=odeme?(odeme.durum||"odeme_bekliyor"):"odeme_bekliyor";
+  const tutar=odeme&&odeme.tutar!==undefined?Number(odeme.tutar||0):aidat;
+  const not=odeme?.adminNot||"";
 
-  const durum = odeme ? (odeme.durum || "odeme_bekliyor") : "odeme_bekliyor";
-  const tutar = odeme && odeme.tutar !== undefined ? Number(odeme.tutar || 0) : aidat;
-  const not = odeme?.adminNot || "";
+  aktifEdit={tel:cleanTel,ad,ay,aidat};
 
-  aktifEdit = {
-    tel: cleanTel,
-    ad,
-    ay,
-    aidat
-  };
+  $("modalTitle").textContent=ad;
+  $("modalSub").textContent=ayAdi(ay)+" dönemi";
+  $("modalInfo").innerHTML="<b>Dönem:</b> "+donemLabel(ay)+"<br><b>Dönem Aidatı:</b> "+para(aidat)+"<br><b>Telefon:</b> "+cleanTel;
 
-  $("modalTitle").textContent = ad;
-  $("modalSub").textContent = ayAdi(ay) + " dönemi";
-  $("modalInfo").innerHTML =
-    "<b>Dönem:</b> " + donemLabel(ay) +
-    "<br><b>Dönem Aidatı:</b> " + para(aidat) +
-    "<br><b>Telefon:</b> " + cleanTel;
-
-  $("modalTutar").value = tutar;
-  $("modalDurum").value = durum;
-  $("modalNot").value = not;
+  $("modalTutar").value=tutar;
+  $("modalDurum").value=durum;
+  $("modalNot").value=not;
 
   $("editModal").classList.add("show");
 };
 
-window.modalKapat = function(){
+window.modalKapat=function(){
   $("editModal").classList.remove("show");
-  aktifEdit = null;
+  aktifEdit=null;
 };
 
-window.modalKaydet = async function(){
-  if(!aktifEdit) return;
+window.modalKaydet=async function(){
+  if(!aktifEdit)return;
 
   try{
-    const tutar = Number($("modalTutar").value || 0);
-    const durum = $("modalDurum").value;
-    const adminNot = $("modalNot").value || "";
+    const tutar=Number($("modalTutar").value||0);
+    const durum=$("modalDurum").value;
+    const adminNot=$("modalNot").value||"";
 
-    if(!Number.isFinite(tutar) || tutar < 0){
+    if(!Number.isFinite(tutar)||tutar<0){
       alert("Tutar 0 veya daha büyük olmalı.");
       return;
     }
 
-    const {tel,ad,ay} = aktifEdit;
+    const {tel,ad,ay}=aktifEdit;
 
-    await setDoc(
-      doc(db,ODEME_COLLECTION,odemeDocKey(tel,ay)),
-      {
-        personelId: tel,
-        telefon: tel,
-        adSoyad: ad,
-        ay,
-        donemEtiketi: donemLabel(ay),
-        tutar,
-        durum,
-        adminNot,
-        updatedAt: serverTimestamp()
-      },
-      {merge:true}
-    );
-
-    odemeMap[odemeDocKey(tel,ay)] = {
-      personelId: tel,
-      telefon: tel,
-      adSoyad: ad,
+    await setDoc(doc(db,ODEME_COLLECTION,odemeDocKey(tel,ay)),{
+      personelId:tel,
+      telefon:tel,
+      adSoyad:ad,
       ay,
-      donemEtiketi: donemLabel(ay),
+      donemEtiketi:donemLabel(ay),
       tutar,
       durum,
-      adminNot
-    };
+      adminNot,
+      updatedAt:serverTimestamp()
+    },{merge:true});
+
+    odemeMap[odemeDocKey(tel,ay)]={personelId:tel,telefon:tel,adSoyad:ad,ay,donemEtiketi:donemLabel(ay),tutar,durum,adminNot};
 
     modalKapat();
     tabloCiz();
-    $("msg").textContent = ad + " / " + ayAdi(ay) + " güncellendi.";
-
+    $("msg").textContent=ad+" / "+ayAdi(ay)+" güncellendi.";
   }catch(err){
     console.error(err);
-    alert("Güncelleme hatası: " + err.message);
+    alert("Güncelleme hatası: "+err.message);
   }
 };
 
-window.modalBekliyorYap = async function(){
-  if(!aktifEdit) return;
+window.modalBekliyorYap=async function(){
+  if(!aktifEdit)return;
 
-  $("modalDurum").value = "odeme_bekliyor";
-  $("modalTutar").value = Number(aktifEdit.aidat || VARSAYILAN_AIDAT);
-  $("modalNot").value = "Matris panelinden bekliyor yapıldı.";
+  $("modalDurum").value="odeme_bekliyor";
+  $("modalTutar").value=Number(aktifEdit.aidat||VARSAYILAN_AIDAT);
+  $("modalNot").value="Matris panelinden bekliyor yapıldı.";
 
   await modalKaydet();
 };
 
-window.csvIndir = function(){
+
+window.ornekDekontCsvIndir=function(){
+  const rows=[
+    ["Personel","Tutar"],
+    ["SERHAT AKGÜL","300"],
+    ["BÜNYAMİN KAPLAN","300"],
+    ["MEHMET YILMAZ","600"]
+  ];
+
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws["!cols"]=[{wch:32},{wch:12}];
+
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"Ödeme Şablonu");
+  XLSX.writeFile(wb,"cay-odeme-isim-tutar-sablonu.xlsx");
+};
+
+window.dekontIceriAktar=async function(){
+  const file=$("dekontExcel")?.files?.[0];
+  const msg=$("importMsg");
+  const key=$("importAy").value || $("bitisAy").value || donemKey();
+
+  if(!file){
+    alert("Önce Excel veya CSV dosyası seç.");
+    return;
+  }
+
+  msg.style.color="#166534";
+  msg.textContent="Dosya okunuyor...";
+
+  try{
+    if(!personeller.length){
+      msg.textContent="Personel listesi yükleniyor...";
+      await personelleriYukle();
+    }
+
+    const data=await file.arrayBuffer();
+    const wb=XLSX.read(data,{type:"array"});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const hamSatirlar=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});
+
+    let baslikIndex=-1;
+
+    for(let i=0;i<hamSatirlar.length;i++){
+      const satirText=hamSatirlar[i].map(x=>normalizeTR(x)).join(" ");
+      const isimBasligiVar=satirText.includes("personel")||satirText.includes("ad soyad")||satirText.includes("adi soyadi")||satirText.includes("isim")||satirText.includes("aciklama");
+      const tutarBasligiVar=satirText.includes("tutar")||satirText.includes("miktar")||satirText.includes("islem tutari")||satirText.includes("odenen tutar");
+
+      if(isimBasligiVar&&tutarBasligiVar){
+        baslikIndex=i;
+        break;
+      }
+    }
+
+    if(baslikIndex===-1){
+      msg.style.color="#991b1b";
+      msg.textContent="Başlık bulunamadı. Dosyada Personel ve Tutar sütunları olmalı.";
+      alert("Excel içinde Personel / Tutar başlığı bulunamadı.");
+      return;
+    }
+
+    const basliklar=hamSatirlar[baslikIndex].map(x=>String(x||"").trim());
+    const veriSatirlari=hamSatirlar.slice(baslikIndex+1);
+
+    const rows=veriSatirlari
+      .filter(satir=>satir.some(x=>String(x||"").trim()!==""))
+      .map(satir=>{
+        const obj={};
+        basliklar.forEach((b,i)=>obj[b]=satir[i]??"");
+        return obj;
+      });
+
+    if(!rows.length){
+      msg.style.color="#991b1b";
+      msg.textContent="İşlenecek ödeme satırı bulunamadı.";
+      return;
+    }
+
+    let basarili=0, eslesmeyen=0, tutarsiz=0;
+    const eslesmeyenler=[];
+
+    for(const r of rows){
+      const adRaw=String(getAlan(r,["Personel","Ad Soyad","Adı Soyadı","Adi Soyadi","İsim","Isim","Açıklama","Aciklama","Gönderen","Gonderen","Alıcı","Alici"])||"").trim();
+      const tutarRaw=getAlan(r,["Tutar","Miktar","Ödenen Tutar","Odenen Tutar","İşlem Tutarı","Islem Tutari","İşlem Tutarı (TL)","Islem Tutari (TL)","Amount"]);
+      const tutar=parseMoney(tutarRaw);
+
+      if(!adRaw){
+        eslesmeyen++;
+        eslesmeyenler.push("İsim boş satır");
+        continue;
+      }
+
+      if(tutar===null||tutar<0){
+        tutarsiz++;
+        continue;
+      }
+
+      if(tutar===0)continue;
+
+      const kisi=eslesenKisiyiBul(adRaw,personeller);
+
+      if(!kisi){
+        eslesmeyen++;
+        eslesmeyenler.push(adRaw);
+        continue;
+      }
+
+      await setDoc(
+        doc(db,ODEME_COLLECTION,odemeDocKey(kisi.tel,key)),
+        {
+          personelId:kisi.tel,
+          telefon:kisi.tel,
+          adSoyad:kisi.ad,
+          ay:key,
+          donemEtiketi:donemLabel(key),
+          tutar:tutar,
+          durum:"odendi",
+          adminNot:"İsim ve tutar tablosundan içe aktarıldı",
+          yuklenenIsim:adRaw,
+          updatedAt:serverTimestamp()
+        },
+        {merge:true}
+      );
+
+      odemeMap[odemeDocKey(kisi.tel,key)]={
+        personelId:kisi.tel,
+        telefon:kisi.tel,
+        adSoyad:kisi.ad,
+        ay:key,
+        donemEtiketi:donemLabel(key),
+        tutar:tutar,
+        durum:"odendi",
+        adminNot:"İsim ve tutar tablosundan içe aktarıldı",
+        yuklenenIsim:adRaw
+      };
+
+      basarili++;
+    }
+
+    msg.style.color="#166534";
+    msg.textContent=`İçe aktarma tamam: ${basarili} ödeme işlendi. Eşleşmeyen: ${eslesmeyen}. Hatalı tutar: ${tutarsiz}.`;
+
+    if(eslesmeyenler.length){
+      console.warn("Eşleşmeyen ödeme satırları:",eslesmeyenler);
+    }
+
+    if(aylar.includes(key)){
+      tabloCiz();
+    }else{
+      msg.textContent += " Not: Bu dönem tabloda görünmüyor. Görmek için tarih aralığına bu dönemi dahil edip Listeyi Yükle.";
+    }
+
+  }catch(e){
+    console.error(e);
+    msg.style.color="#991b1b";
+    msg.textContent="İçe aktarma sırasında hata oluştu. Excel/CSV dosyasını kontrol et.";
+    alert("Dosya okunamadı. Personel / Tutar başlıklarını kontrol et.");
+  }
+};
+
+function whatsappDurumCiz(){
+  const box=$("waQueueBox");
+  const progress=$("waProgress");
+  const current=$("waCurrent");
+
+  if(!box||!progress||!current)return;
+
+  if(!whatsappKuyruk.length){
+    box.classList.remove("show");
+    progress.textContent="Hazır değil";
+    current.textContent="Sıradaki kişi yok.";
+    return;
+  }
+
+  box.classList.add("show");
+
+  const toplam=whatsappKuyruk.length;
+  const gosterilen=Math.min(whatsappIndex+1,toplam);
+  progress.textContent=`${gosterilen} / ${toplam} kişi`;
+
+  if(whatsappIndex>=toplam){
+    current.textContent="Tüm borçlu personeller için WhatsApp sohbeti açıldı.";
+  }else{
+    const kisi=whatsappKuyruk[whatsappIndex];
+    current.textContent=`Sıradaki: ${kisi.ad}`;
+  }
+}
+
+function whatsappLinkOlustur(kisi){
+  const mesaj=whatsappMesajSablon
+    .replaceAll("{AD}",kisi.ad)
+    .replaceAll("{DONEM}",donemLabel(whatsappAktifDonem));
+
+  return "https://wa.me/"+kisi.tel+"?text="+encodeURIComponent(mesaj);
+}
+
+window.whatsappSiradakiAc=function(){
+  const smsMsg=$("smsMsg");
+
+  if(!whatsappKuyruk.length){
+    smsMsg.style.color="#991b1b";
+    smsMsg.textContent="Önce borçlu listesini hazırla.";
+    return;
+  }
+
+  if(whatsappIndex>=whatsappKuyruk.length){
+    smsMsg.style.color="#166534";
+    smsMsg.textContent="Tüm kişiler açıldı. İstersen sırayı sıfırlayıp tekrar başlatabilirsin.";
+    whatsappDurumCiz();
+    return;
+  }
+
+  const kisi=whatsappKuyruk[whatsappIndex];
+  const url=whatsappLinkOlustur(kisi);
+  const acilan=window.open(url,"_blank");
+
+  if(!acilan){
+    smsMsg.style.color="#991b1b";
+    smsMsg.textContent="WhatsApp penceresi açılamadı. Tarayıcı pop-up iznini kontrol et.";
+    return;
+  }
+
+  whatsappIndex++;
+  whatsappDurumCiz();
+
+  if(whatsappIndex>=whatsappKuyruk.length){
+    smsMsg.style.color="#166534";
+    smsMsg.textContent="Son kişi açıldı. Açılan WhatsApp pencerelerinde Gönder tuşuna bas.";
+  }else{
+    smsMsg.style.color="#166534";
+    smsMsg.textContent=`${kisi.ad} için WhatsApp açıldı. Mesajı gönderdikten sonra Sonraki Kişiye Geç butonuna bas.`;
+  }
+};
+
+window.whatsappSirayiSifirla=function(){
+  whatsappIndex=0;
+  whatsappDurumCiz();
+  const smsMsg=$("smsMsg");
+  smsMsg.style.color="#166534";
+  smsMsg.textContent="WhatsApp sırası başa alındı.";
+};
+
+window.borclularaWhatsAppGonder=async function(){
+  const smsMsg=$("smsMsg");
+  const mesajSablon=($("smsMesaj").value||"").trim();
+  const key=$("mesajAy").value || $("bitisAy").value || donemKey();
+
+  if(!mesajSablon){
+    alert("WhatsApp mesajı boş olamaz.");
+    return;
+  }
+
+  if(!personeller.length||!aylar.length){
+    alert("Önce Listeyi Yükle butonuna bas.");
+    return;
+  }
+
+  const emin=confirm("Seçili dönemde ödeme bekleyen personeller hazırlanacak. İlk kişinin WhatsApp sohbeti açılacak. Devam edilsin mi?");
+  if(!emin)return;
+
+  smsMsg.style.color="#166534";
+  smsMsg.textContent="Borçlu personeller hazırlanıyor...";
+
+  whatsappKuyruk=[];
+  whatsappIndex=0;
+  whatsappAktifDonem=key;
+  whatsappMesajSablon=mesajSablon;
+  whatsappDurumCiz();
+
+  try{
+    const kisiler=[];
+
+    for(const p of personeller){
+      const tel=temizTelefon(p.tel);
+      if(!tel)continue;
+
+      const odeme=odemeMap[odemeDocKey(tel,key)]||null;
+      const durum=odeme?(odeme.durum||"odeme_bekliyor"):"odeme_bekliyor";
+
+      if(durum==="odeme_bekliyor"){
+        const waNo=smsTelefonFormatla(tel);
+        if(waNo.length===12&&waNo.startsWith("90")){
+          kisiler.push({ad:p.ad,tel:waNo});
+        }
+      }
+    }
+
+    kisiler.sort((a,b)=>a.ad.localeCompare(b.ad,"tr",{sensitivity:"base"}));
+
+    if(!kisiler.length){
+      whatsappKuyruk=[];
+      whatsappIndex=0;
+      whatsappDurumCiz();
+      smsMsg.style.color="#991b1b";
+      smsMsg.textContent="WhatsApp gönderilecek borçlu personel bulunamadı.";
+      alert("Borçlu personel bulunamadı.");
+      return;
+    }
+
+    whatsappKuyruk=kisiler;
+    whatsappIndex=0;
+    whatsappDurumCiz();
+
+    smsMsg.style.color="#166534";
+    smsMsg.textContent=`${kisiler.length} borçlu personel hazırlandı. İlk kişi açılıyor...`;
+
+    setTimeout(()=>window.whatsappSiradakiAc(),250);
+
+  }catch(err){
+    console.error(err);
+    whatsappKuyruk=[];
+    whatsappIndex=0;
+    whatsappDurumCiz();
+    smsMsg.style.color="#991b1b";
+    smsMsg.textContent="WhatsApp hazırlamada hata oluştu: "+err.message;
+    alert("WhatsApp mesajı hazırlanamadı: "+err.message);
+  }
+};
+
+
+window.csvIndir=function(){
   if(!sonSatirlar.length){
     alert("Önce listeyi yükle.");
     return;
   }
 
-  const rows = [];
-
-  rows.push([
-    "Personel",
-    "Telefon",
-    ...aylar.map(a=>ayAdi(a) + " " + a),
-    "Toplam Beklenen",
-    "Toplam Ödenen",
-    "Genel Bakiye"
-  ]);
+  const rows=[];
+  rows.push(["Personel","Telefon",...aylar.map(a=>ayAdi(a)+" "+a),"Toplam Beklenen","Toplam Ödenen","Genel Bakiye"]);
 
   sonSatirlar.forEach(r=>{
     rows.push([
       r.personel,
       r.telefon,
-      ...r.cells.map(c=>{
-        return durumText(c.durum) + " / Ödenen: " + c.odenen + " / Aidat: " + c.aidat + " / Net: " + c.net;
-      }),
+      ...r.cells.map(c=>durumText(c.durum)+" / Ödenen: "+c.odenen+" / Aidat: "+c.aidat+" / Net: "+c.net),
       r.toplamBeklenen,
       r.toplamOdenen,
       r.genelBakiye
     ]);
   });
 
-  const csv = "\uFEFF" + rows.map(csvSatir).join("\n");
-  const blob = new Blob([csv],{type:"text/csv;charset=utf-8;"});
-  const url = URL.createObjectURL(blob);
+  const csv="\uFEFF"+rows.map(csvSatir).join("\n");
+  const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+  const url=URL.createObjectURL(blob);
 
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "cay-odeme-matris-" + $("baslangicAy").value + "-" + $("bitisAy").value + ".csv";
+  const a=document.createElement("a");
+  a.href=url;
+  a.download="cay-odeme-matris-"+$("baslangicAy").value+"-"+$("bitisAy").value+".csv";
 
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-
   URL.revokeObjectURL(url);
 };
 
-window.cikisYap = async function(){
+window.cikisYap=async function(){
   localStorage.removeItem("adminLogin");
   localStorage.removeItem("adminGiris");
   await signOut(auth);
-  location.href = "adminpanel.html";
+  location.href="adminpanel.html";
 };
 
-$("arama").addEventListener("input",()=>{
-  if(aylar.length) tabloCiz();
-});
+$("arama").addEventListener("input",()=>{if(aylar.length)tabloCiz()});
+$("filtre").addEventListener("change",()=>{if(aylar.length)tabloCiz()});
+$("editModal").addEventListener("click",e=>{if(e.target.id==="editModal")modalKapat()});
 
-$("filtre").addEventListener("change",()=>{
-  if(aylar.length) tabloCiz();
-});
-
-$("editModal").addEventListener("click",e=>{
-  if(e.target.id === "editModal") modalKapat();
-});
-
-const simdi = donemKey();
-$("bitisAy").value = simdi;
-$("baslangicAy").value = addMonthsKey(simdi,-3);
+const simdi=donemKey();
+$("bitisAy").value=simdi;
+$("baslangicAy").value=addMonthsKey(simdi,-3);
+$("importAy").value=simdi;
+$("mesajAy").value=simdi;
 
 onAuthStateChanged(auth,async user=>{
   if(!user){
@@ -993,7 +1011,7 @@ onAuthStateChanged(auth,async user=>{
     return;
   }
 
-  const ok = await adminMi(user);
+  const ok=await adminMi(user);
 
   if(!ok){
     await signOut(auth);
