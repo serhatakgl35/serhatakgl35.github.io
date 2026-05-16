@@ -1,149 +1,3 @@
-<!-- TAM EKRAN REKLAM -->
-<div id="reklamPopup">
-  <button id="reklamKapat">✕</button>
-
-  <iframe
-    id="reklamFrame"
-    src="reklam.html"
-    frameborder="0"
-    allowfullscreen>
-  </iframe>
-</div>
-
-<style>
-#reklamPopup{
-  position:fixed;
-  inset:0;
-  width:100%;
-  height:100%;
-  background:#000;
-  z-index:999999;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  animation:reklamFade .35s ease;
-}
-
-@keyframes reklamFade{
-  from{
-    opacity:0;
-    transform:scale(1.02);
-  }
-  to{
-    opacity:1;
-    transform:scale(1);
-  }
-}
-
-#reklamPopup iframe{
-  width:100%;
-  height:100%;
-  border:none;
-  background:#000;
-}
-
-#reklamKapat{
-  position:absolute;
-  top:22px;
-  right:22px;
-  width:62px;
-  height:62px;
-  border:none;
-  border-radius:50%;
-  background:rgba(255,255,255,.16);
-  backdrop-filter:blur(14px);
-  color:#fff;
-  font-size:32px;
-  font-weight:1000;
-  cursor:pointer;
-  z-index:1000000;
-  transition:.2s;
-  box-shadow:0 10px 30px rgba(0,0,0,.25);
-}
-
-#reklamKapat:hover{
-  transform:scale(1.08);
-  background:rgba(255,255,255,.28);
-}
-
-@media(max-width:768px){
-
-  #reklamKapat{
-    width:54px;
-    height:54px;
-    top:14px;
-    right:14px;
-    font-size:26px;
-  }
-
-}
-</style>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-import {
-  getFirestore,
-  collection,
-  query,
-  where,
-  limit,
-  getDocs
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",
-  authDomain: "berber-randevu-14f7f.firebaseapp.com",
-  projectId: "berber-randevu-14f7f"
-};
-
-const reklamApp = initializeApp(firebaseConfig, "reklamKontrol");
-const reklamDb = getFirestore(reklamApp);
-
-const reklamPopup =
-  document.getElementById("reklamPopup");
-
-const reklamKapat =
-  document.getElementById("reklamKapat");
-
-reklamKapat.onclick = () => {
-  reklamPopup.style.display = "none";
-};
-
-async function reklamKontrol(){
-
-  try{
-
-    const q = query(
-      collection(reklamDb, "reklamlar"),
-      where("aktif", "==", true),
-      limit(1)
-    );
-
-    const snap = await getDocs(q);
-
-    if(!snap.empty){
-
-      reklamPopup.style.display = "flex";
-
-    }else{
-
-      reklamPopup.remove();
-
-    }
-
-  }catch(err){
-
-    console.log(err);
-
-    reklamPopup.remove();
-
-  }
-
-}
-
-reklamKontrol();
-</script>
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -449,10 +303,169 @@ body{
     font-size:24px;
   }
 }
+
+
+/* TAM EKRAN REKLAM POPUP - IFRAME YOK, SADECE 1 FIRESTORE READ */
+#reklamPopup{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  background:#000;
+  z-index:999999;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:40px;
+  animation:reklamFade .35s ease;
+}
+
+@keyframes reklamFade{
+  from{opacity:0;transform:scale(1.02)}
+  to{opacity:1;transform:scale(1)}
+}
+
+.reklamCard{
+  width:100%;
+  height:100%;
+  border-radius:42px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.18);
+  box-shadow:0 40px 100px rgba(0,0,0,.60);
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
+  overflow:hidden;
+  backdrop-filter:blur(20px);
+}
+
+.reklamImage{
+  background:#111;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+
+.reklamImage img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.reklamNoImage{
+  font-size:90px;
+  opacity:.85;
+  color:white;
+}
+
+.reklamContent{
+  padding:70px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:28px;
+  color:white;
+  background:
+    radial-gradient(circle at top right, rgba(255,255,255,.12), transparent 35%),
+    linear-gradient(135deg,#050505,#111,#000);
+}
+
+.reklamBadge{
+  display:inline-flex;
+  width:max-content;
+  padding:14px 24px;
+  border-radius:999px;
+  background:white;
+  color:#000;
+  font-size:28px;
+  font-weight:1000;
+}
+
+.reklamTitle{
+  font-size:54px;
+  font-weight:1000;
+  color:#ffd36a;
+}
+
+.reklamProduct{
+  font-size:88px;
+  line-height:1;
+  font-weight:1000;
+  letter-spacing:-3px;
+}
+
+.reklamDesc{
+  font-size:34px;
+  line-height:1.35;
+  color:rgba(255,255,255,.82);
+}
+
+.reklamPrice{
+  font-size:86px;
+  font-weight:1000;
+  color:#7CFF9B;
+}
+
+#reklamKapat{
+  position:absolute;
+  top:22px;
+  right:22px;
+  width:62px;
+  height:62px;
+  border:none;
+  border-radius:50%;
+  background:rgba(255,255,255,.16);
+  backdrop-filter:blur(14px);
+  color:white;
+  font-size:32px;
+  font-weight:1000;
+  cursor:pointer;
+  z-index:1000000;
+  transition:.2s;
+  box-shadow:0 10px 30px rgba(0,0,0,.25);
+}
+
+#reklamKapat:hover{
+  transform:scale(1.08);
+  background:rgba(255,255,255,.28);
+}
+
+.reklamFooter{
+  position:absolute;
+  left:50%;
+  bottom:26px;
+  transform:translateX(-50%);
+  color:rgba(255,255,255,.65);
+  font-size:22px;
+  white-space:nowrap;
+}
+
+@media(max-width:900px){
+  #reklamPopup{padding:16px}
+  .reklamCard{grid-template-columns:1fr;border-radius:28px}
+  .reklamImage{height:42vh}
+  .reklamContent{padding:34px;gap:18px}
+  .reklamBadge{font-size:18px}
+  .reklamTitle{font-size:30px}
+  .reklamProduct{font-size:48px;letter-spacing:-1px}
+  .reklamDesc{font-size:22px}
+  .reklamPrice{font-size:52px}
+  .reklamFooter{font-size:15px;bottom:18px}
+  #reklamKapat{width:54px;height:54px;top:14px;right:14px;font-size:26px}
+}
+
 </style>
 </head>
 
 <body>
+
+<!-- TAM EKRAN REKLAM - Reklam yoksa hiç görünmez -->
+<div id="reklamPopup">
+  <button id="reklamKapat" type="button">✕</button>
+  <div id="reklamIcerik" class="reklamCard"></div>
+  <div class="reklamFooter">KANTİN10 • Yeni ürün ve duyurular</div>
+</div>
+
 
 <div class="topbar">
   <button onclick="logout()">Çıkış Yap</button>
@@ -698,6 +711,102 @@ if(new Date().getTime() >= bilancoAktifTarih){
   bilancoGeriSayim();
   setInterval(bilancoGeriSayim,1000);
 }
+</script>
+
+
+<script type="module">
+import { initializeApp as reklamInitializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  query,
+  where,
+  limit,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const reklamFirebaseConfig = {
+  apiKey: "AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",
+  authDomain: "berber-randevu-14f7f.firebaseapp.com",
+  projectId: "berber-randevu-14f7f"
+};
+
+const reklamApp = reklamInitializeApp(reklamFirebaseConfig, "panelReklamKontrol");
+const reklamDb = getFirestore(reklamApp);
+
+const reklamPopup = document.getElementById("reklamPopup");
+const reklamIcerik = document.getElementById("reklamIcerik");
+const reklamKapat = document.getElementById("reklamKapat");
+
+function temizleMetin(v, varsayilan = ""){
+  return v === undefined || v === null || v === "" ? varsayilan : String(v);
+}
+
+function guvenliYaz(v){
+  return String(v || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function reklamKapatFunc(){
+  reklamPopup.style.display = "none";
+}
+
+reklamKapat.onclick = reklamKapatFunc;
+
+async function panelReklamKontrol(){
+  try{
+    const q = query(
+      collection(reklamDb, "reklamlar"),
+      where("aktif", "==", true),
+      limit(1)
+    );
+
+    const snap = await getDocs(q);
+
+    if(snap.empty){
+      reklamPopup.remove();
+      return;
+    }
+
+    const r = snap.docs[0].data();
+
+    const baslik = guvenliYaz(temizleMetin(r.baslik, "KANTİNE YENİ GELDİ"));
+    const urunAdi = guvenliYaz(temizleMetin(r.urunAdi, "Yeni Ürün"));
+    const aciklama = guvenliYaz(temizleMetin(r.aciklama, "Bugün kantinde satışta."));
+    const fiyat = guvenliYaz(temizleMetin(r.fiyat, ""));
+    const resim = temizleMetin(r.resim, "");
+
+    reklamIcerik.innerHTML = `
+      <div class="reklamImage">
+        ${
+          resim
+            ? `<img src="${resim}" onerror="this.outerHTML='<div class=\'reklamNoImage\'>🛒</div>'">`
+            : `<div class="reklamNoImage">🛒</div>`
+        }
+      </div>
+
+      <div class="reklamContent">
+        <div class="reklamBadge">🔥 STOKTA VAR</div>
+        <div class="reklamTitle">${baslik}</div>
+        <div class="reklamProduct">${urunAdi}</div>
+        <div class="reklamDesc">${aciklama}</div>
+        ${fiyat ? `<div class="reklamPrice">${fiyat}</div>` : ""}
+      </div>
+    `;
+
+    reklamPopup.style.display = "flex";
+
+  }catch(err){
+    console.log(err);
+    reklamPopup.remove();
+  }
+}
+
+panelReklamKontrol();
 </script>
 
 
