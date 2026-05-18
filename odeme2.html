@@ -368,7 +368,7 @@ async function yukle(){
   document.getElementById("personelInfo").textContent = ad + " olarak giriş yapıldı.";
   document.getElementById("donemInfo").textContent = odemeDurumuAcik
     ? "Aktif dönem: " + donemLabel(aktifDonem)
-    : "Aktif dönem: " + donemLabel(aktifDonem) + " • Durumlar 21'inden sonra açılır";
+    : "Aktif dönem: " + donemLabel(aktifDonem) + " • Durumlar 25'inden sonra açılır";
 
   const q1 = query(collection(db, ODEME_COLLECTION), where("telefon", "==", tel));
   const q2 = query(collection(db, ODEME_COLLECTION), where("personelId", "==", tel));
@@ -450,7 +450,7 @@ async function yukle(){
             </div>
           </div>
 
-          <span class="status kilitli">21'inden Sonra</span>
+          <span class="status kilitli">25'inden Sonra</span>
         </div>
       `;
     }else{
@@ -479,7 +479,7 @@ async function yukle(){
   const durumEl = document.getElementById("personelDurum");
 
   if(!odemeDurumuAcik){
-    durumEl.textContent = "21'inden Sonra Görünür";
+    durumEl.textContent = "25'inden Sonra Görünür";
     durumEl.className = "status kilitli";
 
     const gizliText = "Gizli";
