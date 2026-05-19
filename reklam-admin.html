@@ -6,14 +6,24 @@
   <title>Reklam Admin Paneli</title>
 
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0
+    }
+
     body{
       font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif;
       background:#f5f5f7;
       color:#111;
       padding:24px;
     }
-    .wrap{max-width:1100px;margin:auto}
+
+    .wrap{
+      max-width:1100px;
+      margin:auto
+    }
+
     .top{
       background:#111;
       color:#fff;
@@ -22,26 +32,36 @@
       margin-bottom:24px;
       box-shadow:0 18px 40px rgba(0,0,0,.18);
     }
-    .top h1{font-size:30px;margin-bottom:8px}
-    .top p{opacity:.75}
+
+    .top h1{
+      font-size:30px;
+      margin-bottom:8px
+    }
+
+    .top p{
+      opacity:.75
+    }
 
     .grid{
       display:grid;
       grid-template-columns:380px 1fr;
       gap:22px;
     }
+
     .card{
       background:#fff;
       border-radius:24px;
       padding:22px;
       box-shadow:0 12px 30px rgba(0,0,0,.08);
     }
+
     label{
       display:block;
       font-weight:800;
       margin:14px 0 7px;
       font-size:14px;
     }
+
     input,textarea,select{
       width:100%;
       padding:14px;
@@ -51,7 +71,12 @@
       outline:none;
       background:#fafafa;
     }
-    textarea{min-height:90px;resize:vertical}
+
+    textarea{
+      min-height:90px;
+      resize:vertical
+    }
+
     button{
       border:0;
       border-radius:15px;
@@ -60,32 +85,34 @@
       cursor:pointer;
       font-size:15px;
     }
+
     .btnMain{
       background:#111;
       color:#fff;
       width:100%;
       margin-top:18px;
     }
-    .btnSmall{
-      background:#f1f1f1;
-      color:#111;
-    }
+
     .btnDanger{
       background:#ff3b30;
       color:#fff;
     }
+
     .btnActive{
       background:#34c759;
       color:#fff;
     }
+
     .btnPassive{
       background:#ff9500;
       color:#fff;
     }
+
     .list{
       display:grid;
       gap:16px;
     }
+
     .item{
       display:grid;
       grid-template-columns:120px 1fr;
@@ -95,6 +122,7 @@
       padding:14px;
       background:#fff;
     }
+
     .item img{
       width:120px;
       height:120px;
@@ -102,6 +130,7 @@
       border-radius:16px;
       background:#eee;
     }
+
     .noImg{
       width:120px;
       height:120px;
@@ -112,23 +141,27 @@
       justify-content:center;
       font-size:36px;
     }
+
     .title{
       font-size:20px;
       font-weight:950;
       margin-bottom:5px;
     }
+
     .meta{
       color:#555;
       font-size:14px;
       margin-bottom:6px;
       line-height:1.35;
     }
+
     .price{
       color:#0a8f2a;
       font-size:22px;
       font-weight:950;
       margin:8px 0;
     }
+
     .status{
       display:inline-block;
       padding:7px 11px;
@@ -137,14 +170,24 @@
       font-weight:900;
       margin-bottom:10px;
     }
-    .on{background:#d7ffdF;color:#087a20}
-    .off{background:#ffe4d1;color:#a04700}
+
+    .on{
+      background:#d7ffdf;
+      color:#087a20
+    }
+
+    .off{
+      background:#ffe4d1;
+      color:#a04700
+    }
+
     .actions{
       display:flex;
       gap:8px;
       flex-wrap:wrap;
       margin-top:8px;
     }
+
     .empty{
       text-align:center;
       color:#777;
@@ -152,40 +195,61 @@
     }
 
     @media(max-width:850px){
-      body{padding:14px}
-      .grid{grid-template-columns:1fr}
-      .item{grid-template-columns:90px 1fr}
-      .item img,.noImg{width:90px;height:90px}
-      .top h1{font-size:24px}
+
+      body{
+        padding:14px
+      }
+
+      .grid{
+        grid-template-columns:1fr
+      }
+
+      .item{
+        grid-template-columns:90px 1fr
+      }
+
+      .item img,
+      .noImg{
+        width:90px;
+        height:90px
+      }
+
+      .top h1{
+        font-size:24px
+      }
     }
   </style>
 </head>
 
 <body>
+
   <div class="wrap">
+
     <div class="top">
       <h1>📺 Kantin Reklam Admin Paneli</h1>
       <p>Buradan tam ekran reklam sayfasında görünecek ürünleri ekleyebilirsin.</p>
     </div>
 
     <div class="grid">
+
       <div class="card">
+
         <h2>Yeni Reklam Ekle</h2>
 
         <label>Başlık</label>
-        <input id="baslik" value="KANTİNE YENİ GELDİ" />
+        <input id="baslik" value="KANTİNE YENİ GELDİ">
 
         <label>Ürün Adı</label>
-        <input id="urunAdi" placeholder="Örn: Soğuk Kahve" />
+        <input id="urunAdi" placeholder="Örn: Soğuk Kahve">
 
         <label>Açıklama</label>
         <textarea id="aciklama" placeholder="Örn: Bugün kantinde satışta."></textarea>
 
         <label>Fiyat</label>
-        <input id="fiyat" placeholder="Örn: 35 TL" />
+        <input id="fiyat" placeholder="Örn: 35 TL">
 
         <label>Ürün Resim Linki</label>
-        <input id="resim" placeholder="https://..." />
+        <input id="resim" placeholder="https://...">
 
         <label>Durum</label>
         <select id="aktif">
@@ -193,20 +257,30 @@
           <option value="false">Pasif</option>
         </select>
 
-        <button class="btnMain" onclick="reklamEkle()">Reklamı Kaydet</button>
+        <button class="btnMain" onclick="reklamEkle()">
+          Reklamı Kaydet
+        </button>
+
       </div>
 
       <div class="card">
+
         <h2>Mevcut Reklamlar</h2>
+
         <div id="liste" class="list">
           <div class="empty">Reklamlar yükleniyor...</div>
         </div>
+
       </div>
+
     </div>
+
   </div>
 
   <script type="module">
+
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
     import {
       getFirestore,
       collection,
@@ -231,20 +305,58 @@
 
     const liste = document.getElementById("liste");
 
+    function duzeltResimLinki(link){
+
+      if(!link) return "";
+
+      // ImgBB / ibb.co
+      if(link.includes("ibb.co/")){
+
+        const son = link.split("/").pop();
+
+        return `https://i.ibb.co/${son}/resim.jpg`;
+      }
+
+      // Google Drive
+      if(link.includes("drive.google.com/file/d/")){
+
+        const id = link.split("/d/")[1].split("/")[0];
+
+        return `https://drive.google.com/uc?export=view&id=${id}`;
+      }
+
+      return link;
+    }
+
     window.reklamEkle = async function(){
-      const baslik = document.getElementById("baslik").value.trim() || "KANTİNE YENİ GELDİ";
-      const urunAdi = document.getElementById("urunAdi").value.trim();
-      const aciklama = document.getElementById("aciklama").value.trim();
-      const fiyat = document.getElementById("fiyat").value.trim();
-      const resim = document.getElementById("resim").value.trim();
-      const aktif = document.getElementById("aktif").value === "true";
+
+      const baslik =
+        document.getElementById("baslik").value.trim()
+        || "KANTİNE YENİ GELDİ";
+
+      const urunAdi =
+        document.getElementById("urunAdi").value.trim();
+
+      const aciklama =
+        document.getElementById("aciklama").value.trim();
+
+      const fiyat =
+        document.getElementById("fiyat").value.trim();
+
+      const resim =
+        document.getElementById("resim").value.trim();
+
+      const aktif =
+        document.getElementById("aktif").value === "true";
 
       if(!urunAdi){
+
         alert("Ürün adı zorunlu.");
         return;
       }
 
       await addDoc(collection(db, "reklamlar"), {
+
         baslik,
         urunAdi,
         aciklama,
@@ -261,83 +373,153 @@
       document.getElementById("aktif").value = "true";
 
       alert("Reklam eklendi.");
+
       reklamlariYukle();
     }
 
     window.durumDegistir = async function(id, mevcutDurum){
+
       await updateDoc(doc(db, "reklamlar", id), {
         aktif: !mevcutDurum
       });
+
       reklamlariYukle();
     }
 
     window.reklamSil = async function(id){
+
       if(!confirm("Bu reklam silinsin mi?")) return;
+
       await deleteDoc(doc(db, "reklamlar", id));
+
       reklamlariYukle();
     }
 
     async function reklamlariYukle(){
-      liste.innerHTML = `<div class="empty">Reklamlar yükleniyor...</div>`;
 
-      const q = query(collection(db, "reklamlar"), orderBy("createdAt", "desc"));
+      liste.innerHTML =
+        `<div class="empty">Reklamlar yükleniyor...</div>`;
+
+      const q = query(
+        collection(db, "reklamlar"),
+        orderBy("createdAt", "desc")
+      );
+
       const snap = await getDocs(q);
 
       if(snap.empty){
-        liste.innerHTML = `<div class="empty">Henüz reklam eklenmemiş.</div>`;
+
+        liste.innerHTML =
+          `<div class="empty">Henüz reklam eklenmemiş.</div>`;
+
         return;
       }
 
       liste.innerHTML = "";
 
       snap.forEach(d => {
+
         const r = d.data();
         const id = d.id;
 
-        const baslik = r.baslik || "KANTİNE YENİ GELDİ";
-        const urunAdi = r.urunAdi || "Ürün adı yok";
-        const aciklama = r.aciklama || "";
-        const fiyat = r.fiyat || "";
-        const resim = r.resim || "";
-        const aktif = r.aktif === true;
+        const baslik =
+          r.baslik || "KANTİNE YENİ GELDİ";
+
+        const urunAdi =
+          r.urunAdi || "Ürün adı yok";
+
+        const aciklama =
+          r.aciklama || "";
+
+        const fiyat =
+          r.fiyat || "";
+
+        const resim =
+          r.resim || "";
+
+        const aktif =
+          r.aktif === true;
+
+        const finalResim =
+          duzeltResimLinki(resim);
 
         const div = document.createElement("div");
+
         div.className = "item";
 
         div.innerHTML = `
+
           ${
-            resim
-              ? `<img src="${resim}" onerror="this.outerHTML='<div class=noImg>🛒</div>'">`
-              : `<div class="noImg">🛒</div>`
+            finalResim
+
+            ? `
+              <img
+                src="${finalResim}"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+                onerror="this.outerHTML='<div class=noImg>🛒</div>'"
+              >
+            `
+
+            : `
+              <div class="noImg">🛒</div>
+            `
           }
 
           <div>
+
             <div class="status ${aktif ? "on" : "off"}">
               ${aktif ? "AKTİF" : "PASİF"}
             </div>
 
-            <div class="title">${urunAdi}</div>
-            <div class="meta"><b>${baslik}</b></div>
-            <div class="meta">${aciklama}</div>
-            ${fiyat ? `<div class="price">${fiyat}</div>` : ""}
+            <div class="title">
+              ${urunAdi}
+            </div>
+
+            <div class="meta">
+              <b>${baslik}</b>
+            </div>
+
+            <div class="meta">
+              ${aciklama}
+            </div>
+
+            ${
+              fiyat
+              ? `<div class="price">${fiyat}</div>`
+              : ""
+            }
 
             <div class="actions">
-              <button class="${aktif ? "btnPassive" : "btnActive"}" onclick="durumDegistir('${id}', ${aktif})">
+
+              <button
+                class="${aktif ? "btnPassive" : "btnActive"}"
+                onclick="durumDegistir('${id}', ${aktif})"
+              >
                 ${aktif ? "Pasif Yap" : "Aktif Yap"}
               </button>
 
-              <button class="btnDanger" onclick="reklamSil('${id}')">
+              <button
+                class="btnDanger"
+                onclick="reklamSil('${id}')"
+              >
                 Sil
               </button>
+
             </div>
+
           </div>
         `;
 
         liste.appendChild(div);
+
       });
+
     }
 
     reklamlariYukle();
+
   </script>
+
 </body>
 </html>
