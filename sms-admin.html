@@ -210,7 +210,7 @@ button:active{transform:scale(.98)}
 
   <div class="top">
     <h1>📲 Toplu SMS Admin Paneli</h1>
-    <p>Çay ocağı aidat borcu, dönem bilgilendirmesi ve kantin borcu SMS gönderim paneli.</p>
+    <p>Çay ocağı aidatı, kantin veresiye borcu ve dönem bilgilendirme SMS paneli.</p>
   </div>
 
   <div class="grid">
@@ -260,7 +260,7 @@ button:active{transform:scale(.98)}
       </div>
 
       <div class="small">
-        API anahtarları bu sayfada yoktur. Gönderim Google Apps Script üzerinden yapılır.
+        SMS API anahtarları bu sayfada yoktur. Gönderim Google Apps Script üzerinden yapılır.
       </div>
     </div>
 
@@ -270,7 +270,7 @@ button:active{transform:scale(.98)}
       <div class="stats">
         <div class="stat"><b id="toplam">0</b><span>Personel</span></div>
         <div class="stat"><b id="borclu">0</b><span>Borçlu</span></div>
-        <div class="stat"><b id="odenmis">0</b><span>Ödendi</span></div>
+        <div class="stat"><b id="odenmis">0</b><span>Borç Yok</span></div>
         <div class="stat"><b id="secili">0</b><span>Seçili</span></div>
       </div>
 
@@ -310,6 +310,7 @@ const db = getFirestore(app);
 
 let personeller = [];
 let odemeler = [];
+let veresiyeOzetleri = [];
 let seciliIds = new Set();
 
 const liste = document.getElementById("liste");
@@ -356,12 +357,44 @@ function telefonBul(p){
   );
 }
 
+function aktifSmsTipi(){
+  return document.getElementById("smsTipi").value;
+}
+
 function aktifDonemBul(){
   return temizle(document.getElementById("donem").value);
 }
 
 function aktifAyBul(){
   return temizle(document.getElementById("ayKodu").value);
+}
+
+function kantinKaydiBul(p){
+  const tel = telefonBul(p).replace(/\D/g,"");
+  const telFull = telefonDuzelt(tel);
+
+  return veresiyeOzetleri.find(v => {
+    const vTel = String(v.telefon || v.personelId || v.id || "").replace(/\D/g,"");
+    const vTelFull = telefonDuzelt(vTel);
+
+    return (
+      v.personelId === p.id ||
+      v.personelId === tel ||
+      v.personelId === telFull ||
+      vTel === tel ||
+      vTelFull === telFull
+    );
+  }) || null;
+}
+
+function kantinBorcBul(p){
+  const kayit = kantinKaydiBul(p);
+  if(!kayit) return 0;
+
+  const kalan = paraTemizle(kayit.kalan);
+  const borc = paraTemizle(kayit.borc);
+
+  return kalan > 0 ? kalan : borc;
 }
 
 function personelinOdemesiBul(p){
@@ -398,6 +431,19 @@ function personelinOdemesiBul(p){
 }
 
 function odemeDurumuBul(p){
+
+  if(aktifSmsTipi() === "kantin"){
+    const kantinBorc = kantinBorcBul(p);
+
+    return {
+      borclu: kantinBorc > 0,
+      durum: kantinBorc > 0 ? "kantin_borclu" : "kantin_yok",
+      durumText: kantinBorc > 0 ? "Kantin Borcu" : "Borç Yok",
+      borc: kantinBorc,
+      donem: "Kantin Veresiye"
+    };
+  }
+
   const o = personelinOdemesiBul(p);
   const aidat = paraTemizle(document.getElementById("aidat").value);
 
@@ -476,7 +522,7 @@ Kantin hesabınızda güncel borç görünmektedir.
 
 Güncel borcunuz: {BORC}
 
-Lütfen ödeme durumunuzu kontrol ediniz.
+Lütfen en kısa sürede ödeme durumunuzu kontrol ediniz.
 
 www.kantin10.com.tr`;
   }
@@ -491,6 +537,9 @@ www.kantin10.com.tr`;
   }
 
   document.getElementById("mesaj").value = text;
+
+  seciliIds.clear();
+  listeyiCiz();
   onizlemeGuncelle();
 }
 
@@ -512,22 +561,27 @@ function mesajOlustur(p){
 }
 
 function onizlemeGuncelle(){
-  const ilk = personeller[0] || {
-    adSoyad:"Serhat AKGÜL",
-    telefon:"05399300094"
-  };
+  const uygunPersonel =
+    personeller.find(p => odemeDurumuBul(p).borclu) ||
+    personeller[0] ||
+    {
+      adSoyad:"Serhat AKGÜL",
+      telefon:"05399300094"
+    };
 
-  document.getElementById("onizleme").textContent = mesajOlustur(ilk);
+  document.getElementById("onizleme").textContent = mesajOlustur(uygunPersonel);
 }
 
 document.getElementById("mesaj").addEventListener("input", onizlemeGuncelle);
 
 document.getElementById("donem").addEventListener("input", () => {
+  seciliIds.clear();
   listeyiCiz();
   onizlemeGuncelle();
 });
 
 document.getElementById("ayKodu").addEventListener("input", () => {
+  seciliIds.clear();
   listeyiCiz();
   onizlemeGuncelle();
 });
@@ -543,6 +597,8 @@ window.verileriYukle = async function(){
 
   personeller = [];
   odemeler = [];
+  veresiyeOzetleri = [];
+  seciliIds.clear();
 
   const personelSnap = await getDocs(collection(db, "personeller"));
   personelSnap.forEach(d => {
@@ -555,6 +611,14 @@ window.verileriYukle = async function(){
   const odemeSnap = await getDocs(collection(db, "cay_odemeler"));
   odemeSnap.forEach(d => {
     odemeler.push({
+      id:d.id,
+      ...d.data()
+    });
+  });
+
+  const veresiyeSnap = await getDocs(collection(db, "veresiye_ozetleri"));
+  veresiyeSnap.forEach(d => {
+    veresiyeOzetleri.push({
       id:d.id,
       ...d.data()
     });
@@ -573,11 +637,21 @@ window.listeyiCiz = function(){
   let filtreli = personeller.filter(p => {
     const ad = adSoyadBul(p).toLowerCase();
     const tel = telefonBul(p).toLowerCase();
-    return ad.includes(arama) || tel.includes(arama);
+
+    const aramaUygun =
+      ad.includes(arama) || tel.includes(arama);
+
+    if(!aramaUygun) return false;
+
+    if(aktifSmsTipi() === "kantin"){
+      return kantinBorcBul(p) > 0;
+    }
+
+    return true;
   });
 
   if(!filtreli.length){
-    liste.innerHTML = `<div class="empty">Personel bulunamadı.</div>`;
+    liste.innerHTML = `<div class="empty">Bu kritere uygun personel bulunamadı.</div>`;
     sayacGuncelle();
     return;
   }
@@ -592,12 +666,14 @@ window.listeyiCiz = function(){
     const odeme = odemeDurumuBul(p);
 
     let badgeClass = "badgeOrange";
-    if(odeme.durum === "odendi") badgeClass = "badgeGreen";
+    if(!odeme.borclu) badgeClass = "badgeGreen";
     if(odeme.borclu) badgeClass = "badgeRed";
 
     let durumHtml = "";
 
-    if(odeme.durum === "odendi"){
+    if(aktifSmsTipi() === "kantin"){
+      durumHtml = `<span class="debt">Kantin Borcu: ${odeme.borc} TL</span>`;
+    }else if(odeme.durum === "odendi"){
       durumHtml = `<span class="ok">Ödendi</span>`;
     }else if(odeme.durum === "kayit_yok"){
       durumHtml = `<span class="wait">Kayıt yok - ${odeme.borc} TL borç</span>`;
@@ -651,17 +727,33 @@ window.secimDegisti = function(chk){
 
 window.sayacGuncelle = function(){
 
-  const borcluSayisi = personeller.filter(p => odemeDurumuBul(p).borclu).length;
-  const odendiSayisi = personeller.filter(p => !odemeDurumuBul(p).borclu).length;
+  let sayilacakListe = personeller;
 
-  document.getElementById("toplam").textContent = personeller.length;
+  if(aktifSmsTipi() === "kantin"){
+    sayilacakListe = personeller.filter(p => kantinBorcBul(p) > 0);
+  }
+
+  const borcluSayisi = sayilacakListe.filter(p => odemeDurumuBul(p).borclu).length;
+  const temizSayisi = sayilacakListe.filter(p => !odemeDurumuBul(p).borclu).length;
+
+  document.getElementById("toplam").textContent = sayilacakListe.length;
   document.getElementById("borclu").textContent = borcluSayisi;
-  document.getElementById("odenmis").textContent = odendiSayisi;
+  document.getElementById("odenmis").textContent = temizSayisi;
   document.getElementById("secili").textContent = seciliIds.size;
 }
 
 window.tumunuSec = function(){
-  personeller.forEach(p => seciliIds.add(p.id));
+
+  seciliIds.clear();
+
+  personeller.forEach(p => {
+    if(aktifSmsTipi() === "kantin"){
+      if(kantinBorcBul(p) > 0) seciliIds.add(p.id);
+    }else{
+      seciliIds.add(p.id);
+    }
+  });
+
   listeyiCiz();
 }
 
@@ -728,6 +820,7 @@ window.secilenlereSmsGonder = async function(){
     const adSoyad = adSoyadBul(p);
     const tel = telefonDuzelt(telefonBul(p));
     const mesaj = mesajOlustur(p);
+    const odeme = odemeDurumuBul(p);
 
     progressBox.textContent = `${sayac}/${secilenler.length} gönderiliyor: ${adSoyad}`;
 
@@ -744,9 +837,10 @@ window.secilenlereSmsGonder = async function(){
         adSoyad,
         telefon:tel,
         mesaj,
-        tip:document.getElementById("smsTipi").value,
-        donem:aktifDonemBul(),
-        ay:aktifAyBul(),
+        tip:aktifSmsTipi(),
+        donem:aktifSmsTipi() === "kantin" ? "Kantin Veresiye" : aktifDonemBul(),
+        ay:aktifSmsTipi() === "kantin" ? "" : aktifAyBul(),
+        borc:odeme.borc,
         ok:sonuc.ok === true,
         response:sonuc,
         createdAt:serverTimestamp()
@@ -766,9 +860,10 @@ window.secilenlereSmsGonder = async function(){
         adSoyad,
         telefon:tel,
         mesaj,
-        tip:document.getElementById("smsTipi").value,
-        donem:aktifDonemBul(),
-        ay:aktifAyBul(),
+        tip:aktifSmsTipi(),
+        donem:aktifSmsTipi() === "kantin" ? "Kantin Veresiye" : aktifDonemBul(),
+        ay:aktifSmsTipi() === "kantin" ? "" : aktifAyBul(),
+        borc:odeme.borc,
         ok:false,
         error:String(err),
         createdAt:serverTimestamp()
