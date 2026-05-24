@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Toplu SMS Admin Paneli</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif;
+  background:#f5f5f7;
+  color:#111;
+  padding:22px;
+}
+.wrap{max-width:1200px;margin:auto}
+.top{
+  background:#111;color:#fff;border-radius:28px;padding:28px;
+  box-shadow:0 18px 40px rgba(0,0,0,.18);margin-bottom:22px;
+}
+.top h1{font-size:30px;margin-bottom:8px}
+.top p{opacity:.75}
+.grid{display:grid;grid-template-columns:380px 1fr;gap:20px}
+.card{
+  background:#fff;border-radius:24px;padding:20px;
+  box-shadow:0 12px 30px rgba(0,0,0,.08);
+}
+label{display:block;font-weight:900;margin:14px 0 7px;font-size:14px}
+input,textarea,select{
+  width:100%;padding:14px;border-radius:15px;border:1px solid #ddd;
+  font-size:15px;background:#fafafa;outline:none;font-family:inherit;
+}
+textarea{min-height:150px;resize:vertical}
+button{
+  border:0;border-radius:15px;padding:12px 15px;font-weight:950;
+  cursor:pointer;font-size:14px;font-family:inherit;
+}
+.btnMain{background:#111;color:#fff;width:100%;margin-top:14px}
+.btnGreen{background:#34c759;color:#fff}
+.btnBlue{background:#007aff;color:#fff}
+.btnOrange{background:#ff9500;color:#fff}
+.btnRed{background:#ff3b30;color:#fff}
+.btnSoft{background:#f1f1f1;color:#111}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.stat{
+  background:#f5f5f7;border-radius:18px;padding:14px;text-align:center;
+}
+.stat b{display:block;font-size:22px}
+.stat span{font-size:12px;color:#666;font-weight:800}
+.person{
+  border:1px solid #eee;border-radius:18px;padding:14px;margin-bottom:10px;
+  display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;
+}
+.person strong{font-size:16px}
+.meta{font-size:13px;color:#666;margin-top:3px}
+.debt{font-weight:950;color:#ff3b30}
+.ok{font-weight:950;color:#34c759}
+.empty{text-align:center;color:#777;padding:35px}
+.preview{
+  background:#111;color:#fff;border-radius:20px;padding:16px;
+  white-space:pre-wrap;line-height:1.45;font-size:14px;margin-top:12px;
+}
+.small{font-size:12px;color:#777;line-height:1.45;margin-top:8px}
+.badge{
+  display:inline-block;padding:6px 10px;border-radius:999px;
+  font-size:12px;font-weight:950;background:#eee;
+}
+@media(max-width:850px){
+  body{padding:14px}
+  .grid{grid-template-columns:1fr}
+  .stats{grid-template-columns:1fr}
+  .person{grid-template-columns:30px 1fr}
+  .person .right{grid-column:2}
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+  <div class="top">
+    <h1>📲 Toplu SMS Admin Paneli</h1>
+    <p>Kantin aidatı ve borç bilgilendirmelerini personele SMS olarak gönder.</p>
+  </div>
+
+  <div class="grid">
+
+    <div class="card">
+      <h2>SMS Ayarları</h2>
+
+      <label>Dönem</label>
+      <input id="donem" value="15 Mayıs - 14 Haziran">
+
+      <label>Dönem Aidatı</label>
+      <input id="aidat" value="450 TL">
+
+      <label>SMS Tipi</label>
+      <select id="smsTipi" onchange="mesajSablonuDoldur()">
+        <option value="borc">Borç Hatırlatma</option>
+        <option value="donem">Dönem Aidatı Bilgilendirme</option>
+        <option value="kantin">Kantin Borcu Hatırlatma</option>
+        <option value="ozel">Özel Mesaj</option>
+      </select>
+
+      <label>Mesaj Şablonu</label>
+      <textarea id="mesaj"></textarea>
+
+      <div class="small">
+        Kullanılabilir değişkenler:<br>
+        <b>{ADSOYAD}</b>, <b>{DONEM}</b>, <b>{AIDAT}</b>, <b>{BORC}</b>
+      </div>
+
+      <div class="preview" id="onizleme">Önizleme hazırlanıyor...</div>
+
+      <div class="row">
+        <button class="btnSoft" onclick="personelleriYukle()">Yenile</button>
+        <button class="btnOrange" onclick="borclulariSec()">Borçluları Seç</button>
+        <button class="btnBlue" onclick="tumunuSec()">Tümünü Seç</button>
+      </div>
+
+      <button class="btnMain" onclick="secilenlereSmsGonder()">
+        Seçilenlere SMS Gönder
+      </button>
+
+      <div class="small">
+        API anahtarları bu sayfada yok. Gönderim Google Apps Script üzerinden yapılır.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Personel Listesi</h2>
+
+      <div class="stats">
+        <div class="stat"><b id="toplam">0</b><span>Personel</span></div>
+        <div class="stat"><b id="borclu">0</b><span>Borçlu</span></div>
+        <div class="stat"><b id="secili">0</b><span>Seçili</span></div>
+      </div>
+
+      <div id="liste">
+        <div class="empty">Personeller yükleniyor...</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  addDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",
+  authDomain: "berber-randevu-14f7f.firebaseapp.com",
+  projectId: "berber-randevu-14f7f"
+};
+
+const SMS_WEB_APP_URL = "BURAYA_APPS_SCRIPT_WEB_APP_URL";
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let personeller = [];
+
+const liste = document.getElementById("liste");
+
+function temizle(v){
+  return String(v || "").trim();
+}
+
+function telefonDuzelt(tel){
+  let t = String(tel || "").replace(/\D/g,"");
+
+  if(t.startsWith("0")){
+    t = "9" + t;
+  }
+
+  if(t.startsWith("5")){
+    t = "90" + t;
+  }
+
+  return t;
+}
+
+function adSoyadBul(p){
+  return temizle(
+    p.adSoyad ||
+    p.adsoyad ||
+    p.isim ||
+    p.ad ||
+    p.name ||
+    "İsimsiz Personel"
+  );
+}
+
+function telefonBul(p){
+  return temizle(
+    p.telefon ||
+    p.phone ||
+    p.gsm ||
+    p.numara ||
+    ""
+  );
+}
+
+function borcBul(p){
+  const adaylar = [
+    p.borc,
+    p.guncelBorc,
+    p.güncelBorc,
+    p.kantinBorc,
+    p.kantinBorcu,
+    p.aidatBorcu,
+    p.toplamBorc
+  ];
+
+  for(const v of adaylar){
+    if(v !== undefined && v !== null && v !== ""){
+      const n = Number(String(v).replace(",",".").replace(/[^\d.]/g,""));
+      return isNaN(n) ? 0 : n;
+    }
+  }
+
+  return 0;
+}
+
+function durumBorcluMu(p){
+  const durum = String(
+    p.odemeDurumu ||
+    p.durum ||
+    p.status ||
+    ""
+  ).toLowerCase();
+
+  if(durum.includes("bekliyor")) return true;
+  if(durum.includes("geçti")) return true;
+  if(durum.includes("borç")) return true;
+
+  return borcBul(p) > 0;
+}
+
+window.mesajSablonuDoldur = function(){
+
+  const tip = document.getElementById("smsTipi").value;
+
+  let text = "";
+
+  if(tip === "borc"){
+    text =
+`Sayın {ADSOYAD},
+
+{DONEM} dönemi çay ocağı aidat borcunuz bulunmaktadır.
+
+Güncel borcunuz: {BORC}
+
+Ödeme durumunuzu www.kantin10.com.tr üzerinden görüntüleyebilirsiniz.`;
+  }
+
+  if(tip === "donem"){
+    text =
+`Sayın {ADSOYAD},
+
+{DONEM} dönemi çay ocağı aidat tutarı {AIDAT} olarak belirlenmiştir.
+
+Ödeme durumunuzu www.kantin10.com.tr üzerinden takip edebilirsiniz.`;
+  }
+
+  if(tip === "kantin"){
+    text =
+`Sayın {ADSOYAD},
+
+Kantin hesabınızda güncel borç görünmektedir.
+
+Güncel borcunuz: {BORC}
+
+Lütfen en kısa sürede ödeme durumunuzu kontrol ediniz.
+
+www.kantin10.com.tr`;
+  }
+
+  if(tip === "ozel"){
+    text =
+`Sayın {ADSOYAD},
+
+Mesajınızı buraya yazabilirsiniz.
+
+www.kantin10.com.tr`;
+  }
+
+  document.getElementById("mesaj").value = text;
+  onizlemeGuncelle();
+}
+
+function mesajOlustur(p){
+  const donem = temizle(document.getElementById("donem").value);
+  const aidat = temizle(document.getElementById("aidat").value);
+  const sablon = document.getElementById("mesaj").value;
+
+  const adSoyad = adSoyadBul(p);
+  const borc = borcBul(p) > 0 ? `${borcBul(p)} TL` : aidat;
+
+  return sablon
+    .replaceAll("{ADSOYAD}", adSoyad)
+    .replaceAll("{DONEM}", donem)
+    .replaceAll("{AIDAT}", aidat)
+    .replaceAll("{BORC}", borc);
+}
+
+function onizlemeGuncelle(){
+  const ilk = personeller[0] || {
+    adSoyad:"Aziz BAÇAN",
+    telefon:"05390000000",
+    borc:450
+  };
+
+  document.getElementById("onizleme").textContent = mesajOlustur(ilk);
+}
+
+document.getElementById("mesaj").addEventListener("input", onizlemeGuncelle);
+document.getElementById("donem").addEventListener("input", onizlemeGuncelle);
+document.getElementById("aidat").addEventListener("input", onizlemeGuncelle);
+
+window.personelleriYukle = async function(){
+
+  liste.innerHTML = `<div class="empty">Personeller yükleniyor...</div>`;
+
+  const snap = await getDocs(collection(db, "personeller"));
+
+  personeller = [];
+
+  snap.forEach(d => {
+    const p = d.data();
+    personeller.push({
+      id:d.id,
+      ...p
+    });
+  });
+
+  personeller.sort((a,b) => adSoyadBul(a).localeCompare(adSoyadBul(b), "tr"));
+
+  listeyiCiz();
+  onizlemeGuncelle();
+}
+
+function listeyiCiz(){
+
+  if(!personeller.length){
+    liste.innerHTML = `<div class="empty">Personel bulunamadı.</div>`;
+    sayacGuncelle();
+    return;
+  }
+
+  liste.innerHTML = "";
+
+  personeller.forEach(p => {
+
+    const adSoyad = adSoyadBul(p);
+    const tel = telefonBul(p);
+    const temizTel = telefonDuzelt(tel);
+    const borc = borcBul(p);
+    const borclu = durumBorcluMu(p);
+
+    const div = document.createElement("div");
+    div.className = "person";
+
+    div.innerHTML = `
+      <input
+        type="checkbox"
+        class="secim"
+        data-id="${p.id}"
+        onchange="sayacGuncelle()"
+      >
+
+      <div>
+        <strong>${adSoyad}</strong>
+        <div class="meta">
+          ${tel || "Telefon yok"} 
+          ${temizTel ? `• SMS: ${temizTel}` : ""}
+        </div>
+        <div class="meta">
+          ${borclu ? `<span class="debt">Borçlu: ${borc || "Aidat"} TL</span>` : `<span class="ok">Borç görünmüyor</span>`}
+        </div>
+      </div>
+
+      <div class="right">
+        <span class="badge">${borclu ? "SMS UYGUN" : "BİLGİ"}</span>
+      </div>
+    `;
+
+    liste.appendChild(div);
+  });
+
+  sayacGuncelle();
+}
+
+window.sayacGuncelle = function(){
+  const secili = document.querySelectorAll(".secim:checked").length;
+  const borclu = personeller.filter(durumBorcluMu).length;
+
+  document.getElementById("toplam").textContent = personeller.length;
+  document.getElementById("borclu").textContent = borclu;
+  document.getElementById("secili").textContent = secili;
+}
+
+window.tumunuSec = function(){
+  document.querySelectorAll(".secim").forEach(c => c.checked = true);
+  sayacGuncelle();
+}
+
+window.borclulariSec = function(){
+  document.querySelectorAll(".secim").forEach(c => {
+    const p = personeller.find(x => x.id === c.dataset.id);
+    c.checked = p ? durumBorcluMu(p) : false;
+  });
+  sayacGuncelle();
+}
+
+async function smsGonder(numbers, message){
+  const res = await fetch(SMS_WEB_APP_URL, {
+    method:"POST",
+    headers:{
+      "Content-Type":"text/plain;charset=utf-8"
+    },
+    body:JSON.stringify({
+      numbers,
+      message
+    })
+  });
+
+  return await res.json();
+}
+
+window.secilenlereSmsGonder = async function(){
+
+  if(!SMS_WEB_APP_URL || SMS_WEB_APP_URL.includes("BURAYA")){
+    alert("Önce SMS_WEB_APP_URL alanına Google Apps Script Web App linkini yazmalısın.");
+    return;
+  }
+
+  const secimler = [...document.querySelectorAll(".secim:checked")];
+
+  if(!secimler.length){
+    alert("SMS gönderilecek personel seçilmedi.");
+    return;
+  }
+
+  if(!confirm(`${secimler.length} personele SMS gönderilecek. Onaylıyor musun?`)){
+    return;
+  }
+
+  let basarili = 0;
+  let hatali = 0;
+
+  for(const c of secimler){
+
+    const p = personeller.find(x => x.id === c.dataset.id);
+    if(!p) continue;
+
+    const adSoyad = adSoyadBul(p);
+    const tel = telefonDuzelt(telefonBul(p));
+    const mesaj = mesajOlustur(p);
+
+    if(!tel){
+      hatali++;
+      continue;
+    }
+
+    try{
+      const sonuc = await smsGonder([tel], mesaj);
+
+      await addDoc(collection(db, "sms_loglari"), {
+        personelId:p.id,
+        adSoyad,
+        telefon:tel,
+        mesaj,
+        tip:document.getElementById("smsTipi").value,
+        ok:sonuc.ok === true,
+        response:sonuc,
+        createdAt:serverTimestamp()
+      });
+
+      if(sonuc.ok) basarili++;
+      else hatali++;
+
+      await new Promise(r => setTimeout(r, 900));
+
+    }catch(err){
+
+      hatali++;
+
+      await addDoc(collection(db, "sms_loglari"), {
+        personelId:p.id,
+        adSoyad,
+        telefon:tel,
+        mesaj,
+        tip:document.getElementById("smsTipi").value,
+        ok:false,
+        error:String(err),
+        createdAt:serverTimestamp()
+      });
+    }
+  }
+
+  alert(`SMS işlemi tamamlandı.\nBaşarılı: ${basarili}\nHatalı: ${hatali}`);
+}
+
+mesajSablonuDoldur();
+personelleriYukle();
+
+</script>
+
+</body>
+</html>
