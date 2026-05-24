@@ -82,8 +82,6 @@ button:active{transform:scale(.98)}
 .btnMain{background:#111;color:#fff;width:100%;margin-top:16px}
 .btnBlue{background:#007aff;color:#fff}
 .btnOrange{background:#ff9500;color:#fff}
-.btnGreen{background:#34c759;color:#fff}
-.btnRed{background:#ff3b30;color:#fff}
 .btnSoft{background:#f1f1f1;color:#111}
 
 .row{
@@ -133,9 +131,7 @@ button:active{transform:scale(.98)}
   align-items:center;
 }
 
-.person strong{
-  font-size:17px;
-}
+.person strong{font-size:17px}
 
 .meta{
   font-size:13px;
@@ -225,8 +221,11 @@ button:active{transform:scale(.98)}
       <label>Dönem</label>
       <input id="donem" value="15 Mayıs - 14 Haziran">
 
+      <label>Dönem Ay Kodu</label>
+      <input id="ayKodu" value="2026-05" placeholder="Örn: 2026-05">
+
       <label>Dönem Aidatı</label>
-      <input id="aidat" value="450 TL">
+      <input id="aidat" value="300">
 
       <label>SMS Tipi</label>
       <select id="smsTipi" onchange="mesajSablonuDoldur()">
@@ -358,61 +357,62 @@ function telefonBul(p){
 }
 
 function aktifDonemBul(){
-  const inputDonem = temizle(document.getElementById("donem").value);
-  return inputDonem;
+  return temizle(document.getElementById("donem").value);
+}
+
+function aktifAyBul(){
+  return temizle(document.getElementById("ayKodu").value);
 }
 
 function personelinOdemesiBul(p){
   const tel = telefonDuzelt(telefonBul(p));
   const normalTel = telefonBul(p).replace(/\D/g,"");
+  const aktifAy = aktifAyBul();
+  const aktifDonem = aktifDonemBul().toLowerCase();
 
   const eslesenler = odemeler.filter(o => {
     const oTel = String(o.telefon || o.personelId || "").replace(/\D/g,"");
     const oTelFull = telefonDuzelt(oTel);
 
-    return (
+    const telefonEslesiyor =
       o.personelId === p.id ||
       o.personelId === normalTel ||
       o.personelId === tel ||
       oTel === normalTel ||
-      oTelFull === tel
-    );
+      oTelFull === tel;
+
+    if(!telefonEslesiyor) return false;
+
+    const ayEslesiyor =
+      String(o.ay || "") === aktifAy;
+
+    const donemEslesiyor =
+      String(o.donemEtiketi || "").toLowerCase() === aktifDonem;
+
+    return ayEslesiyor || donemEslesiyor;
   });
 
   if(!eslesenler.length) return null;
-
-  const donem = aktifDonemBul();
-
-  const donemEslesme = eslesenler.find(o =>
-    String(o.donemEtiketi || "").toLowerCase() === donem.toLowerCase()
-  );
-
-  if(donemEslesme) return donemEslesme;
-
-  eslesenler.sort((a,b) => {
-    const ta = a.updatedAt?.seconds || a.createdAt?.seconds || 0;
-    const tb = b.updatedAt?.seconds || b.createdAt?.seconds || 0;
-    return tb - ta;
-  });
 
   return eslesenler[0];
 }
 
 function odemeDurumuBul(p){
   const o = personelinOdemesiBul(p);
+  const aidat = paraTemizle(document.getElementById("aidat").value);
 
   if(!o){
     return {
       borclu:true,
       durum:"kayit_yok",
-      durumText:"Ödeme kaydı yok",
-      borc:paraTemizle(document.getElementById("aidat").value),
+      durumText:"Kayıt yok",
+      borc:aidat,
       donem:aktifDonemBul()
     };
   }
 
   const durum = String(o.durum || "").toLowerCase();
-  const tutar = paraTemizle(o.tutar);
+  const tutar = paraTemizle(o.tutar) || aidat;
 
   if(durum === "odendi" || durum === "ödendi"){
     return {
@@ -428,8 +428,8 @@ function odemeDurumuBul(p){
     return {
       borclu:true,
       durum:"reddedildi",
-      durumText:"Reddedildi / Borçlu",
-      borc:tutar || paraTemizle(document.getElementById("aidat").value),
+      durumText:"Reddedildi",
+      borc:tutar,
       donem:o.donemEtiketi || aktifDonemBul()
     };
   }
@@ -438,7 +438,7 @@ function odemeDurumuBul(p){
     borclu:true,
     durum:durum || "bekliyor",
     durumText:"Ödeme bekliyor",
-    borc:tutar || paraTemizle(document.getElementById("aidat").value),
+    borc:tutar,
     donem:o.donemEtiketi || aktifDonemBul()
   };
 }
@@ -499,8 +499,9 @@ function mesajOlustur(p){
 
   const sablon = document.getElementById("mesaj").value;
   const adSoyad = adSoyadBul(p);
-  const donem = odeme.donem || temizle(document.getElementById("donem").value);
-  const aidat = temizle(document.getElementById("aidat").value);
+  const donem = odeme.donem || aktifDonemBul();
+  const aidatDeger = paraTemizle(document.getElementById("aidat").value);
+  const aidat = `${aidatDeger} TL`;
   const borc = odeme.borc > 0 ? `${odeme.borc} TL` : aidat;
 
   return sablon
@@ -520,10 +521,17 @@ function onizlemeGuncelle(){
 }
 
 document.getElementById("mesaj").addEventListener("input", onizlemeGuncelle);
+
 document.getElementById("donem").addEventListener("input", () => {
   listeyiCiz();
   onizlemeGuncelle();
 });
+
+document.getElementById("ayKodu").addEventListener("input", () => {
+  listeyiCiz();
+  onizlemeGuncelle();
+});
+
 document.getElementById("aidat").addEventListener("input", () => {
   listeyiCiz();
   onizlemeGuncelle();
@@ -592,7 +600,7 @@ window.listeyiCiz = function(){
     if(odeme.durum === "odendi"){
       durumHtml = `<span class="ok">Ödendi</span>`;
     }else if(odeme.durum === "kayit_yok"){
-      durumHtml = `<span class="wait">Ödeme kaydı yok - Borçlu sayıldı</span>`;
+      durumHtml = `<span class="wait">Kayıt yok - ${odeme.borc} TL borç</span>`;
     }else{
       durumHtml = `<span class="debt">Borçlu: ${odeme.borc} TL</span>`;
     }
@@ -615,7 +623,7 @@ window.listeyiCiz = function(){
           ${tel || "Telefon yok"} ${smsTel ? `• SMS: ${smsTel}` : ""}
         </div>
         <div class="meta">
-          Dönem: ${odeme.donem || "-"} • ${durumHtml}
+          Dönem: ${odeme.donem || aktifDonemBul()} • ${durumHtml}
         </div>
       </div>
 
@@ -737,6 +745,8 @@ window.secilenlereSmsGonder = async function(){
         telefon:tel,
         mesaj,
         tip:document.getElementById("smsTipi").value,
+        donem:aktifDonemBul(),
+        ay:aktifAyBul(),
         ok:sonuc.ok === true,
         response:sonuc,
         createdAt:serverTimestamp()
@@ -757,6 +767,8 @@ window.secilenlereSmsGonder = async function(){
         telefon:tel,
         mesaj,
         tip:document.getElementById("smsTipi").value,
+        donem:aktifDonemBul(),
+        ay:aktifAyBul(),
         ok:false,
         error:String(err),
         createdAt:serverTimestamp()
