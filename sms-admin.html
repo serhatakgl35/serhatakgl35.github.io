@@ -7,199 +7,38 @@
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-
-body{
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif;
-  background:#f5f5f7;
-  color:#111;
-  padding:22px;
-}
-
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif;background:#f5f5f7;color:#111;padding:22px}
 .wrap{max-width:1250px;margin:auto}
-
-.top{
-  background:#111;
-  color:#fff;
-  border-radius:28px;
-  padding:28px;
-  margin-bottom:22px;
-  box-shadow:0 18px 40px rgba(0,0,0,.18);
-}
-
-.top h1{font-size:30px;margin-bottom:8px}
-.top p{opacity:.75}
-
-.grid{
-  display:grid;
-  grid-template-columns:390px 1fr;
-  gap:22px;
-}
-
-.card{
-  background:#fff;
-  border-radius:26px;
-  padding:24px;
-  box-shadow:0 12px 30px rgba(0,0,0,.08);
-}
-
+.top{background:#111;color:#fff;border-radius:28px;padding:28px;margin-bottom:22px;box-shadow:0 18px 40px rgba(0,0,0,.18)}
+.top h1{font-size:30px;margin-bottom:8px}.top p{opacity:.75}
+.grid{display:grid;grid-template-columns:390px 1fr;gap:22px}
+.card{background:#fff;border-radius:26px;padding:24px;box-shadow:0 12px 30px rgba(0,0,0,.08)}
 h2{font-size:24px;margin-bottom:14px}
-
-label{
-  display:block;
-  font-weight:900;
-  margin:15px 0 8px;
-  font-size:14px;
-}
-
-input,textarea,select{
-  width:100%;
-  padding:15px;
-  border-radius:18px;
-  border:1px solid #ddd;
-  background:#fafafa;
-  font-size:15px;
-  outline:none;
-  font-family:inherit;
-}
-
-textarea{
-  min-height:155px;
-  resize:vertical;
-}
-
-button{
-  border:0;
-  border-radius:16px;
-  padding:13px 15px;
-  font-weight:950;
-  cursor:pointer;
-  font-size:14px;
-  font-family:inherit;
-}
-
+label{display:block;font-weight:900;margin:15px 0 8px;font-size:14px}
+input,textarea,select{width:100%;padding:15px;border-radius:18px;border:1px solid #ddd;background:#fafafa;font-size:15px;outline:none;font-family:inherit}
+textarea{min-height:155px;resize:vertical}
+button{border:0;border-radius:16px;padding:13px 15px;font-weight:950;cursor:pointer;font-size:14px;font-family:inherit}
 button:active{transform:scale(.98)}
-
 .btnMain{background:#111;color:#fff;width:100%;margin-top:16px}
-.btnBlue{background:#007aff;color:#fff}
-.btnOrange{background:#ff9500;color:#fff}
-.btnSoft{background:#f1f1f1;color:#111}
-
-.row{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  margin-top:12px;
-}
-
-.stats{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:10px;
-  margin-bottom:18px;
-}
-
-.stat{
-  background:#f5f5f7;
-  border-radius:20px;
-  padding:16px;
-  text-align:center;
-}
-
-.stat b{
-  display:block;
-  font-size:25px;
-}
-
-.stat span{
-  font-size:12px;
-  color:#666;
-  font-weight:900;
-}
-
-.search{
-  margin-bottom:14px;
-}
-
-.person{
-  border:1px solid #eee;
-  border-radius:22px;
-  padding:16px;
-  margin-bottom:12px;
-  display:grid;
-  grid-template-columns:34px 1fr auto;
-  gap:12px;
-  align-items:center;
-}
-
+.btnBlue{background:#007aff;color:#fff}.btnOrange{background:#ff9500;color:#fff}.btnSoft{background:#f1f1f1;color:#111}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.stat{background:#f5f5f7;border-radius:20px;padding:16px;text-align:center}
+.stat b{display:block;font-size:25px}.stat span{font-size:12px;color:#666;font-weight:900}
+.search{margin-bottom:14px}
+.person{border:1px solid #eee;border-radius:22px;padding:16px;margin-bottom:12px;display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:center}
 .person strong{font-size:17px}
-
-.meta{
-  font-size:13px;
-  color:#666;
-  margin-top:4px;
-  line-height:1.35;
-}
-
-.debt{font-weight:950;color:#ff3b30}
-.wait{font-weight:950;color:#ff9500}
-.ok{font-weight:950;color:#34c759}
-
-.badge{
-  display:inline-block;
-  padding:7px 11px;
-  border-radius:999px;
-  font-size:12px;
-  font-weight:950;
-  background:#eee;
-  white-space:nowrap;
-}
-
-.badgeRed{background:#ffe5e3;color:#b42318}
-.badgeGreen{background:#dcffe5;color:#117a2d}
-.badgeOrange{background:#fff0d8;color:#a85b00}
-
-.preview{
-  background:#111;
-  color:#fff;
-  border-radius:22px;
-  padding:16px;
-  white-space:pre-wrap;
-  line-height:1.45;
-  font-size:14px;
-  margin-top:12px;
-  max-height:220px;
-  overflow:auto;
-}
-
-.small{
-  font-size:12px;
-  color:#777;
-  line-height:1.45;
-  margin-top:8px;
-}
-
-.empty{
-  text-align:center;
-  color:#777;
-  padding:40px 10px;
-}
-
-.progressBox{
-  display:none;
-  background:#f5f5f7;
-  border-radius:18px;
-  padding:14px;
-  margin-top:14px;
-  font-size:14px;
-  font-weight:900;
-}
-
+.meta{font-size:13px;color:#666;margin-top:4px;line-height:1.35}
+.debt{font-weight:950;color:#ff3b30}.wait{font-weight:950;color:#ff9500}.ok{font-weight:950;color:#34c759}
+.badge{display:inline-block;padding:7px 11px;border-radius:999px;font-size:12px;font-weight:950;background:#eee;white-space:nowrap}
+.badgeRed{background:#ffe5e3;color:#b42318}.badgeGreen{background:#dcffe5;color:#117a2d}.badgeOrange{background:#fff0d8;color:#a85b00}
+.preview{background:#111;color:#fff;border-radius:22px;padding:16px;white-space:pre-wrap;line-height:1.45;font-size:14px;margin-top:12px;max-height:220px;overflow:auto}
+.small{font-size:12px;color:#777;line-height:1.45;margin-top:8px}
+.empty{text-align:center;color:#777;padding:40px 10px}
+.progressBox{display:none;background:#f5f5f7;border-radius:18px;padding:14px;margin-top:14px;font-size:14px;font-weight:900}
 @media(max-width:900px){
-  body{padding:14px}
-  .grid{grid-template-columns:1fr}
-  .stats{grid-template-columns:repeat(2,1fr)}
-  .person{grid-template-columns:30px 1fr}
-  .person .right{grid-column:2}
+body{padding:14px}.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}
+.person{grid-template-columns:30px 1fr}.person .right{grid-column:2}
 }
 </style>
 </head>
@@ -260,7 +99,7 @@ button:active{transform:scale(.98)}
       </div>
 
       <div class="small">
-        SMS API anahtarları bu sayfada yoktur. Gönderim Google Apps Script üzerinden yapılır.
+        Sayfa sadece Firebase admin yetkisi olan kullanıcılar için açılır.
       </div>
     </div>
 
@@ -277,7 +116,7 @@ button:active{transform:scale(.98)}
       <input class="search" id="arama" placeholder="Personel ara..." oninput="listeyiCiz()">
 
       <div id="liste">
-        <div class="empty">Personeller yükleniyor...</div>
+        <div class="empty">Admin yetkisi kontrol ediliyor...</div>
       </div>
     </div>
 
@@ -290,11 +129,18 @@ button:active{transform:scale(.98)}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import {
   getFirestore,
   collection,
   getDocs,
   addDoc,
-  serverTimestamp
+  serverTimestamp,
+  doc,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -303,9 +149,10 @@ const firebaseConfig = {
   projectId: "berber-randevu-14f7f"
 };
 
-const SMS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz7gQ0CrNNw_kJxL8KRh2eMJ6O_rIdQzqxpP7sNxWF1YpH9do6hn4JswrobIxQDiBq6bw/exec";
+const SMS_WEB_APP_URL = "BURAYA_APPS_SCRIPT_WEB_APP_URL";
 
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 const db = getFirestore(app);
 
 let personeller = [];
@@ -316,9 +163,22 @@ let seciliIds = new Set();
 const liste = document.getElementById("liste");
 const progressBox = document.getElementById("progressBox");
 
-function temizle(v){
-  return String(v || "").trim();
-}
+const donemMap = {
+  "2026-01":"15 Ocak - 14 Şubat",
+  "2026-02":"15 Şubat - 14 Mart",
+  "2026-03":"15 Mart - 14 Nisan",
+  "2026-04":"15 Nisan - 14 Mayıs",
+  "2026-05":"15 Mayıs - 14 Haziran",
+  "2026-06":"15 Haziran - 14 Temmuz",
+  "2026-07":"15 Temmuz - 14 Ağustos",
+  "2026-08":"15 Ağustos - 14 Eylül",
+  "2026-09":"15 Eylül - 14 Ekim",
+  "2026-10":"15 Ekim - 14 Kasım",
+  "2026-11":"15 Kasım - 14 Aralık",
+  "2026-12":"15 Aralık - 14 Ocak"
+};
+
+function temizle(v){return String(v || "").trim()}
 
 function paraTemizle(v){
   const n = Number(String(v || "0").replace(",",".").replace(/[^\d.]/g,""));
@@ -327,46 +187,75 @@ function paraTemizle(v){
 
 function telefonDuzelt(tel){
   let t = String(tel || "").replace(/\D/g,"");
-
   if(t.startsWith("90") && t.length === 12) return t;
   if(t.startsWith("0") && t.length === 11) return "9" + t;
   if(t.startsWith("5") && t.length === 10) return "90" + t;
-
   return t;
 }
 
 function adSoyadBul(p){
-  return temizle(
-    p.adSoyad ||
-    p.adsoyad ||
-    p.isim ||
-    p.ad ||
-    p.name ||
-    "İsimsiz Personel"
-  );
+  return temizle(p.adSoyad || p.adsoyad || p.isim || p.ad || p.name || "İsimsiz Personel");
 }
 
 function telefonBul(p){
-  return temizle(
-    p.telefon ||
-    p.phone ||
-    p.gsm ||
-    p.numara ||
-    p.personelId ||
-    ""
-  );
+  return temizle(p.telefon || p.phone || p.gsm || p.numara || p.personelId || "");
 }
 
-function aktifSmsTipi(){
-  return document.getElementById("smsTipi").value;
+function aktifSmsTipi(){return document.getElementById("smsTipi").value}
+function aktifDonemBul(){return temizle(document.getElementById("donem").value)}
+function aktifAyBul(){return temizle(document.getElementById("ayKodu").value)}
+
+function adminYetkiKontrol(){
+  return new Promise((resolve, reject) => {
+    onAuthStateChanged(auth, async (user) => {
+      try{
+        if(!user){
+          alert("Bu sayfaya giriş yapmak için admin girişi gereklidir.");
+          window.location.href = "admin.html";
+          reject("Giriş yok");
+          return;
+        }
+
+        const adminRef = doc(db, "admins", user.uid);
+        const adminSnap = await getDoc(adminRef);
+
+        if(!adminSnap.exists()){
+          alert("Bu sayfaya erişim yetkiniz yok.");
+          window.location.href = "adminpanel.html";
+          reject("Admin kaydı yok");
+          return;
+        }
+
+        const admin = adminSnap.data();
+
+        if(admin.aktif !== true || admin.role !== "admin"){
+          alert("Bu sayfaya erişim yetkiniz yok.");
+          window.location.href = "adminpanel.html";
+          reject("Admin yetkisi yok");
+          return;
+        }
+
+        resolve(user);
+
+      }catch(err){
+        alert("Admin yetki kontrolü sırasında hata oluştu.");
+        console.error(err);
+        reject(err);
+      }
+    });
+  });
 }
 
-function aktifDonemBul(){
-  return temizle(document.getElementById("donem").value);
-}
+function donemOtomatikGuncelle(){
+  const ayKodu = aktifAyBul();
 
-function aktifAyBul(){
-  return temizle(document.getElementById("ayKodu").value);
+  if(donemMap[ayKodu]){
+    document.getElementById("donem").value = donemMap[ayKodu];
+  }
+
+  seciliIds.clear();
+  listeyiCiz();
+  onizlemeGuncelle();
 }
 
 function kantinKaydiBul(p){
@@ -416,11 +305,8 @@ function personelinOdemesiBul(p){
 
     if(!telefonEslesiyor) return false;
 
-    const ayEslesiyor =
-      String(o.ay || "") === aktifAy;
-
-    const donemEslesiyor =
-      String(o.donemEtiketi || "").toLowerCase() === aktifDonem;
+    const ayEslesiyor = String(o.ay || "") === aktifAy;
+    const donemEslesiyor = String(o.donemEtiketi || "").toLowerCase() === aktifDonem;
 
     return ayEslesiyor || donemEslesiyor;
   });
@@ -491,7 +377,7 @@ function odemeDurumuBul(p){
 
 window.mesajSablonuDoldur = function(){
 
-  const tip = document.getElementById("smsTipi").value;
+  const tip = aktifSmsTipi();
   let text = "";
 
   if(tip === "borc"){
@@ -564,10 +450,7 @@ function onizlemeGuncelle(){
   const uygunPersonel =
     personeller.find(p => odemeDurumuBul(p).borclu) ||
     personeller[0] ||
-    {
-      adSoyad:"Serhat AKGÜL",
-      telefon:"05399300094"
-    };
+    { adSoyad:"Serhat AKGÜL", telefon:"05399300094" };
 
   document.getElementById("onizleme").textContent = mesajOlustur(uygunPersonel);
 }
@@ -580,11 +463,7 @@ document.getElementById("donem").addEventListener("input", () => {
   onizlemeGuncelle();
 });
 
-document.getElementById("ayKodu").addEventListener("input", () => {
-  seciliIds.clear();
-  listeyiCiz();
-  onizlemeGuncelle();
-});
+document.getElementById("ayKodu").addEventListener("input", donemOtomatikGuncelle);
 
 document.getElementById("aidat").addEventListener("input", () => {
   listeyiCiz();
@@ -602,26 +481,17 @@ window.verileriYukle = async function(){
 
   const personelSnap = await getDocs(collection(db, "personeller"));
   personelSnap.forEach(d => {
-    personeller.push({
-      id:d.id,
-      ...d.data()
-    });
+    personeller.push({ id:d.id, ...d.data() });
   });
 
   const odemeSnap = await getDocs(collection(db, "cay_odemeler"));
   odemeSnap.forEach(d => {
-    odemeler.push({
-      id:d.id,
-      ...d.data()
-    });
+    odemeler.push({ id:d.id, ...d.data() });
   });
 
   const veresiyeSnap = await getDocs(collection(db, "veresiye_ozetleri"));
   veresiyeSnap.forEach(d => {
-    veresiyeOzetleri.push({
-      id:d.id,
-      ...d.data()
-    });
+    veresiyeOzetleri.push({ id:d.id, ...d.data() });
   });
 
   personeller.sort((a,b) => adSoyadBul(a).localeCompare(adSoyadBul(b), "tr"));
@@ -638,8 +508,7 @@ window.listeyiCiz = function(){
     const ad = adSoyadBul(p).toLowerCase();
     const tel = telefonBul(p).toLowerCase();
 
-    const aramaUygun =
-      ad.includes(arama) || tel.includes(arama);
+    const aramaUygun = ad.includes(arama) || tel.includes(arama);
 
     if(!aramaUygun) return false;
 
@@ -665,9 +534,7 @@ window.listeyiCiz = function(){
     const smsTel = telefonDuzelt(tel);
     const odeme = odemeDurumuBul(p);
 
-    let badgeClass = "badgeOrange";
-    if(!odeme.borclu) badgeClass = "badgeGreen";
-    if(odeme.borclu) badgeClass = "badgeRed";
+    let badgeClass = odeme.borclu ? "badgeRed" : "badgeGreen";
 
     let durumHtml = "";
 
@@ -777,13 +644,8 @@ window.borclulariSec = function(){
 async function smsGonder(numbers, message){
   const res = await fetch(SMS_WEB_APP_URL, {
     method:"POST",
-    headers:{
-      "Content-Type":"text/plain;charset=utf-8"
-    },
-    body:JSON.stringify({
-      numbers,
-      message
-    })
+    headers:{ "Content-Type":"text/plain;charset=utf-8" },
+    body:JSON.stringify({ numbers, message })
   });
 
   return await res.json();
@@ -872,12 +734,13 @@ window.secilenlereSmsGonder = async function(){
   }
 
   progressBox.textContent = `SMS işlemi tamamlandı. Başarılı: ${basarili} / Hatalı: ${hatali}`;
-
   alert(`SMS işlemi tamamlandı.\nBaşarılı: ${basarili}\nHatalı: ${hatali}`);
 }
 
-mesajSablonuDoldur();
-verileriYukle();
+adminYetkiKontrol().then(() => {
+  mesajSablonuDoldur();
+  verileriYukle();
+});
 
 </script>
 
