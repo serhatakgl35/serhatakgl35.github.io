@@ -3,61 +3,90 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Reklam Admin Paneli</title>
+  <title>Kantin Reklam Admin Paneli</title>
 
   <style>
     *{
       box-sizing:border-box;
       margin:0;
-      padding:0
+      padding:0;
     }
 
     body{
       font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif;
-      background:#f5f5f7;
+      background:
+        radial-gradient(circle at top left, rgba(0,0,0,.10), transparent 32%),
+        radial-gradient(circle at bottom right, rgba(0,0,0,.08), transparent 28%),
+        #f5f5f7;
       color:#111;
       padding:24px;
+      min-height:100vh;
     }
 
     .wrap{
-      max-width:1100px;
-      margin:auto
+      max-width:1150px;
+      margin:auto;
     }
 
     .top{
-      background:#111;
+      background:linear-gradient(135deg,#050505,#1c1c1e,#000);
       color:#fff;
-      border-radius:28px;
-      padding:28px;
+      border-radius:30px;
+      padding:30px;
       margin-bottom:24px;
-      box-shadow:0 18px 40px rgba(0,0,0,.18);
+      box-shadow:0 22px 50px rgba(0,0,0,.25);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .top:before{
+      content:"";
+      position:absolute;
+      width:260px;
+      height:260px;
+      right:-90px;
+      top:-100px;
+      background:radial-gradient(circle,rgba(255,255,255,.25),transparent 65%);
     }
 
     .top h1{
-      font-size:30px;
-      margin-bottom:8px
+      font-size:32px;
+      margin-bottom:8px;
+      letter-spacing:-.5px;
+      position:relative;
+      z-index:2;
     }
 
     .top p{
-      opacity:.75
+      opacity:.75;
+      position:relative;
+      z-index:2;
     }
 
     .grid{
       display:grid;
-      grid-template-columns:380px 1fr;
+      grid-template-columns:390px 1fr;
       gap:22px;
     }
 
     .card{
-      background:#fff;
-      border-radius:24px;
+      background:rgba(255,255,255,.88);
+      backdrop-filter:blur(18px);
+      border:1px solid rgba(255,255,255,.7);
+      border-radius:26px;
       padding:22px;
-      box-shadow:0 12px 30px rgba(0,0,0,.08);
+      box-shadow:0 14px 38px rgba(0,0,0,.09);
+    }
+
+    h2{
+      font-size:22px;
+      margin-bottom:10px;
+      letter-spacing:-.3px;
     }
 
     label{
       display:block;
-      font-weight:800;
+      font-weight:900;
       margin:14px 0 7px;
       font-size:14px;
     }
@@ -65,25 +94,41 @@
     input,textarea,select{
       width:100%;
       padding:14px;
-      border-radius:15px;
+      border-radius:16px;
       border:1px solid #ddd;
       font-size:15px;
       outline:none;
       background:#fafafa;
+      transition:.2s;
+      font-family:inherit;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus{
+      border-color:#111;
+      background:#fff;
+      box-shadow:0 0 0 4px rgba(0,0,0,.06);
     }
 
     textarea{
-      min-height:90px;
-      resize:vertical
+      min-height:95px;
+      resize:vertical;
     }
 
     button{
       border:0;
-      border-radius:15px;
+      border-radius:16px;
       padding:13px 16px;
-      font-weight:900;
+      font-weight:950;
       cursor:pointer;
       font-size:15px;
+      transition:.2s;
+      font-family:inherit;
+    }
+
+    button:active{
+      transform:scale(.97);
     }
 
     .btnMain{
@@ -91,6 +136,12 @@
       color:#fff;
       width:100%;
       margin-top:18px;
+      box-shadow:0 12px 24px rgba(0,0,0,.18);
+    }
+
+    .btnMain:hover{
+      background:#000;
+      transform:translateY(-1px);
     }
 
     .btnDanger{
@@ -113,72 +164,99 @@
       gap:16px;
     }
 
-    .item{
-      display:grid;
-      grid-template-columns:120px 1fr;
-      gap:16px;
-      border:1px solid #eee;
-      border-radius:20px;
-      padding:14px;
-      background:#fff;
+    .adItem{
+      position:relative;
+      overflow:hidden;
+      border-radius:28px;
+      padding:22px;
+      min-height:210px;
+      background:
+        radial-gradient(circle at top right, rgba(255,255,255,.25), transparent 35%),
+        linear-gradient(135deg,#050505,#171717,#000);
+      color:#fff;
+      box-shadow:0 18px 42px rgba(0,0,0,.18);
     }
 
-    .item img{
-      width:120px;
-      height:120px;
-      object-fit:cover;
-      border-radius:16px;
-      background:#eee;
+    .adItem:before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(120deg,transparent,rgba(255,255,255,.12),transparent);
+      transform:translateX(-100%);
+      animation:shine 4s infinite;
     }
 
-    .noImg{
-      width:120px;
-      height:120px;
-      border-radius:16px;
-      background:#eee;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:36px;
+    @keyframes shine{
+      0%{transform:translateX(-100%)}
+      45%{transform:translateX(100%)}
+      100%{transform:translateX(100%)}
     }
 
-    .title{
-      font-size:20px;
-      font-weight:950;
-      margin-bottom:5px;
-    }
-
-    .meta{
-      color:#555;
-      font-size:14px;
-      margin-bottom:6px;
-      line-height:1.35;
-    }
-
-    .price{
-      color:#0a8f2a;
-      font-size:22px;
-      font-weight:950;
-      margin:8px 0;
+    .adContent{
+      position:relative;
+      z-index:2;
     }
 
     .status{
       display:inline-block;
-      padding:7px 11px;
+      padding:7px 12px;
       border-radius:999px;
       font-size:12px;
-      font-weight:900;
-      margin-bottom:10px;
+      font-weight:950;
+      margin-bottom:14px;
+      letter-spacing:.5px;
     }
 
     .on{
-      background:#d7ffdf;
-      color:#087a20
+      background:rgba(52,199,89,.18);
+      color:#7dff9f;
+      border:1px solid rgba(125,255,159,.35);
     }
 
     .off{
-      background:#ffe4d1;
-      color:#a04700
+      background:rgba(255,149,0,.18);
+      color:#ffd18a;
+      border:1px solid rgba(255,209,138,.35);
+    }
+
+    .adBaslik{
+      font-size:14px;
+      font-weight:900;
+      opacity:.72;
+      letter-spacing:1.6px;
+      text-transform:uppercase;
+      margin-bottom:8px;
+    }
+
+    .adTitle{
+      font-size:42px;
+      line-height:.95;
+      font-weight:1000;
+      letter-spacing:-1.6px;
+      margin-bottom:12px;
+      background:linear-gradient(90deg,#fff,#d7d7d7,#fff);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      text-transform:uppercase;
+    }
+
+    .adDesc{
+      color:rgba(255,255,255,.78);
+      font-size:15px;
+      line-height:1.45;
+      max-width:620px;
+      margin-bottom:14px;
+    }
+
+    .adPrice{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:30px;
+      font-weight:1000;
+      color:#8cffaa;
+      text-shadow:0 0 20px rgba(52,199,89,.35);
+      margin-bottom:14px;
     }
 
     .actions{
@@ -191,31 +269,46 @@
     .empty{
       text-align:center;
       color:#777;
-      padding:40px 10px;
+      padding:45px 10px;
+      background:#fff;
+      border-radius:22px;
+      border:1px dashed #ddd;
+    }
+
+    .hint{
+      font-size:13px;
+      color:#666;
+      line-height:1.45;
+      margin-top:12px;
+      background:#f5f5f7;
+      border-radius:16px;
+      padding:12px;
     }
 
     @media(max-width:850px){
-
       body{
-        padding:14px
+        padding:14px;
       }
 
       .grid{
-        grid-template-columns:1fr
+        grid-template-columns:1fr;
       }
 
-      .item{
-        grid-template-columns:90px 1fr
-      }
-
-      .item img,
-      .noImg{
-        width:90px;
-        height:90px
+      .top{
+        padding:24px;
+        border-radius:24px;
       }
 
       .top h1{
-        font-size:24px
+        font-size:24px;
+      }
+
+      .adTitle{
+        font-size:34px;
+      }
+
+      .adItem{
+        min-height:190px;
       }
     }
   </style>
@@ -227,7 +320,7 @@
 
     <div class="top">
       <h1>📺 Kantin Reklam Admin Paneli</h1>
-      <p>Buradan tam ekran reklam sayfasında görünecek ürünleri ekleyebilirsin.</p>
+      <p>Resimsiz, modern ve dikkat çekici yazı tabanlı reklamlar oluştur.</p>
     </div>
 
     <div class="grid">
@@ -236,20 +329,17 @@
 
         <h2>Yeni Reklam Ekle</h2>
 
-        <label>Başlık</label>
+        <label>Üst Başlık</label>
         <input id="baslik" value="KANTİNE YENİ GELDİ">
 
-        <label>Ürün Adı</label>
+        <label>Reklam / Ürün Adı</label>
         <input id="urunAdi" placeholder="Örn: Soğuk Kahve">
 
         <label>Açıklama</label>
-        <textarea id="aciklama" placeholder="Örn: Bugün kantinde satışta."></textarea>
+        <textarea id="aciklama" placeholder="Örn: Bugün kantinde satışta. Soğuk, taze ve lezzetli."></textarea>
 
-        <label>Fiyat</label>
+        <label>Fiyat / Kısa Bilgi</label>
         <input id="fiyat" placeholder="Örn: 35 TL">
-
-        <label>Ürün Resim Linki</label>
-        <input id="resim" placeholder="https://...">
 
         <label>Durum</label>
         <select id="aktif">
@@ -260,6 +350,10 @@
         <button class="btnMain" onclick="reklamEkle()">
           Reklamı Kaydet
         </button>
+
+        <div class="hint">
+          Artık resim linki yok. Reklamlar büyük yazı, premium kart ve dikkat çekici tipografi ile gösterilir.
+        </div>
 
       </div>
 
@@ -305,27 +399,13 @@
 
     const liste = document.getElementById("liste");
 
-    function duzeltResimLinki(link){
-
-      if(!link) return "";
-
-      // ImgBB / ibb.co
-      if(link.includes("ibb.co/")){
-
-        const son = link.split("/").pop();
-
-        return `https://i.ibb.co/${son}/resim.jpg`;
-      }
-
-      // Google Drive
-      if(link.includes("drive.google.com/file/d/")){
-
-        const id = link.split("/d/")[1].split("/")[0];
-
-        return `https://drive.google.com/uc?export=view&id=${id}`;
-      }
-
-      return link;
+    function temizle(text){
+      return String(text || "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
     }
 
     window.reklamEkle = async function(){
@@ -343,33 +423,27 @@
       const fiyat =
         document.getElementById("fiyat").value.trim();
 
-      const resim =
-        document.getElementById("resim").value.trim();
-
       const aktif =
         document.getElementById("aktif").value === "true";
 
       if(!urunAdi){
-
-        alert("Ürün adı zorunlu.");
+        alert("Reklam / ürün adı zorunlu.");
         return;
       }
 
       await addDoc(collection(db, "reklamlar"), {
-
         baslik,
         urunAdi,
         aciklama,
         fiyat,
-        resim,
         aktif,
+        reklamTipi:"yazi",
         createdAt: serverTimestamp()
       });
 
       document.getElementById("urunAdi").value = "";
       document.getElementById("aciklama").value = "";
       document.getElementById("fiyat").value = "";
-      document.getElementById("resim").value = "";
       document.getElementById("aktif").value = "true";
 
       alert("Reklam eklendi.");
@@ -422,71 +496,40 @@
         const r = d.data();
         const id = d.id;
 
-        const baslik =
-          r.baslik || "KANTİNE YENİ GELDİ";
-
-        const urunAdi =
-          r.urunAdi || "Ürün adı yok";
-
-        const aciklama =
-          r.aciklama || "";
-
-        const fiyat =
-          r.fiyat || "";
-
-        const resim =
-          r.resim || "";
-
-        const aktif =
-          r.aktif === true;
-
-        const finalResim =
-          duzeltResimLinki(resim);
+        const baslik = temizle(r.baslik || "KANTİNE YENİ GELDİ");
+        const urunAdi = temizle(r.urunAdi || "Reklam adı yok");
+        const aciklama = temizle(r.aciklama || "");
+        const fiyat = temizle(r.fiyat || "");
+        const aktif = r.aktif === true;
 
         const div = document.createElement("div");
-
-        div.className = "item";
+        div.className = "adItem";
 
         div.innerHTML = `
 
-          ${
-            finalResim
-
-            ? `
-              <img
-                src="${finalResim}"
-                loading="lazy"
-                referrerpolicy="no-referrer"
-                onerror="this.outerHTML='<div class=noImg>🛒</div>'"
-              >
-            `
-
-            : `
-              <div class="noImg">🛒</div>
-            `
-          }
-
-          <div>
+          <div class="adContent">
 
             <div class="status ${aktif ? "on" : "off"}">
               ${aktif ? "AKTİF" : "PASİF"}
             </div>
 
-            <div class="title">
+            <div class="adBaslik">
+              ${baslik}
+            </div>
+
+            <div class="adTitle">
               ${urunAdi}
             </div>
 
-            <div class="meta">
-              <b>${baslik}</b>
-            </div>
-
-            <div class="meta">
-              ${aciklama}
-            </div>
+            ${
+              aciklama
+              ? `<div class="adDesc">${aciklama}</div>`
+              : ""
+            }
 
             ${
               fiyat
-              ? `<div class="price">${fiyat}</div>`
+              ? `<div class="adPrice">₺ ${fiyat.replace("TL","").replace("₺","").trim()}</div>`
               : ""
             }
 
