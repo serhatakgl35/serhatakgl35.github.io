@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Kantin10 Admin Panel</title>
+
+  <style>
+    *{box-sizing:border-box}
+    html{width:100%;max-width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%}
+    body{
+      margin:0;
+      width:100%;
+      min-height:100vh;
+      overflow-x:hidden;
+      background:
+        radial-gradient(circle at 15% 0%, rgba(255,255,255,.95), transparent 32%),
+        radial-gradient(circle at 90% 5%, rgba(220,226,238,.75), transparent 36%),
+        #f5f5f7;
+      color:#111;
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif;
+      padding:calc(14px + env(safe-area-inset-top)) 14px calc(22px + env(safe-area-inset-bottom));
+    }
+
+    .wrap{max-width:1180px;margin:0 auto}
+    .hidden{display:none!important}
+
+    .topbar{
+      position:sticky;
+      top:10px;
+      z-index:50;
+      background:rgba(17,17,17,.94);
+      color:white;
+      border-radius:24px;
+      padding:14px 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      box-shadow:0 18px 48px rgba(0,0,0,.18);
+      backdrop-filter:blur(18px);
+      margin-bottom:18px;
+    }
+
+    .brand{
+      font-weight:950;
+      font-size:18px;
+      letter-spacing:-.3px;
+      white-space:nowrap;
+    }
+
+    .top-actions{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+    }
+
+    .email{
+      font-size:13px;
+      color:#ddd;
+      font-weight:800;
+      max-width:260px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+
+    .card{
+      background:rgba(255,255,255,.9);
+      border:1px solid rgba(0,0,0,.06);
+      border-radius:28px;
+      padding:24px;
+      box-shadow:0 18px 48px rgba(0,0,0,.08);
+      backdrop-filter:blur(16px);
+      margin-bottom:16px;
+    }
+
+    .hero{
+      background:linear-gradient(135deg,rgba(255,255,255,.96),rgba(248,250,252,.86));
+      border-radius:32px;
+      padding:30px;
+      box-shadow:0 22px 60px rgba(0,0,0,.09);
+      margin-bottom:18px;
+    }
+
+    h1{
+      margin:0 0 8px;
+      font-size:34px;
+      letter-spacing:-1px;
+      line-height:1.1
+    }
+
+    h2{
+      margin:0 0 12px;
+      font-size:22px;
+      letter-spacing:-.4px
+    }
+
+    .muted{
+      color:#666;
+      font-size:14px;
+      line-height:1.5
+    }
+
+    input,button{
+      width:100%;
+      padding:14px;
+      border-radius:16px;
+      border:1px solid #ddd;
+      font-size:15px;
+      margin:7px 0;
+      font-family:inherit;
+    }
+
+    button{
+      background:#111;
+      color:white;
+      font-weight:950;
+      cursor:pointer;
+      border:0;
+      -webkit-tap-highlight-color:transparent;
+      touch-action:manipulation;
+    }
+
+    button.light{
+      background:#eee;
+      color:#111;
+      width:auto;
+      margin:0;
+      padding:11px 14px;
+      white-space:nowrap
+    }
+
+    button.soft{
+      background:#f1f1f4;
+      color:#111;
+      border:1px solid #e2e2e7
+    }
+
+    .status{
+      margin-top:10px;
+      padding:12px;
+      border-radius:15px;
+      background:#eee;
+      font-weight:850;
+      white-space:pre-wrap
+    }
+
+    .status.err{
+      background:#ffe8e8;
+      color:#a40000
+    }
+
+    .login-card{
+      max-width:470px;
+      margin:8vh auto 0
+    }
+
+    .login-logo{
+      width:58px;
+      height:58px;
+      border-radius:20px;
+      background:#111;
+      color:white;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:28px;
+      margin-bottom:14px;
+      box-shadow:0 10px 26px rgba(0,0,0,.18)
+    }
+
+    .dashboard-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:15px;
+      margin-top:16px;
+    }
+
+    .dash-card{
+      position:relative;
+      overflow:hidden;
+      min-height:170px;
+      display:flex;
+      flex-direction:column;
+      justify-content:flex-end;
+      text-decoration:none;
+      color:#111;
+      background:white;
+      border:1px solid #eee;
+      border-radius:28px;
+      padding:22px;
+      box-shadow:0 12px 30px rgba(0,0,0,.07);
+      transition:.18s ease;
+      cursor:pointer;
+    }
+
+    .dash-card:hover{
+      transform:translateY(-3px);
+      box-shadow:0 20px 44px rgba(0,0,0,.11)
+    }
+
+    .dash-card::before{
+      content:"";
+      position:absolute;
+      top:-60px;
+      right:-60px;
+      width:150px;
+      height:150px;
+      border-radius:50%;
+      background:#f4f4f5;
+    }
+
+    .dash-card.primary{
+      background:linear-gradient(135deg,#111,#1f2937);
+      color:white;
+    }
+
+    .dash-card.primary p{
+      color:rgba(255,255,255,.72)
+    }
+
+    .dash-card.primary::before{
+      background:rgba(255,255,255,.12)
+    }
+
+    .icon{
+      position:absolute;
+      top:18px;
+      left:18px;
+      width:48px;
+      height:48px;
+      border-radius:17px;
+      background:#111;
+      color:white;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:22px;
+      z-index:1;
+    }
+
+    .dash-card.primary .icon{
+      background:white;
+      color:#111
+    }
+
+    .arrow{
+      position:absolute;
+      top:18px;
+      right:18px;
+      width:42px;
+      height:42px;
+      border-radius:15px;
+      background:#f5f5f7;
+      color:#111;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:950;
+      z-index:1;
+    }
+
+    .dash-card.primary .arrow{
+      background:rgba(255,255,255,.13);
+      color:white
+    }
+
+    .dash-card h3{
+      position:relative;
+      margin:0 0 7px;
+      font-size:21px;
+      letter-spacing:-.45px;
+      z-index:1
+    }
+
+    .dash-card p{
+      position:relative;
+      margin:0;
+      color:#666;
+      font-size:14px;
+      line-height:1.45;
+      z-index:1
+    }
+
+    .panel-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:12px
+    }
+
+    .panel-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end
+    }
+
+    .panel-actions button{
+      width:auto;
+      margin:0;
+      padding:10px 13px;
+      border-radius:14px;
+      font-size:13px
+    }
+
+    .frame-wrap{
+      width:100%;
+      height:calc(100vh - 205px);
+      min-height:620px;
+      border-radius:22px;
+      overflow:hidden;
+      border:1px solid #e7e7e7;
+      background:white;
+    }
+
+    iframe{
+      width:100%;
+      height:100%;
+      border:0;
+      background:white;
+      display:block
+    }
+
+    .footer-note{
+      text-align:center;
+      color:#999;
+      font-size:12px;
+      margin-top:18px
+    }
+
+    @media(max-width:900px){
+      .dashboard-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr))
+      }
+    }
+
+    @media(max-width:640px){
+      body{
+        padding:10px;
+        background:#f5f5f7
+      }
+
+      .topbar{
+        top:8px;
+        border-radius:20px;
+        align-items:flex-start;
+        flex-direction:column;
+        padding:14px
+      }
+
+      .top-actions{
+        width:100%;
+        justify-content:space-between
+      }
+
+      .dashboard-grid{
+        grid-template-columns:1fr
+      }
+
+      .frame-wrap{
+        height:calc(100vh - 245px);
+        min-height:560px;
+        border-radius:18px
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+  <div class="topbar hidden" id="topbar">
+    <div class="brand">Kantin10 Admin</div>
+
+    <div class="top-actions">
+      <span class="email" id="adminEmail"></span>
+      <button class="light" id="logoutBtn">Çıkış</button>
+    </div>
+  </div>
+
+  <div class="card login-card" id="loginCard">
+
+    <div class="login-logo">🔐</div>
+
+    <h1>Admin Girişi</h1>
+
+    <div class="muted">
+      Yönetim paneline giriş yapmak için admin hesabın ile giriş yap.
+    </div>
+
+    <input id="email" type="email" placeholder="Admin e-posta">
+    <input id="password" type="password" placeholder="Şifre">
+
+    <button id="loginBtn">Giriş Yap</button>
+
+    <div id="loginStatus" class="status err hidden"></div>
+  </div>
+
+  <div id="panel" class="hidden">
+
+    <div class="hero" id="dashboardHero">
+      <h1>Yönetim Merkezi</h1>
+
+      <div class="muted">
+        Az read modu aktif. Sayfalar artık yeni sekme açmadan bu panelin içinde görüntülenir.
+      </div>
+    </div>
+
+    <div class="card" id="dashboardPanel">
+
+      <h2>Sayfalar</h2>
+
+      <div class="dashboard-grid">
+
+        <div class="dash-card primary" onclick="sayfaAc('kantinveresiye')">
+          <div class="icon">🧾</div>
+          <div class="arrow">→</div>
+          <h3>Kantin Veresiye</h3>
+          <p>Personel borç takip sistemi.</p>
+        </div>
+
+        <div class="dash-card" onclick="sayfaAc('randevuyonetim')">
+          <div class="icon">🛠️</div>
+          <div class="arrow">→</div>
+          <h3>Randevu Yönetimi</h3>
+          <p>Randevu işlemleri.</p>
+        </div>
+
+        <div class="dash-card" onclick="sayfaAc('gunkapat')">
+          <div class="icon">⛔</div>
+          <div class="arrow">→</div>
+          <h3>Gün / Saat Kapat</h3>
+          <p>Kapalı gün ve saat ayarı.</p>
+        </div>
+
+        <div class="dash-card" onclick="sayfaAc('takvim')">
+          <div class="icon">📅</div>
+          <div class="arrow">→</div>
+          <h3>Haftalık Takvim</h3>
+          <p>Randevu takvimi.</p>
+        </div>
+
+        <div class="dash-card" onclick="sayfaAc('uyeler')">
+          <div class="icon">👥</div>
+          <div class="arrow">→</div>
+          <h3>Üye Listesi</h3>
+          <p>Personel kayıtları.</p>
+        </div>
+
+        <div class="dash-card" onclick="sayfaAc('uyeonay')">
+          <div class="icon">✅</div>
+          <div class="arrow">→</div>
+          <h3>Üye Onayları</h3>
+          <p>Yeni kayıt onay sistemi.</p>
+        </div>
+
+        <div class="dash-card" onclick="sayfaAc('odeme')">
+          <div class="icon">☕</div>
+          <div class="arrow">→</div>
+          <h3>Çay Ödeme Matrisi</h3>
+          <p>Çay aidatı, dönem matrisi, CSV aktarım ve WhatsApp borçlu mesajları.</p>
+        </div>
+
+        <div class="dash-card" onclick="sayfaAc('caybilanco')">
+          <div class="icon">📊</div>
+          <div class="arrow">→</div>
+          <h3>Çay Bilançoları</h3>
+          <p>Bilanço ve gider sistemi.</p>
+        </div>
+
+        <div class="dash-card" onclick="sayfaAc('duyuru')">
+          <div class="icon">📢</div>
+          <div class="arrow">→</div>
+          <h3>Duyuru Paneli</h3>
+          <p>Duyuru yönetimi.</p>
+        </div>
+
+        <div class="dash-card" onclick="sayfaAc('istatistik')">
+          <div class="icon">📈</div>
+          <div class="arrow">→</div>
+          <h3>İstatistikler</h3>
+          <p>Sistem istatistikleri.</p>
+        </div>
+
+        <div class="dash-card" onclick="sayfaAc('stokadmin')">
+          <div class="icon">📦</div>
+          <div class="arrow">→</div>
+          <h3>Stok Admin</h3>
+          <p>Excel / CSV ile ürün stok aktarımı.</p>
+        </div>
+
+        <div class="dash-card" onclick="sayfaAc('odemeadmin')">
+          <div class="icon">💳</div>
+          <div class="arrow">→</div>
+          <h3>Ödeme Admin</h3>
+          <p>Çay ödeme yönetim ekranı.</p>
+        </div>
+
+      </div>
+
+      
+        <div class="dash-card" onclick="sayfaAc('smsadmin')">
+          <div class="icon">📲</div>
+          <div class="arrow">→</div>
+          <h3>Toplu SMS Paneli</h3>
+          <p>Çay aidatı, kantin borcu ve toplu SMS gönderim sistemi.</p>
+        </div>
+
+
+      <div class="footer-note">
+        Premium Admin Panel • Sayfalar Panel İçinde Açılır
+      </div>
+
+    </div>
+
+    <div class="card hidden" id="iframeCard">
+
+      <div class="panel-head">
+
+        <div>
+          <h2 id="frameTitle">Panel</h2>
+          <div class="muted" id="frameDesc"></div>
+        </div>
+
+        <div class="panel-actions">
+          <button class="soft" id="backHomeBtn">Ana Panel</button>
+          <button class="soft" id="refreshFrameBtn">Yenile</button>
+        </div>
+
+      </div>
+
+      <div class="frame-wrap">
+        <iframe id="panelFrame"></iframe>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",
+  authDomain: "berber-randevu-14f7f.firebaseapp.com",
+  projectId: "berber-randevu-14f7f",
+  storageBucket: "berber-randevu-14f7f.firebasestorage.app",
+  messagingSenderId: "280530860977",
+  appId: "1:280530860977:web:52c0df04c228896f211b90"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const SAYFALAR = {
+
+  kantinveresiye:{
+    title:"Kantin Veresiye",
+    desc:"Personel borç takip sistemi",
+    url:"kantin-veresiye-admin.html"
+  },
+
+  randevuyonetim:{
+    title:"Randevu Yönetimi",
+    desc:"Randevu işlemleri",
+    url:"admin.html"
+  },
+
+  gunkapat:{
+    title:"Gün / Saat Kapat",
+    desc:"Kapalı gün ayarları",
+    url:"admingunkapat.html"
+  },
+
+  takvim:{
+    title:"Takvim",
+    desc:"Haftalık görünüm",
+    url:"adminhaftaliktakvim.html"
+  },
+
+  uyeler:{
+    title:"Üye Listesi",
+    desc:"Personeller",
+    url:"uyelistesi.html"
+  },
+
+  uyeonay:{
+    title:"Üye Onayları",
+    desc:"Yeni üyeler",
+    url:"uye-onay-paneli.html"
+  },
+
+  odeme:{
+    title:"Çay Ödeme Matrisi",
+    desc:"Aidat matrisi, CSV aktarım ve borçlu WhatsApp mesajları",
+    url:"odeme-matris.html"
+  },
+
+  caybilanco:{
+    title:"Çay Bilançoları",
+    desc:"Bilanço ekranı",
+    url:"cay-bilanco.html"
+  },
+
+  duyuru:{
+    title:"Duyuru Paneli",
+    desc:"Duyurular",
+    url:"duyurupanel.html"
+  },
+
+  istatistik:{
+    title:"İstatistikler",
+    desc:"Sistem verileri",
+    url:"istatistik.html"
+  },
+
+  stokadmin:{
+    title:"Stok Admin",
+    desc:"Stok aktarım sistemi",
+    url:"stok-admin.html"
+  },
+
+
+  smsadmin:{
+    title:"Toplu SMS Paneli",
+    desc:"Borçlu personellere toplu SMS gönderim sistemi",
+    url:"sms-admin.html"
+  },
+
+  odemeadmin:{
+    title:"Ödeme Admin",
+    desc:"Çay ödeme yönetimi",
+    url:"https://www.kantin10.com.tr/odeme-admin.html"
+  }
+};
+
+const loginCard = document.getElementById("loginCard");
+const panel = document.getElementById("panel");
+const topbar = document.getElementById("topbar");
+const adminEmail = document.getElementById("adminEmail");
+
+const dashboardHero = document.getElementById("dashboardHero");
+const dashboardPanel = document.getElementById("dashboardPanel");
+const iframeCard = document.getElementById("iframeCard");
+
+const panelFrame = document.getElementById("panelFrame");
+
+window.sayfaAc = function(key){
+
+  const s = SAYFALAR[key];
+  if(!s || !s.url) return;
+
+  document.getElementById("frameTitle").textContent = s.title || "Panel";
+  document.getElementById("frameDesc").textContent = s.desc || "";
+
+  dashboardHero.classList.add("hidden");
+  dashboardPanel.classList.add("hidden");
+  iframeCard.classList.remove("hidden");
+
+  panelFrame.src = s.url;
+
+  setTimeout(()=>{
+    iframeCard.scrollIntoView({behavior:"smooth", block:"start"});
+  }, 80);
+};
+
+// Eski çağrılar kalırsa da aynı panel içinde açılsın.
+window.sekmeAc = window.sayfaAc;
+
+document.getElementById("backHomeBtn").onclick = ()=>{
+
+  iframeCard.classList.add("hidden");
+
+  dashboardHero.classList.remove("hidden");
+  dashboardPanel.classList.remove("hidden");
+
+  panelFrame.removeAttribute("src");
+};
+
+document.getElementById("refreshFrameBtn").onclick = ()=>{
+  panelFrame.src = panelFrame.src;
+};
+
+document.getElementById("loginBtn").onclick = async()=>{
+
+  try{
+
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    await signInWithEmailAndPassword(auth,email,password);
+
+  }catch(e){
+
+    const s = document.getElementById("loginStatus");
+
+    s.classList.remove("hidden");
+    s.textContent = "Giriş başarısız: " + e.message;
+  }
+};
+
+document.getElementById("logoutBtn").onclick = async()=>{
+  await signOut(auth);
+};
+
+async function adminMi(user){
+
+  const snap = await getDoc(doc(db,"admins",user.uid));
+
+  return snap.exists() && snap.data().aktif === true;
+}
+
+onAuthStateChanged(auth, async(user)=>{
+
+  if(!user){
+
+    loginCard.classList.remove("hidden");
+    panel.classList.add("hidden");
+    topbar.classList.add("hidden");
+
+    return;
+  }
+
+  const ok = await adminMi(user);
+
+  if(!ok){
+
+    await signOut(auth);
+    return;
+  }
+
+  adminEmail.textContent = user.email || "Admin";
+
+  loginCard.classList.add("hidden");
+  panel.classList.remove("hidden");
+  topbar.classList.remove("hidden");
+});
+
+</script>
+
+</body>
+</html>
