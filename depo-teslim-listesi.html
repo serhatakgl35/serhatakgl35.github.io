@@ -1,99 +1,316 @@
-<!-- depo-teslim-listesi.html -->
 <!DOCTYPE html>
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Depo Teslimat Listesi</title>
+  <title>Malzeme Teslimat Listesi</title>
+
   <style>
     *{box-sizing:border-box}
-    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif;background:#f5f5f7;color:#111}
-    header{background:#111;color:white;padding:18px;text-align:center;font-weight:900;font-size:20px}
-    .wrap{max-width:1100px;margin:20px auto;padding:14px}
-    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
-    .stat,.card{background:white;border-radius:22px;padding:17px;box-shadow:0 10px 28px rgba(0,0,0,.07)}
-    .stat b{font-size:24px;display:block;margin-top:6px}
-    .filters{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
-    select,input,button{width:100%;padding:13px;border-radius:15px;border:1px solid #ddd;font-size:15px}
-    button{background:#111;color:white;font-weight:800;border:0;cursor:pointer}
-    table{width:100%;border-collapse:collapse}
-    th,td{text-align:left;padding:13px;border-bottom:1px solid #eee;font-size:14px}
-    th{font-size:13px;color:#555}
-    .badge{display:inline-block;padding:7px 10px;border-radius:999px;background:#f1f1f3;font-weight:800}
-    .urun{background:#111;color:white}
-    .empty{text-align:center;padding:30px;font-weight:800;color:#777}
-    .nav{margin-bottom:14px}
-    .nav a{font-weight:900;color:#111;text-decoration:none}
-    @media(max-width:800px){
-      .grid{grid-template-columns:repeat(2,1fr)}
-      .filters{grid-template-columns:1fr}
-      table,thead,tbody,tr,td,th{display:block}
-      thead{display:none}
-      tr{background:white;margin-bottom:12px;border-radius:18px;padding:12px;box-shadow:0 8px 20px rgba(0,0,0,.06)}
-      td{border:0;padding:7px 4px}
-      td:before{content:attr(data-label) ": ";font-weight:900;color:#555}
+
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(0,0,0,.08), transparent 32%),
+        linear-gradient(180deg,#f5f5f7,#ededf1);
+      color:#111;
+      min-height:100vh;
+    }
+
+    .topbar{
+      background:rgba(17,17,17,.94);
+      color:white;
+      padding:22px 16px;
+      position:sticky;
+      top:0;
+      z-index:10;
+      backdrop-filter:blur(16px);
+      box-shadow:0 12px 30px rgba(0,0,0,.18);
+    }
+
+    .topbar-inner{
+      max-width:1150px;
+      margin:auto;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:14px;
+    }
+
+    .title h1{
+      margin:0;
+      font-size:22px;
+      font-weight:900;
+      letter-spacing:-.4px;
+    }
+
+    .title p{
+      margin:5px 0 0;
+      font-size:13px;
+      color:#cfcfcf;
+    }
+
+    .refresh{
+      border:1px solid rgba(255,255,255,.18);
+      background:white;
+      color:#111;
+      padding:12px 16px;
+      border-radius:999px;
+      font-weight:900;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+
+    .wrap{
+      max-width:1150px;
+      margin:22px auto;
+      padding:0 14px 30px;
+    }
+
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:13px;
+      margin-bottom:16px;
+    }
+
+    .stat{
+      background:rgba(255,255,255,.82);
+      backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.7);
+      border-radius:24px;
+      padding:18px;
+      box-shadow:0 14px 34px rgba(0,0,0,.08);
+    }
+
+    .stat span{
+      display:block;
+      color:#666;
+      font-size:13px;
+      font-weight:800;
+    }
+
+    .stat b{
+      display:block;
+      font-size:28px;
+      margin-top:7px;
+      letter-spacing:-.7px;
+    }
+
+    .panel{
+      background:rgba(255,255,255,.88);
+      border:1px solid rgba(255,255,255,.8);
+      backdrop-filter:blur(14px);
+      border-radius:28px;
+      padding:18px;
+      box-shadow:0 18px 45px rgba(0,0,0,.09);
+    }
+
+    .filters{
+      display:grid;
+      grid-template-columns:1.2fr 1fr 1fr;
+      gap:10px;
+      margin-bottom:16px;
+    }
+
+    select,input{
+      width:100%;
+      padding:14px 15px;
+      border-radius:17px;
+      border:1px solid #ddd;
+      background:#fff;
+      font-size:15px;
+      font-weight:700;
+      outline:none;
+    }
+
+    .cards{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:13px;
+    }
+
+    .item{
+      background:#fff;
+      border-radius:24px;
+      padding:17px;
+      border:1px solid #eee;
+      box-shadow:0 10px 24px rgba(0,0,0,.06);
+    }
+
+    .item-head{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+      margin-bottom:13px;
+    }
+
+    .place{
+      font-size:17px;
+      font-weight:950;
+      letter-spacing:-.2px;
+    }
+
+    .date{
+      text-align:right;
+      color:#666;
+      font-size:12px;
+      font-weight:800;
+      white-space:nowrap;
+      line-height:1.4;
+    }
+
+    .badges{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:10px;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:8px 11px;
+      border-radius:999px;
+      font-size:13px;
+      font-weight:900;
+      background:#f2f2f4;
+    }
+
+    .product{
+      background:#111;
+      color:white;
+    }
+
+    .amount{
+      background:#e9f7ef;
+      color:#137333;
+    }
+
+    .person{
+      background:#f4f4f6;
+      color:#333;
+    }
+
+    .note{
+      margin-top:12px;
+      background:#f7f7f8;
+      border-radius:16px;
+      padding:11px;
+      color:#555;
+      font-size:13px;
+      font-weight:700;
+    }
+
+    .empty{
+      text-align:center;
+      padding:38px 14px;
+      color:#777;
+      font-weight:900;
+    }
+
+    .loading{
+      text-align:center;
+      padding:35px;
+      font-weight:900;
+      color:#666;
+    }
+
+    @media(max-width:850px){
+      .topbar-inner{
+        align-items:flex-start;
+        flex-direction:column;
+      }
+
+      .refresh{
+        width:100%;
+      }
+
+      .stats{
+        grid-template-columns:repeat(2,1fr);
+      }
+
+      .filters{
+        grid-template-columns:1fr;
+      }
+
+      .cards{
+        grid-template-columns:1fr;
+      }
+
+      .stat b{
+        font-size:24px;
+      }
     }
   </style>
 </head>
+
 <body>
 
-<header>Depo Teslimat Görüntüleme</header>
-
-<div class="wrap">
-
-  <div class="nav">
-    <a href="depo-teslim.html">← Teslim Girişine Dön</a>
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="title">
+        <h1>Malzeme Teslimat Listesi</h1>
+        <p>Çay ocakları ve görev noktalarına yapılan teslimatlar</p>
+      </div>
+      <button class="refresh" onclick="yukle()">Yenile</button>
+    </div>
   </div>
 
-  <div class="grid">
-    <div class="stat">Toplam Kayıt <b id="toplamKayit">0</b></div>
-    <div class="stat">Bugünkü Kayıt <b id="bugunKayit">0</b></div>
-    <div class="stat">Toplam Çay <b id="toplamCay">0</b></div>
-    <div class="stat">Toplam Şeker <b id="toplamSeker">0</b></div>
-  </div>
+  <div class="wrap">
 
-  <div class="card">
-    <div class="filters">
-      <select id="yerFilter" onchange="filtrele()">
-        <option value="">Tüm Yerler</option>
-        <option>Karargah Çay Ocağı</option>
-        <option>Yemekhane Çay Ocağı</option>
-        <option>T1 Kapıaltı</option>
-        <option>T2 Kapıaltı</option>
-        <option>M Kapıaltı</option>
-        <option>Nizamiye</option>
-        <option>BDH İcap</option>
-      </select>
-
-      <select id="urunFilter" onchange="filtrele()">
-        <option value="">Tüm Ürünler</option>
-        <option>Çay</option>
-        <option>Şeker</option>
-        <option>Ahşap Karıştırıcı</option>
-        <option>Türk Kahvesi</option>
-      </select>
-
-      <input id="tarihFilter" type="date" onchange="filtrele()" />
+    <div class="stats">
+      <div class="stat">
+        <span>Toplam Kayıt</span>
+        <b id="toplamKayit">0</b>
+      </div>
+      <div class="stat">
+        <span>Bugünkü Teslimat</span>
+        <b id="bugunKayit">0</b>
+      </div>
+      <div class="stat">
+        <span>Toplam Çay</span>
+        <b id="toplamCay">0</b>
+      </div>
+      <div class="stat">
+        <span>Toplam Şeker</span>
+        <b id="toplamSeker">0</b>
+      </div>
     </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Tarih</th>
-          <th>Saat</th>
-          <th>Teslim Yeri</th>
-          <th>Ürün</th>
-          <th>Miktar</th>
-          <th>Teslim Eden</th>
-          <th>Açıklama</th>
-        </tr>
-      </thead>
-      <tbody id="liste"></tbody>
-    </table>
+    <div class="panel">
+      <div class="filters">
+        <select id="yerFilter" onchange="filtrele()">
+          <option value="">Tüm Teslim Yerleri</option>
+          <option>Karargah Çay Ocağı</option>
+          <option>Yemekhane Çay Ocağı</option>
+          <option>T1 Kapıaltı</option>
+          <option>T2 Kapıaltı</option>
+          <option>M Kapıaltı</option>
+          <option>Nizamiye</option>
+          <option>BDH İcap</option>
+        </select>
 
-    <div id="empty" class="empty" style="display:none;">Kayıt bulunamadı.</div>
+        <select id="urunFilter" onchange="filtrele()">
+          <option value="">Tüm Ürünler</option>
+          <option>Çay</option>
+          <option>Şeker</option>
+          <option>Ahşap Karıştırıcı</option>
+          <option>Türk Kahvesi</option>
+        </select>
+
+        <input id="tarihFilter" type="date" onchange="filtrele()" />
+      </div>
+
+      <div id="loading" class="loading">Veriler yükleniyor...</div>
+      <div id="cards" class="cards"></div>
+      <div id="empty" class="empty" style="display:none;">Kayıt bulunamadı.</div>
+    </div>
+
   </div>
-</div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -106,13 +323,12 @@
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
-    apiKey: "AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",
-  authDomain: "berber-randevu-14f7f.firebaseapp.com",
-  projectId: "berber-randevu-14f7f",
-  storageBucket: "berber-randevu-14f7f.firebasestorage.app",
-  messagingSenderId: "280530860977",
-  appId: "1:280530860977:web:52c0df04c228896f211b90",
-  measurementId: "G-NK6DBBQQNZ"
+    apiKey: "BURAYA_YAZ",
+    authDomain: "BURAYA_YAZ",
+    projectId: "BURAYA_YAZ",
+    storageBucket: "BURAYA_YAZ",
+    messagingSenderId: "BURAYA_YAZ",
+    appId: "BURAYA_YAZ"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -124,22 +340,45 @@
     return new Date().toISOString().slice(0,10);
   }
 
-  async function yukle(){
-    const q = query(collection(db, "depo_teslimatlar"), orderBy("kayitZamani", "desc"));
-    const snap = await getDocs(q);
-
-    tumKayitlar = snap.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-
-    ozetYaz(tumKayitlar);
-    render(tumKayitlar);
+  function guvenli(v){
+    return String(v || "-")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;");
   }
+
+  window.yukle = async function(){
+    document.getElementById("loading").style.display = "block";
+    document.getElementById("cards").innerHTML = "";
+    document.getElementById("empty").style.display = "none";
+
+    try{
+      const q = query(
+        collection(db, "depo_teslimatlar"),
+        orderBy("kayitZamani", "desc")
+      );
+
+      const snap = await getDocs(q);
+
+      tumKayitlar = snap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      ozetYaz(tumKayitlar);
+      filtrele();
+
+    }catch(e){
+      console.error(e);
+      document.getElementById("loading").textContent =
+        "Veriler yüklenirken hata oluştu.";
+    }
+  };
 
   function ozetYaz(data){
     document.getElementById("toplamKayit").textContent = data.length;
-    document.getElementById("bugunKayit").textContent = data.filter(x => x.tarih === bugun()).length;
+    document.getElementById("bugunKayit").textContent =
+      data.filter(x => x.tarih === bugun()).length;
 
     const cay = data
       .filter(x => x.urun === "Çay")
@@ -154,9 +393,12 @@
   }
 
   function render(data){
-    const tbody = document.getElementById("liste");
+    const cards = document.getElementById("cards");
     const empty = document.getElementById("empty");
-    tbody.innerHTML = "";
+    const loading = document.getElementById("loading");
+
+    loading.style.display = "none";
+    cards.innerHTML = "";
 
     if(data.length === 0){
       empty.style.display = "block";
@@ -166,17 +408,33 @@
     empty.style.display = "none";
 
     data.forEach(x => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td data-label="Tarih">${x.tarih || "-"}</td>
-        <td data-label="Saat">${x.saat || "-"}</td>
-        <td data-label="Teslim Yeri"><span class="badge">${x.teslimYeri || "-"}</span></td>
-        <td data-label="Ürün"><span class="badge urun">${x.urun || "-"}</span></td>
-        <td data-label="Miktar">${x.miktar || "-"} ${x.birim || ""}</td>
-        <td data-label="Teslim Eden">${x.teslimEden || "-"}</td>
-        <td data-label="Açıklama">${x.aciklama || "-"}</td>
+      const div = document.createElement("div");
+      div.className = "item";
+
+      div.innerHTML = `
+        <div class="item-head">
+          <div>
+            <div class="place">${guvenli(x.teslimYeri)}</div>
+            <div class="badges">
+              <span class="badge product">${guvenli(x.urun)}</span>
+              <span class="badge amount">${guvenli(x.miktar)} ${guvenli(x.birim)}</span>
+              <span class="badge person">${guvenli(x.teslimEden)}</span>
+            </div>
+          </div>
+          <div class="date">
+            ${guvenli(x.tarih)}<br>
+            ${guvenli(x.saat)}
+          </div>
+        </div>
+
+        ${
+          x.aciklama
+            ? `<div class="note">${guvenli(x.aciklama)}</div>`
+            : ``
+        }
       `;
-      tbody.appendChild(tr);
+
+      cards.appendChild(div);
     });
   }
 
