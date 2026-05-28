@@ -787,6 +787,100 @@
 
 <body>
 
+<!-- KANTIN10 ORTAK ÜST MENÜ -->
+<div class="k10-globalbar">
+  <a class="k10-global-btn k10-home-btn" href="panel.html">⌂ Ana Sayfa</a>
+  <button class="k10-global-btn k10-exit-btn" type="button" onclick="k10GlobalLogout()">Çıkış Yap</button>
+</div>
+<style>
+  body{padding-top:76px !important;}
+  .k10-globalbar{
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    z-index:2147483000;
+    height:64px;
+    padding:10px 14px;
+    background:rgba(17,17,17,.94);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    box-shadow:0 10px 30px rgba(0,0,0,.20);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+  }
+  .k10-global-btn{
+    min-width:138px;
+    height:44px;
+    border:none;
+    border-radius:999px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    text-decoration:none;
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif;
+    font-size:14px;
+    font-weight:950;
+    cursor:pointer;
+    transition:.18s ease;
+    white-space:nowrap;
+  }
+  .k10-home-btn{
+    background:#fff;
+    color:#111;
+  }
+  .k10-exit-btn{
+    background:#ef4444;
+    color:#fff;
+  }
+  .k10-global-btn:active{
+    transform:scale(.97);
+  }
+
+  /* Eski farklı isimli üst menüleri gizler */
+  .topbar:not(.k10-globalbar),
+  .top:not(.k10-globalbar),
+  .topPanelBar,
+  #panelContainer{
+    display:none !important;
+  }
+
+  @media(max-width:700px){
+    body{padding-top:70px !important;}
+    .k10-globalbar{
+      height:62px;
+      padding:9px 10px;
+      gap:8px;
+    }
+    .k10-global-btn{
+      flex:1;
+      min-width:0;
+      height:44px;
+      font-size:14px;
+    }
+  }
+</style>
+<script>
+function k10GlobalLogout(){
+  try{
+    localStorage.removeItem("musteriGiris");
+    localStorage.removeItem("musteriTelefon");
+    localStorage.removeItem("musteriAd");
+    localStorage.removeItem("personelDocId");
+    localStorage.removeItem("personelId");
+    localStorage.removeItem("personelAd");
+    localStorage.removeItem("personelSoyad");
+    sessionStorage.clear();
+  }catch(e){}
+  window.location.href = "index.html";
+}
+</script>
+<!-- /KANTIN10 ORTAK ÜST MENÜ -->
+
+
+
   <div class="topbar">
     <div class="nav">
       <div class="brand">☕ Çay Ocağı Bilanço</div>
