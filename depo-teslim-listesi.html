@@ -134,7 +134,7 @@ canvas{max-height:330px}
       <option>BDH İcap</option>
     </select>
 
-    <input id="tarihFilter" type="date" onchange="filtrele()">
+    <input id="tarihFilter" type="month" onchange="filtrele()">
 
     <button class="btn" onclick="temizle()">Filtreyi Temizle</button>
   </div>
@@ -194,6 +194,7 @@ let tumKayitlar = [];
 let charts = {};
 
 window.yukle = async function(){
+
   const snap = await getDocs(
     query(collection(db,"depo_teslimatlar"), orderBy("kayitZamani","desc"))
   );
@@ -207,13 +208,22 @@ window.yukle = async function(){
 };
 
 window.filtrele = function(){
+
   const yer = document.getElementById("yerFilter").value;
   const tarih = document.getElementById("tarihFilter").value;
 
   let data = [...tumKayitlar];
 
-  if(yer) data = data.filter(x => x.teslimYeri === yer);
-  if(tarih) data = data.filter(x => x.tarih === tarih);
+  if(yer){
+    data = data.filter(x => x.teslimYeri === yer);
+  }
+
+  if(tarih){
+    data = data.filter(x => {
+      if(!x.tarih) return false;
+      return x.tarih.startsWith(tarih);
+    });
+  }
 
   ozetYaz(data);
 
@@ -230,14 +240,17 @@ window.temizle = function(){
 };
 
 function ozetYaz(data){
+
   document.getElementById("toplamKayit").textContent = data.length;
 
   document.getElementById("toplamCay").textContent =
-    data.filter(x => x.urun === "Çay")
+    data
+      .filter(x => x.urun === "Çay")
       .reduce((t,x) => t + Number(x.miktar || 0),0);
 
   document.getElementById("toplamSeker").textContent =
-    data.filter(x => x.urun === "Şeker")
+    data
+      .filter(x => x.urun === "Şeker")
       .reduce((t,x) => t + Number(x.miktar || 0),0);
 
   document.getElementById("toplamMiktar").textContent =
@@ -245,19 +258,29 @@ function ozetYaz(data){
 }
 
 function urunGrafik(data, urunAdi, canvasId, emptyId, renk){
+
   const map = {};
 
   data
     .filter(x => x.urun === urunAdi)
     .forEach(x => {
+
       const yer = x.teslimYeri || "Bilinmeyen";
-      map[yer] = (map[yer] || 0) + Number(x.miktar || 0);
+
+      map[yer] =
+        (map[yer] || 0) + Number(x.miktar || 0);
+
     });
 
-  const sirali = Object.entries(map).sort((a, b) => b[1] - a[1]);
+  const sirali =
+    Object.entries(map)
+      .sort((a,b) => b[1] - a[1]);
 
-const labels = sirali.map(x => x[0]);
-const values = sirali.map(x => x[1]);
+  const labels =
+    sirali.map(x => x[0]);
+
+  const values =
+    sirali.map(x => x[1]);
 
   const canvas = document.getElementById(canvasId);
   const empty = document.getElementById(emptyId);
@@ -276,7 +299,9 @@ const values = sirali.map(x => x[1]);
   empty.style.display = "none";
 
   charts[canvasId] = new Chart(canvas, {
+
     type: "bar",
+
     data: {
       labels,
       datasets: [{
@@ -287,24 +312,35 @@ const values = sirali.map(x => x[1]);
         maxBarThickness: 70
       }]
     },
+
     options: {
       responsive: true,
+
       plugins: {
-        legend: { display: false },
+        legend: {
+          display: false
+        },
+
         tooltip: {
           callbacks: {
             label: ctx => `${ctx.raw} birim`
           }
         }
       },
+
       scales: {
         y: {
           beginAtZero: true,
-          ticks: { precision: 0 }
+          ticks: {
+            precision: 0
+          }
         },
+
         x: {
           ticks: {
-            font: { weight: "bold" }
+            font: {
+              weight: "bold"
+            }
           }
         }
       }
