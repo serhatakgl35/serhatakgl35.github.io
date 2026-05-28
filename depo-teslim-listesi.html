@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Malzeme Teslimat Listesi</title>
+<title>Malzeme Tüketim Grafikleri</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -12,113 +12,93 @@
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif;
-  background:linear-gradient(135deg,#f6f7fb,#eef1f6);
-  color:#1d1d1f;
+  background:#f5f5f7;
+  color:#111;
 }
-.wrap{max-width:1400px;margin:auto;padding:28px}
+.wrap{max-width:1350px;margin:auto;padding:24px}
 .header{
+  background:#111;color:white;
+  border-radius:28px;
+  padding:24px;
+  margin-bottom:20px;
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:26px;
+  gap:14px;
 }
-.brand{display:flex;gap:14px;align-items:center}
-.logo{
-  width:54px;height:54px;border-radius:17px;
-  background:linear-gradient(135deg,#7c4dff,#5b8cff);
-  display:flex;align-items:center;justify-content:center;
-  color:white;font-size:25px;font-weight:900;
-  box-shadow:0 12px 28px rgba(124,77,255,.25);
-}
-h1{margin:0;font-size:30px;font-weight:950}
-.sub{color:#6b7280;font-weight:700;margin-top:5px}
+h1{margin:0;font-size:26px;font-weight:950}
+.sub{margin-top:6px;color:#ccc;font-weight:700}
 .btn{
-  border:0;background:#7157ff;color:white;
-  padding:14px 20px;border-radius:15px;
-  font-weight:900;cursor:pointer;
-  box-shadow:0 10px 24px rgba(113,87,255,.25);
+  border:0;
+  background:white;
+  color:#111;
+  padding:14px 20px;
+  border-radius:16px;
+  font-weight:900;
+  cursor:pointer;
 }
 .stats{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-  gap:18px;
-  margin-bottom:22px;
+  gap:14px;
+  margin-bottom:18px;
 }
 .stat{
-  background:white;border-radius:24px;padding:24px;
-  box-shadow:0 15px 40px rgba(0,0,0,.07);
-  display:flex;align-items:center;gap:18px;
+  background:white;
+  border-radius:24px;
+  padding:20px;
+  box-shadow:0 12px 30px rgba(0,0,0,.07);
 }
-.icon{
-  width:62px;height:62px;border-radius:22px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:28px;
-}
-.purple{background:#efe9ff;color:#6d4aff}
-.green{background:#e6f8ee;color:#14a44d}
-.blue{background:#e8f3ff;color:#2f80ed}
-.orange{background:#fff0d9;color:#ff9800}
-.stat span{font-size:14px;color:#6b7280;font-weight:800}
-.stat b{display:block;font-size:32px;margin-top:5px}
-.panel{
-  background:white;border-radius:26px;padding:22px;
-  box-shadow:0 16px 42px rgba(0,0,0,.07);
+.stat span{color:#666;font-weight:800;font-size:13px}
+.stat b{display:block;font-size:30px;margin-top:8px}
+.filters{
+  background:white;
+  border-radius:24px;
+  padding:18px;
+  box-shadow:0 12px 30px rgba(0,0,0,.07);
+  display:grid;
+  grid-template-columns:1fr 1fr auto;
+  gap:12px;
   margin-bottom:20px;
 }
-.filters{
-  display:grid;
-  grid-template-columns:1fr 1fr 1fr auto;
-  gap:14px;
-}
 select,input{
-  width:100%;padding:16px;border-radius:18px;
-  border:1px solid #e5e7eb;font-weight:800;font-size:15px;
-  background:white;
+  width:100%;
+  padding:15px;
+  border-radius:16px;
+  border:1px solid #ddd;
+  font-weight:800;
+  font-size:15px;
 }
-.table-wrap{overflow:auto}
-table{width:100%;border-collapse:collapse;min-width:900px}
-th{
-  text-align:left;padding:16px;color:#6b7280;
-  font-size:13px;border-bottom:1px solid #e5e7eb;
-}
-td{
-  padding:16px;border-bottom:1px solid #eef0f3;
-  font-weight:750;font-size:14px;
-}
-tr:hover{background:#fafafa}
-.badge{
-  display:inline-flex;align-items:center;gap:6px;
-  padding:8px 12px;border-radius:999px;
-  font-weight:900;font-size:13px;
-}
-.place{background:#f0eaff;color:#6236d9}
-.product{background:#fff2d8;color:#f59e0b}
-.product.seker{background:#ffe8ef;color:#e11d48}
-.product.cay{background:#e8f3ff;color:#2563eb}
-.product.kahve{background:#f3e8d5;color:#8b4513}
-.amount{background:#f1f3f5;color:#444}
-.user{background:#f5f5f7;color:#333}
-.bottom{
+.grid{
   display:grid;
-  grid-template-columns:1.1fr 1.1fr .9fr;
-  gap:20px;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
 }
-canvas{max-height:260px}
-.info-row{
-  display:flex;justify-content:space-between;
-  padding:15px 0;border-bottom:1px solid #e5e7eb;
-  font-weight:850;
+.card{
+  background:white;
+  border-radius:28px;
+  padding:22px;
+  box-shadow:0 16px 40px rgba(0,0,0,.08);
 }
-.info-row span{color:#6b7280}
-.empty{text-align:center;padding:30px;font-weight:900;color:#777}
-@media(max-width:950px){
-  .wrap{padding:18px}
-  .header{flex-direction:column;align-items:flex-start;gap:14px}
+.card h2{
+  margin:0 0 16px;
+  font-size:21px;
+  font-weight:950;
+}
+canvas{max-height:330px}
+.empty{
+  text-align:center;
+  padding:30px;
+  font-weight:900;
+  color:#777;
+}
+@media(max-width:900px){
+  .wrap{padding:14px}
+  .header{flex-direction:column;align-items:flex-start}
   .btn{width:100%}
   .stats{grid-template-columns:repeat(2,1fr)}
   .filters{grid-template-columns:1fr}
-  .bottom{grid-template-columns:1fr}
-  h1{font-size:23px}
+  .grid{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -128,100 +108,60 @@ canvas{max-height:260px}
 <div class="wrap">
 
   <div class="header">
-    <div class="brand">
-      <div class="logo">▣</div>
-      <div>
-        <h1>Malzeme Teslimat Listesi</h1>
-        <div class="sub">Depo tarafından yapılan malzeme teslimatlarını görüntüleyin.</div>
-      </div>
+    <div>
+      <h1>Malzeme Tüketim Grafikleri</h1>
+      <div class="sub">Ürünlerin hangi noktaya ne kadar verildiğini grafiklerle görüntüleyin.</div>
     </div>
     <button class="btn" onclick="yukle()">↻ Yenile</button>
   </div>
 
   <div class="stats">
-    <div class="stat">
-      <div class="icon purple">📋</div>
-      <div><span>Toplam Kayıt</span><b id="toplamKayit">0</b></div>
-    </div>
-    <div class="stat">
-      <div class="icon green">✅</div>
-      <div><span>Bugünkü Teslimat</span><b id="bugunKayit">0</b></div>
-    </div>
-    <div class="stat">
-      <div class="icon blue">☕</div>
-      <div><span>Toplam Çay</span><b id="toplamCay">0</b></div>
-    </div>
-    <div class="stat">
-      <div class="icon orange">📦</div>
-      <div><span>Toplam Şeker</span><b id="toplamSeker">0</b></div>
-    </div>
+    <div class="stat"><span>Toplam Kayıt</span><b id="toplamKayit">0</b></div>
+    <div class="stat"><span>Toplam Çay</span><b id="toplamCay">0</b></div>
+    <div class="stat"><span>Toplam Şeker</span><b id="toplamSeker">0</b></div>
+    <div class="stat"><span>Toplam Miktar</span><b id="toplamMiktar">0</b></div>
   </div>
 
-  <div class="panel">
-    <div class="filters">
-      <select id="yerFilter" onchange="filtrele()">
-        <option value="">Tüm Teslim Yerleri</option>
-        <option>Karargah Çay Ocağı</option>
-        <option>Yemekhane Çay Ocağı</option>
-        <option>T1 Kapıaltı</option>
-        <option>T2 Kapıaltı</option>
-        <option>M Kapıaltı</option>
-        <option>Nizamiye</option>
-        <option>BDH İcap</option>
-      </select>
+  <div class="filters">
+    <select id="yerFilter" onchange="filtrele()">
+      <option value="">Tüm Teslim Yerleri</option>
+      <option>Karargah Çay Ocağı</option>
+      <option>Yemekhane Çay Ocağı</option>
+      <option>T1 Kapıaltı</option>
+      <option>T2 Kapıaltı</option>
+      <option>M Kapıaltı</option>
+      <option>Nizamiye</option>
+      <option>BDH İcap</option>
+    </select>
 
-      <select id="urunFilter" onchange="filtrele()">
-        <option value="">Tüm Ürünler</option>
-        <option>Çay</option>
-        <option>Şeker</option>
-        <option>Ahşap Karıştırıcı</option>
-        <option>Türk Kahvesi</option>
-      </select>
+    <input id="tarihFilter" type="date" onchange="filtrele()">
 
-      <input id="tarihFilter" type="date" onchange="filtrele()">
-      <button class="btn" onclick="temizle()">Filtreyi Temizle</button>
-    </div>
+    <button class="btn" onclick="temizle()">Filtreyi Temizle</button>
   </div>
 
-  <div class="panel">
-    <h3>Teslimat Kayıtları</h3>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Tarih</th>
-            <th>Saat</th>
-            <th>Teslim Yeri</th>
-            <th>Ürün</th>
-            <th>Miktar</th>
-            <th>Birim</th>
-            <th>Teslim Eden</th>
-            <th>Açıklama</th>
-          </tr>
-        </thead>
-        <tbody id="liste"></tbody>
-      </table>
-    </div>
-    <div id="empty" class="empty" style="display:none;">Kayıt bulunamadı.</div>
-  </div>
-
-  <div class="bottom">
-    <div class="panel">
-      <h3>Teslimat Yerlerine Göre Dağılım</h3>
-      <canvas id="yerChart"></canvas>
+  <div class="grid">
+    <div class="card">
+      <h2>Çay Dağılımı</h2>
+      <canvas id="cayChart"></canvas>
+      <div id="cayEmpty" class="empty" style="display:none;">Çay verisi yok.</div>
     </div>
 
-    <div class="panel">
-      <h3>Ürünlere Göre Dağılım</h3>
-      <canvas id="urunChart"></canvas>
+    <div class="card">
+      <h2>Şeker Dağılımı</h2>
+      <canvas id="sekerChart"></canvas>
+      <div id="sekerEmpty" class="empty" style="display:none;">Şeker verisi yok.</div>
     </div>
 
-    <div class="panel">
-      <h3>Özet Bilgiler</h3>
-      <div class="info-row"><span>Toplam Ürün Çeşidi</span><b id="urunCesidi">0</b></div>
-      <div class="info-row"><span>Toplam Miktar</span><b id="toplamMiktar">0</b></div>
-      <div class="info-row"><span>En Çok Teslim Alan</span><b id="enCokAlan">-</b></div>
-      <div class="info-row"><span>Son Teslimat</span><b id="sonTeslimat">-</b></div>
+    <div class="card">
+      <h2>Ahşap Karıştırıcı Dağılımı</h2>
+      <canvas id="karistiriciChart"></canvas>
+      <div id="karistiriciEmpty" class="empty" style="display:none;">Ahşap karıştırıcı verisi yok.</div>
+    </div>
+
+    <div class="card">
+      <h2>Türk Kahvesi Dağılımı</h2>
+      <canvas id="kahveChart"></canvas>
+      <div id="kahveEmpty" class="empty" style="display:none;">Türk kahvesi verisi yok.</div>
     </div>
   </div>
 
@@ -238,39 +178,19 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",
-  authDomain: "berber-randevu-14f7f.firebaseapp.com",
-  projectId: "berber-randevu-14f7f",
-  storageBucket: "berber-randevu-14f7f.firebasestorage.app",
-  messagingSenderId: "280530860977",
-  appId: "1:280530860977:web:52c0df04c228896f211b90",
-  measurementId: "G-NK6DBBQQNZ"
+  apiKey: "BURAYA_YAZ",
+  authDomain: "BURAYA_YAZ",
+  projectId: "BURAYA_YAZ",
+  storageBucket: "BURAYA_YAZ",
+  messagingSenderId: "BURAYA_YAZ",
+  appId: "BURAYA_YAZ"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 let tumKayitlar = [];
-let yerChart = null;
-let urunChart = null;
-
-function bugun(){
-  return new Date().toISOString().slice(0,10);
-}
-
-function temiz(v){
-  return String(v || "-")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;");
-}
-
-function urunClass(urun){
-  if(urun === "Şeker") return "seker";
-  if(urun === "Çay") return "cay";
-  if(urun === "Türk Kahvesi") return "kahve";
-  return "";
-}
+let charts = {};
 
 window.yukle = async function(){
   const snap = await getDocs(
@@ -287,31 +207,29 @@ window.yukle = async function(){
 
 window.filtrele = function(){
   const yer = document.getElementById("yerFilter").value;
-  const urun = document.getElementById("urunFilter").value;
   const tarih = document.getElementById("tarihFilter").value;
 
   let data = [...tumKayitlar];
 
   if(yer) data = data.filter(x => x.teslimYeri === yer);
-  if(urun) data = data.filter(x => x.urun === urun);
   if(tarih) data = data.filter(x => x.tarih === tarih);
 
   ozetYaz(data);
-  tabloYaz(data);
-  grafikYaz(data);
+
+  urunGrafik(data, "Çay", "cayChart", "cayEmpty", "#2f80ed");
+  urunGrafik(data, "Şeker", "sekerChart", "sekerEmpty", "#e11d48");
+  urunGrafik(data, "Ahşap Karıştırıcı", "karistiriciChart", "karistiriciEmpty", "#f59e0b");
+  urunGrafik(data, "Türk Kahvesi", "kahveChart", "kahveEmpty", "#8b4513");
 };
 
 window.temizle = function(){
   document.getElementById("yerFilter").value = "";
-  document.getElementById("urunFilter").value = "";
   document.getElementById("tarihFilter").value = "";
   filtrele();
 };
 
 function ozetYaz(data){
   document.getElementById("toplamKayit").textContent = data.length;
-  document.getElementById("bugunKayit").textContent =
-    data.filter(x => x.tarih === bugun()).length;
 
   document.getElementById("toplamCay").textContent =
     data.filter(x => x.urun === "Çay")
@@ -321,115 +239,74 @@ function ozetYaz(data){
     data.filter(x => x.urun === "Şeker")
       .reduce((t,x) => t + Number(x.miktar || 0),0);
 
-  document.getElementById("urunCesidi").textContent =
-    new Set(data.map(x => x.urun).filter(Boolean)).size;
-
   document.getElementById("toplamMiktar").textContent =
     data.reduce((t,x) => t + Number(x.miktar || 0),0);
-
-  const yerSayim = {};
-  data.forEach(x => {
-    const yer = x.teslimYeri || "Bilinmeyen";
-    yerSayim[yer] = (yerSayim[yer] || 0) + 1;
-  });
-
-  const enCok = Object.entries(yerSayim).sort((a,b)=>b[1]-a[1])[0];
-  document.getElementById("enCokAlan").textContent =
-    enCok ? `${enCok[0]} (${enCok[1]})` : "-";
-
-  const son = data[0];
-  document.getElementById("sonTeslimat").textContent =
-    son ? `${son.tarih || "-"} ${son.saat || ""}` : "-";
 }
 
-function tabloYaz(data){
-  const tbody = document.getElementById("liste");
-  const empty = document.getElementById("empty");
-  tbody.innerHTML = "";
+function urunGrafik(data, urunAdi, canvasId, emptyId, renk){
+  const map = {};
 
-  if(data.length === 0){
+  data
+    .filter(x => x.urun === urunAdi)
+    .forEach(x => {
+      const yer = x.teslimYeri || "Bilinmeyen";
+      map[yer] = (map[yer] || 0) + Number(x.miktar || 0);
+    });
+
+  const labels = Object.keys(map);
+  const values = Object.values(map);
+
+  const canvas = document.getElementById(canvasId);
+  const empty = document.getElementById(emptyId);
+
+  if(charts[canvasId]){
+    charts[canvasId].destroy();
+  }
+
+  if(labels.length === 0){
+    canvas.style.display = "none";
     empty.style.display = "block";
     return;
   }
 
+  canvas.style.display = "block";
   empty.style.display = "none";
 
-  data.forEach(x => {
-    tbody.innerHTML += `
-      <tr>
-        <td>${temiz(x.tarih)}</td>
-        <td>${temiz(x.saat)}</td>
-        <td><span class="badge place">📍 ${temiz(x.teslimYeri)}</span></td>
-        <td><span class="badge product ${urunClass(x.urun)}">${temiz(x.urun)}</span></td>
-        <td><span class="badge amount">${temiz(x.miktar)}</span></td>
-        <td>${temiz(x.birim)}</td>
-        <td><span class="badge user">👤 ${temiz(x.teslimEden)}</span></td>
-        <td>${temiz(x.aciklama)}</td>
-      </tr>
-    `;
-  });
-}
-
-function grafikYaz(data){
-  const yerMap = {};
-  const urunMap = {};
-
-  data.forEach(x => {
-    const miktar = Number(x.miktar || 0);
-
-    const yer = x.teslimYeri || "Bilinmeyen";
-    const urun = x.urun || "Bilinmeyen";
-
-    yerMap[yer] = (yerMap[yer] || 0) + miktar;
-    urunMap[urun] = (urunMap[urun] || 0) + miktar;
-  });
-
-  chartOlustur("yerChart", "bar", yerMap, "Teslim Miktarı", true);
-  chartOlustur("urunChart", "doughnut", urunMap, "Ürün Miktarı", false);
-}
-
-function chartOlustur(canvasId, type, dataMap, label, legend){
-  const ctx = document.getElementById(canvasId);
-
-  if(canvasId === "yerChart" && yerChart) yerChart.destroy();
-  if(canvasId === "urunChart" && urunChart) urunChart.destroy();
-
-  const labels = Object.keys(dataMap);
-  const values = Object.values(dataMap);
-
-  const chart = new Chart(ctx, {
-    type,
-    data:{
+  charts[canvasId] = new Chart(canvas, {
+    type: "bar",
+    data: {
       labels,
-      datasets:[{
-        label,
-        data:values,
-        backgroundColor:[
-          "#7c4dff",
-          "#2f80ed",
-          "#14a44d",
-          "#ff9800",
-          "#e11d48",
-          "#00a6a6",
-          "#8b5cf6"
-        ],
-        borderWidth:0,
-        borderRadius:type === "bar" ? 10 : 0
+      datasets: [{
+        label: urunAdi,
+        data: values,
+        backgroundColor: renk,
+        borderRadius: 12,
+        maxBarThickness: 70
       }]
     },
-    options:{
-      responsive:true,
-      plugins:{
-        legend:{display:legend ? false : true}
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.raw} birim`
+          }
+        }
       },
-      scales:type === "bar" ? {
-        y:{beginAtZero:true}
-      } : {}
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { precision: 0 }
+        },
+        x: {
+          ticks: {
+            font: { weight: "bold" }
+          }
+        }
+      }
     }
   });
-
-  if(canvasId === "yerChart") yerChart = chart;
-  if(canvasId === "urunChart") urunChart = chart;
 }
 
 yukle();
