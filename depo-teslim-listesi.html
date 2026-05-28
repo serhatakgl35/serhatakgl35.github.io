@@ -1,0 +1,200 @@
+<!-- depo-teslim-listesi.html -->
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Depo Teslimat Listesi</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif;background:#f5f5f7;color:#111}
+    header{background:#111;color:white;padding:18px;text-align:center;font-weight:900;font-size:20px}
+    .wrap{max-width:1100px;margin:20px auto;padding:14px}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+    .stat,.card{background:white;border-radius:22px;padding:17px;box-shadow:0 10px 28px rgba(0,0,0,.07)}
+    .stat b{font-size:24px;display:block;margin-top:6px}
+    .filters{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+    select,input,button{width:100%;padding:13px;border-radius:15px;border:1px solid #ddd;font-size:15px}
+    button{background:#111;color:white;font-weight:800;border:0;cursor:pointer}
+    table{width:100%;border-collapse:collapse}
+    th,td{text-align:left;padding:13px;border-bottom:1px solid #eee;font-size:14px}
+    th{font-size:13px;color:#555}
+    .badge{display:inline-block;padding:7px 10px;border-radius:999px;background:#f1f1f3;font-weight:800}
+    .urun{background:#111;color:white}
+    .empty{text-align:center;padding:30px;font-weight:800;color:#777}
+    .nav{margin-bottom:14px}
+    .nav a{font-weight:900;color:#111;text-decoration:none}
+    @media(max-width:800px){
+      .grid{grid-template-columns:repeat(2,1fr)}
+      .filters{grid-template-columns:1fr}
+      table,thead,tbody,tr,td,th{display:block}
+      thead{display:none}
+      tr{background:white;margin-bottom:12px;border-radius:18px;padding:12px;box-shadow:0 8px 20px rgba(0,0,0,.06)}
+      td{border:0;padding:7px 4px}
+      td:before{content:attr(data-label) ": ";font-weight:900;color:#555}
+    }
+  </style>
+</head>
+<body>
+
+<header>Depo Teslimat Görüntüleme</header>
+
+<div class="wrap">
+
+  <div class="nav">
+    <a href="depo-teslim.html">← Teslim Girişine Dön</a>
+  </div>
+
+  <div class="grid">
+    <div class="stat">Toplam Kayıt <b id="toplamKayit">0</b></div>
+    <div class="stat">Bugünkü Kayıt <b id="bugunKayit">0</b></div>
+    <div class="stat">Toplam Çay <b id="toplamCay">0</b></div>
+    <div class="stat">Toplam Şeker <b id="toplamSeker">0</b></div>
+  </div>
+
+  <div class="card">
+    <div class="filters">
+      <select id="yerFilter" onchange="filtrele()">
+        <option value="">Tüm Yerler</option>
+        <option>Karargah Çay Ocağı</option>
+        <option>Yemekhane Çay Ocağı</option>
+        <option>T1 Kapıaltı</option>
+        <option>T2 Kapıaltı</option>
+        <option>M Kapıaltı</option>
+        <option>Nizamiye</option>
+        <option>BDH İcap</option>
+      </select>
+
+      <select id="urunFilter" onchange="filtrele()">
+        <option value="">Tüm Ürünler</option>
+        <option>Çay</option>
+        <option>Şeker</option>
+        <option>Ahşap Karıştırıcı</option>
+        <option>Türk Kahvesi</option>
+      </select>
+
+      <input id="tarihFilter" type="date" onchange="filtrele()" />
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Tarih</th>
+          <th>Saat</th>
+          <th>Teslim Yeri</th>
+          <th>Ürün</th>
+          <th>Miktar</th>
+          <th>Teslim Eden</th>
+          <th>Açıklama</th>
+        </tr>
+      </thead>
+      <tbody id="liste"></tbody>
+    </table>
+
+    <div id="empty" class="empty" style="display:none;">Kayıt bulunamadı.</div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore,
+    collection,
+    getDocs,
+    query,
+    orderBy
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "BURAYA_YAZ",
+    authDomain: "BURAYA_YAZ",
+    projectId: "BURAYA_YAZ",
+    storageBucket: "BURAYA_YAZ",
+    messagingSenderId: "BURAYA_YAZ",
+    appId: "BURAYA_YAZ"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  let tumKayitlar = [];
+
+  function bugun(){
+    return new Date().toISOString().slice(0,10);
+  }
+
+  async function yukle(){
+    const q = query(collection(db, "depo_teslimatlar"), orderBy("kayitZamani", "desc"));
+    const snap = await getDocs(q);
+
+    tumKayitlar = snap.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    ozetYaz(tumKayitlar);
+    render(tumKayitlar);
+  }
+
+  function ozetYaz(data){
+    document.getElementById("toplamKayit").textContent = data.length;
+    document.getElementById("bugunKayit").textContent = data.filter(x => x.tarih === bugun()).length;
+
+    const cay = data
+      .filter(x => x.urun === "Çay")
+      .reduce((t,x) => t + Number(x.miktar || 0), 0);
+
+    const seker = data
+      .filter(x => x.urun === "Şeker")
+      .reduce((t,x) => t + Number(x.miktar || 0), 0);
+
+    document.getElementById("toplamCay").textContent = cay;
+    document.getElementById("toplamSeker").textContent = seker;
+  }
+
+  function render(data){
+    const tbody = document.getElementById("liste");
+    const empty = document.getElementById("empty");
+    tbody.innerHTML = "";
+
+    if(data.length === 0){
+      empty.style.display = "block";
+      return;
+    }
+
+    empty.style.display = "none";
+
+    data.forEach(x => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td data-label="Tarih">${x.tarih || "-"}</td>
+        <td data-label="Saat">${x.saat || "-"}</td>
+        <td data-label="Teslim Yeri"><span class="badge">${x.teslimYeri || "-"}</span></td>
+        <td data-label="Ürün"><span class="badge urun">${x.urun || "-"}</span></td>
+        <td data-label="Miktar">${x.miktar || "-"} ${x.birim || ""}</td>
+        <td data-label="Teslim Eden">${x.teslimEden || "-"}</td>
+        <td data-label="Açıklama">${x.aciklama || "-"}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  window.filtrele = function(){
+    const yer = document.getElementById("yerFilter").value;
+    const urun = document.getElementById("urunFilter").value;
+    const tarih = document.getElementById("tarihFilter").value;
+
+    let data = [...tumKayitlar];
+
+    if(yer) data = data.filter(x => x.teslimYeri === yer);
+    if(urun) data = data.filter(x => x.urun === urun);
+    if(tarih) data = data.filter(x => x.tarih === tarih);
+
+    render(data);
+  };
+
+  yukle();
+</script>
+
+</body>
+</html>
