@@ -254,8 +254,10 @@ function urunGrafik(data, urunAdi, canvasId, emptyId, renk){
       map[yer] = (map[yer] || 0) + Number(x.miktar || 0);
     });
 
-  const labels = Object.keys(map);
-  const values = Object.values(map);
+  const sirali = Object.entries(map).sort((a, b) => b[1] - a[1]);
+
+const labels = sirali.map(x => x[0]);
+const values = sirali.map(x => x[1]);
 
   const canvas = document.getElementById(canvasId);
   const empty = document.getElementById(emptyId);
