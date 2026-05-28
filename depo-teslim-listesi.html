@@ -1,10 +1,12 @@
-<!-- ÜST KISMA EKLE -->
+<!-- PANEL BUTONU + PANEL GÖMME SİSTEMİ -->
+
 <div class="topPanelBar">
   <button id="panelToggleBtn">☰ Panel</button>
 </div>
 
 <div id="panelContainer">
-  <iframe 
+  <iframe
+    id="panelFrame"
     src="panel.html"
     loading="lazy"
     referrerpolicy="no-referrer"
@@ -32,6 +34,11 @@
   font-weight:900;
   cursor:pointer;
   box-shadow:0 10px 25px rgba(0,0,0,.12);
+  transition:.2s;
+}
+
+#panelToggleBtn:active{
+  transform:scale(.97);
 }
 
 #panelContainer{
@@ -65,13 +72,25 @@
 const panelBtn = document.getElementById("panelToggleBtn");
 const panelContainer = document.getElementById("panelContainer");
 
+let panelAcik = false;
+
 panelBtn.onclick = () => {
-  panelContainer.classList.toggle("active");
+
+  // İlk basış → paneli gömülü aç
+  if(!panelAcik){
+    panelContainer.classList.add("active");
+    panelAcik = true;
+    return;
+  }
+
+  // İkinci basış → direkt panel.html sayfasına git
+  window.location.href = "panel.html";
 };
 
 document.addEventListener("keydown", e => {
   if(e.key === "Escape"){
     panelContainer.classList.remove("active");
+    panelAcik = false;
   }
 });
 </script>
