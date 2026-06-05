@@ -642,13 +642,28 @@ window.borclulariSec = function(){
 }
 
 async function smsGonder(numbers, message){
+  const params = new URLSearchParams();
+  params.append("numbers", JSON.stringify(numbers));
+  params.append("message", message);
+
   const res = await fetch(SMS_WEB_APP_URL, {
-    method:"POST",
-    headers:{ "Content-Type":"text/plain;charset=utf-8" },
-    body:JSON.stringify({ numbers, message })
+    method: "POST",
+    body: params
   });
 
-  return await res.json();
+  const text = await res.text();
+  console.log("SMS WEB APP CEVAP:", text);
+
+  try{
+    return JSON.parse(text);
+  }catch(err){
+    return {
+      ok: false,
+      error: "Web App cevabı JSON değil",
+      raw: text,
+      status: res.status
+    };
+  }
 }
 
 window.secilenlereSmsGonder = async function(){
