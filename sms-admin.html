@@ -382,44 +382,22 @@ window.mesajSablonuDoldur = function(){
 
   if(tip === "borc"){
     text =
-`Sayın {ADSOYAD},
-
-{DONEM} dönemi çay ocağı aidat borcunuz bulunmaktadır.
-
-Borç Tutarı: {BORC}
-
-IBAN bilgilerini ve ödeme durumunuzu www.kantin10.com.tr sitesine giriş yaparak "Çay Ocağı Ödemeleri" üzerinden görüntüleyebilirsiniz.`;
+`Sayın {ADSOYAD}, {DONEM} dönemi çay aidatı borcunuz {BORC}. Ödeme ve IBAN bilgileri için kantin10.com.tr`;
   }
 
   if(tip === "donem"){
     text =
-`Sayın {ADSOYAD},
-
-{DONEM} dönemi çay ocağı aidat tutarı {AIDAT} olarak belirlenmiştir.
-
-Ödeme durumunuzu www.kantin10.com.tr üzerinden takip edebilirsiniz.`;
+`Sayın {ADSOYAD}, {DONEM} dönemi çay aidatı {AIDAT} olarak belirlenmiştir. Detaylar: kantin10.com.tr`;
   }
 
   if(tip === "kantin"){
     text =
-`Sayın {ADSOYAD},
-
-Kantin hesabınızda güncel borç görünmektedir.
-
-Güncel borcunuz: {BORC}
-
-Lütfen en kısa sürede ödeme durumunuzu kontrol ediniz.
-
-www.kantin10.com.tr`;
+`Sayın {ADSOYAD}, kantin hesabınızda {BORC} borç bulunmaktadır. Güncel durum için kantin10.com.tr`;
   }
 
   if(tip === "ozel"){
     text =
-`Sayın {ADSOYAD},
-
-Mesajınızı buraya yazabilirsiniz.
-
-www.kantin10.com.tr`;
+`Sayın {ADSOYAD}, kantin10.com.tr üzerinden duyurularınızı takip edebilirsiniz.`;
   }
 
   document.getElementById("mesaj").value = text;
