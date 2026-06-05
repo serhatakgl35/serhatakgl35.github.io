@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kantin10 Admin Paneli</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    html {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      background: #f5f5f7;
+      color: #111;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Arial, sans-serif;
+    }
+
+    .topbar {
+      width: 100%;
+      background: #111;
+      color: white;
+      padding: 14px 16px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    }
+
+    .topbar a, .topbar button {
+      color: white;
+      text-decoration: none;
+      background: #222;
+      border: 1px solid #333;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.88);
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 22px;
+      padding: 18px;
+      margin-bottom: 18px;
+      box-shadow: 0 12px 35px rgba(0,0,0,0.08);
+      backdrop-filter: blur(14px);
+    }
+
+    h1, h2 {
+      margin: 0 0 14px;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 13px;
+      border-radius: 14px;
+      border: 1px solid #ddd;
+      font-size: 15px;
+      margin: 6px 0;
+    }
+
+    button {
+      background: #111;
+      color: white;
+      font-weight: 800;
+      cursor: pointer;
+      border: none;
+    }
+
+    button.danger {
+      background: #d70015;
+    }
+
+    button.gray {
+      background: #555;
+    }
+
+    button.green {
+      background: #087f23;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .status {
+      padding: 12px;
+      border-radius: 14px;
+      background: #eee;
+      font-weight: 700;
+      margin-top: 10px;
+      white-space: pre-wrap;
+    }
+
+    .info-box {
+      background: #f1f1f4;
+      border: 1px solid #e2e2e7;
+      color: #555;
+      padding: 13px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 720px;
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background: #111;
+      color: white;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #eee;
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    @media (max-width: 700px) {
+      .wrap { padding: 12px; }
+      h1 { font-size: 24px; }
+      .topbar {
+        justify-content: flex-start;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding: 12px;
+        -webkit-overflow-scrolling: touch;
+      }
+      .topbar a, .topbar button {
+        white-space: nowrap;
+        flex: 0 0 auto;
+        padding: 12px 16px;
+      }
+      table { min-width: 640px; }
+      th, td { padding: 10px; font-size: 13px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav class="topbar hidden" id="topbar">
+    <a href="adminpanel.html">Yönetim Merkezi</a>
+    <a href="adminhaftaliktakvim.html">Haftalık Randevu</a>
+    <a href="adminduyurular.html">Duyurular</a>
+    <a href="adminliste.html">Randevu Listesi</a>
+    <button id="logoutBtn" class="hidden">Çıkış Yap</button>
+  </nav>
+
+  <div class="wrap">
+
+    <div id="loginCard" class="card">
+      <h1>Admin Girişi</h1>
+      <input id="email" type="email" placeholder="Admin e-posta" />
+      <input id="password" type="password" placeholder="Şifre" />
+      <button id="loginBtn">Giriş Yap</button>
+      <div id="loginStatus" class="status hidden"></div>
+    </div>
+
+    <div id="adminPanel" class="hidden">
+
+      <div class="card">
+        <h1>Kantin10 Admin Paneli</h1>
+        <div id="adminInfo" class="status"></div>
+        <div class="info-box">
+          Read azaltma aktif: Bu sayfa açıldığında randevu kayıtları otomatik yüklenmez. 
+          Sadece ilgili butona bastığında Firestore okuması yapılır.
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Randevular</h2>
+        <button id="refreshBtn">Aktif Randevuları Yükle / Yenile</button>
+        <button id="movePastBtn" class="green">Süresi Geçen Randevuları Geçmişe Taşı</button>
+        <button id="rebuildStatsBtn" class="gray">İstatistikleri Yeniden Oluştur</button>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Tarih</th>
+                <th>Saat</th>
+                <th>İsim</th>
+                <th>Telefon</th>
+                <th>Hizmet</th>
+                <th>Silme Kodu</th>
+                <th>İşlem</th>
+              </tr>
+            </thead>
+            <tbody id="appointmentsBody">
+              <tr><td colspan="7">Veriler henüz yüklenmedi. Okuma yapmak için butona bas.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Geçmiş Randevular</h2>
+        <div class="info-box">
+          Geçmiş randevular otomatik yüklenmez. Butona basınca en fazla son 50 kayıt okunur.
+        </div>
+        <button id="refreshPastBtn" class="gray">Son 50 Geçmiş Randevuyu Yükle</button>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Tarih</th>
+                <th>Saat</th>
+                <th>İsim</th>
+                <th>Telefon</th>
+                <th>Hizmet</th>
+                <th>Silme Kodu</th>
+                <th>İşlem</th>
+              </tr>
+            </thead>
+            <tbody id="pastAppointmentsBody">
+              <tr><td colspan="7">Geçmiş kayıtlar henüz yüklenmedi.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="mainStatus" class="status hidden"></div>
+
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    import {
+      getFirestore,
+      collection,
+      doc,
+      getDoc,
+      getDocs,
+      setDoc,
+      deleteDoc,
+      query,
+      orderBy,
+      limit,
+      serverTimestamp,
+      increment,
+      writeBatch
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",
+      authDomain: "berber-randevu-14f7f.firebaseapp.com",
+      projectId: "berber-randevu-14f7f",
+      storageBucket: "berber-randevu-14f7f.appspot.com",
+      messagingSenderId: "BURAYA_MESSAGING_SENDER_ID",
+      appId: "1:280530860977:web:52c0df04c228896f211b90"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const topbar = document.getElementById("topbar");
+    const loginCard = document.getElementById("loginCard");
+    const adminPanel = document.getElementById("adminPanel");
+    const loginStatus = document.getElementById("loginStatus");
+    const mainStatus = document.getElementById("mainStatus");
+    const adminInfo = document.getElementById("adminInfo");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    const appointmentsBody = document.getElementById("appointmentsBody");
+    const pastAppointmentsBody = document.getElementById("pastAppointmentsBody");
+
+    function showStatus(msg, error = false) {
+      mainStatus.classList.remove("hidden");
+      mainStatus.style.background = error ? "#ffe5e5" : "#e8f5e9";
+      mainStatus.textContent = msg;
+      setTimeout(() => mainStatus.classList.add("hidden"), 4500);
+    }
+
+    function showLoginStatus(msg) {
+      loginStatus.classList.remove("hidden");
+      loginStatus.style.background = "#ffe5e5";
+      loginStatus.textContent = msg;
+    }
+
+    function getField(data, names, fallback = "") {
+      for (const name of names) {
+        if (data && data[name] !== undefined && data[name] !== null) return data[name];
+      }
+      return fallback;
+    }
+
+    function normalizeDate(val) {
+      if (!val) return "";
+      if (typeof val === "string") {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(val)) {
+          const [d, m, y] = val.split("/");
+          return `${y}-${m}-${d}`;
+        }
+      }
+      return String(val);
+    }
+
+    function normalizeTime(val) {
+      if (!val) return "";
+      return String(val).slice(0, 5);
+    }
+
+    async function isAdmin(uid) {
+      const ref = doc(db, "admins", uid);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) return false;
+
+      const data = snap.data();
+      return data.aktif === true && data.role === "admin";
+    }
+
+    async function loadAppointments() {
+      appointmentsBody.innerHTML = `<tr><td colspan="7">Yükleniyor...</td></tr>`;
+
+      try {
+        const snap = await getDocs(collection(db, "randevular"));
+        const list = [];
+
+        snap.forEach(d => {
+          const data = d.data();
+
+          const tarih = normalizeDate(getField(data, ["tarih", "date", "randevuTarihi", "randevu_tarihi"]));
+          const saat = normalizeTime(getField(data, ["saat", "zaman", "time", "randevuSaati", "randevu_saati"]));
+
+          if (!tarih || !saat) return;
+
+          const isim = getField(data, ["isim", "name", "ad", "adSoyad", "ad_soyad", "musteriAdi", "musteri_adi"], "-");
+          const telefon = getField(data, ["telefon", "phone", "tel", "gsm", "numara"], "-");
+          const hizmet = getField(data, ["hizmet", "service", "islem", "işlem"], "-");
+          const silmeKodu = getField(data, ["silmeKodu", "silme_kodu", "deleteCode", "iptalKodu", "iptal_kodu", "kod"], "-");
+
+          list.push({
+            id: d.id,
+            tarih,
+            saat,
+            isim,
+            telefon,
+            hizmet,
+            silmeKodu
+          });
+        });
+
+        list.sort((a, b) => `${a.tarih} ${a.saat}`.localeCompare(`${b.tarih} ${b.saat}`));
+
+        if (list.length === 0) {
+          appointmentsBody.innerHTML = `<tr><td colspan="7">Aktif randevu yok veya eksik kayıtlar gizlendi.</td></tr>`;
+          return;
+        }
+
+        appointmentsBody.innerHTML = "";
+
+        list.forEach(r => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td><span class="pill">${r.tarih}</span></td>
+            <td><strong>${r.saat}</strong></td>
+            <td>${escapeHtml(r.isim)}</td>
+            <td>${escapeHtml(r.telefon)}</td>
+            <td>${escapeHtml(r.hizmet)}</td>
+            <td><strong>${escapeHtml(r.silmeKodu)}</strong></td>
+            <td><button class="danger" data-id="${r.id}">Sil</button></td>
+          `;
+
+          tr.querySelector("button").addEventListener("click", async () => {
+            if (!confirm(`${r.tarih} ${r.saat} randevusu silinsin mi?`)) return;
+            try {
+              await deleteDoc(doc(db, "randevular", r.id));
+              showStatus("Randevu silindi.");
+              loadAppointments();
+            } catch (err) {
+              showStatus("Silme hatası: " + err.message, true);
+            }
+          });
+
+          appointmentsBody.appendChild(tr);
+        });
+
+      } catch (err) {
+        appointmentsBody.innerHTML = `<tr><td colspan="7">Hata: ${escapeHtml(err.message)}</td></tr>`;
+      }
+    }
+
+    async function loadPastAppointments() {
+      pastAppointmentsBody.innerHTML = `<tr><td colspan="7">Son 50 geçmiş randevu yükleniyor...</td></tr>`;
+
+      try {
+        let snap;
+
+        try {
+          const q = query(
+            collection(db, "randevu_gecmisi"),
+            orderBy("tarih", "desc"),
+            limit(50)
+          );
+          snap = await getDocs(q);
+        } catch (e) {
+          const q = query(
+            collection(db, "randevu_gecmisi"),
+            limit(50)
+          );
+          snap = await getDocs(q);
+        }
+
+        const list = [];
+
+        snap.forEach(d => {
+          const data = d.data();
+
+          const tarih = normalizeDate(getField(data, ["tarih", "date", "randevuTarihi", "randevu_tarihi"]));
+          const saat = normalizeTime(getField(data, ["saat", "zaman", "time", "randevuSaati", "randevu_saati"]));
+
+          if (!tarih || !saat) return;
+
+          const isim = getField(data, ["isim", "name", "ad", "adSoyad", "ad_soyad", "musteriAdi", "musteri_adi"], "-");
+          const telefon = getField(data, ["telefon", "phone", "tel", "gsm", "numara"], "-");
+          const hizmet = getField(data, ["hizmet", "service", "islem", "işlem"], "-");
+          const silmeKodu = getField(data, ["silmeKodu", "silme_kodu", "deleteCode", "iptalKodu", "iptal_kodu", "kod"], "-");
+
+          list.push({
+            id: d.id,
+            tarih,
+            saat,
+            isim,
+            telefon,
+            hizmet,
+            silmeKodu
+          });
+        });
+
+        list.sort((a, b) => `${b.tarih} ${b.saat}`.localeCompare(`${a.tarih} ${a.saat}`));
+
+        if (list.length === 0) {
+          pastAppointmentsBody.innerHTML = `<tr><td colspan="7">Geçmiş randevu yok veya kayıtlar eksik.</td></tr>`;
+          return;
+        }
+
+        pastAppointmentsBody.innerHTML = "";
+
+        list.forEach(r => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td><span class="pill">${r.tarih}</span></td>
+            <td><strong>${r.saat}</strong></td>
+            <td>${escapeHtml(r.isim)}</td>
+            <td>${escapeHtml(r.telefon)}</td>
+            <td>${escapeHtml(r.hizmet)}</td>
+            <td><strong>${escapeHtml(r.silmeKodu)}</strong></td>
+            <td><button class="danger" data-id="${r.id}">Geçmişten Sil</button></td>
+          `;
+
+          tr.querySelector("button").addEventListener("click", async () => {
+            if (!confirm(`${r.tarih} ${r.saat} geçmiş randevusu kalıcı olarak silinsin mi?`)) return;
+            try {
+              await deleteDoc(doc(db, "randevu_gecmisi", r.id));
+              showStatus("Geçmiş randevu silindi. Kişi yeniden randevu alabilir.");
+              loadPastAppointments();
+            } catch (err) {
+              showStatus("Geçmiş randevu silme hatası: " + err.message, true);
+            }
+          });
+
+          pastAppointmentsBody.appendChild(tr);
+        });
+
+      } catch (err) {
+        pastAppointmentsBody.innerHTML = `<tr><td colspan="7">Hata: ${escapeHtml(err.message)}</td></tr>`;
+      }
+    }
+
+    function parseAppointmentDateTime(tarih, saat) {
+      const t = normalizeDate(tarih);
+      const s = normalizeTime(saat);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(t) || !/^\d{2}:\d{2}$/.test(s)) return null;
+
+      const [y, m, d] = t.split("-").map(Number);
+      const [hh, mm] = s.split(":").map(Number);
+      return new Date(y, m - 1, d, hh, mm, 0, 0);
+    }
+
+    function randevuSuresiGectiMi(tarih, saat) {
+      const dt = parseAppointmentDateTime(tarih, saat);
+      if (!dt) return false;
+      const limitDate = new Date(dt);
+      limitDate.setMinutes(limitDate.getMinutes() + 1);
+      return new Date() >= limitDate;
+    }
+
+    async function gecmisRandevularaTasi() {
+      if (!confirm("Süresi geçen randevular geçmişe taşınacak. Bu işlem sadece butona basınca okuma yapar. Devam edilsin mi?")) return;
+
+      const btn = document.getElementById("movePastBtn");
+      btn.disabled = true;
+      btn.textContent = "Taşınıyor...";
+
+      try {
+        const snap = await getDocs(collection(db, "randevular"));
+        let tasinan = 0;
+        let atlanan = 0;
+
+        for (const d of snap.docs) {
+          const data = d.data() || {};
+          const tarih = normalizeDate(getField(data, ["tarih", "date", "randevuTarihi", "randevu_tarihi"]));
+          const saat = normalizeTime(getField(data, ["saat", "zaman", "time", "randevuSaati", "randevu_saati"]));
+
+          if (!tarih || !saat || !randevuSuresiGectiMi(tarih, saat)) {
+            atlanan++;
+            continue;
+          }
+
+          const gecmisData = {
+            ...data,
+            tarih,
+            saat,
+            date: tarih,
+            time: saat,
+            originalId: d.id,
+            archivedAt: new Date().toISOString(),
+            archiveReason: "admin_manual_expired_move"
+          };
+
+          await setDoc(doc(db, "randevu_gecmisi", d.id), gecmisData);
+
+          await setDoc(doc(db, "istatistikler", tarih), {
+            tarih: tarih,
+            ay: tarih.slice(0, 7),
+            yil: tarih.slice(0, 4),
+            toplam: increment(1),
+            kaynak: "gecmise_tasima",
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+
+          await deleteDoc(doc(db, "randevular", d.id));
+
+          tasinan++;
+        }
+
+        showStatus(`${tasinan} randevu geçmişe taşındı. ${atlanan} kayıt atlandı. İstatistikler güncellendi.`);
+        await loadAppointments();
+
+        pastAppointmentsBody.innerHTML = `<tr><td colspan="7">Geçmiş liste güncellenmiş olabilir. Görmek için "Son 50 Geçmiş Randevuyu Yükle" butonuna bas.</td></tr>`;
+
+      } catch (err) {
+        showStatus("Geçmişe taşıma hatası: " + err.message, true);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Süresi Geçen Randevuları Geçmişe Taşı";
+      }
+    }
+
+
+
+    async function istatistikleriYenidenOlustur() {
+      if (!confirm("Geçmiş randevular okunup istatistikler baştan oluşturulacak. Devam edilsin mi?")) return;
+
+      const btn = document.getElementById("rebuildStatsBtn");
+      btn.disabled = true;
+      btn.textContent = "İstatistikler oluşturuluyor...";
+
+      try {
+        const snap = await getDocs(collection(db, "randevu_gecmisi"));
+
+        const sayac = {};
+        let okunan = 0;
+        let atlanan = 0;
+
+        snap.forEach(d => {
+          const data = d.data() || {};
+          const tarih = normalizeDate(getField(data, ["tarih", "date", "randevuTarihi", "randevu_tarihi"]));
+
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(tarih)) {
+            atlanan++;
+            return;
+          }
+
+          sayac[tarih] = (sayac[tarih] || 0) + 1;
+          okunan++;
+        });
+
+        const eskiSnap = await getDocs(collection(db, "istatistikler"));
+        let batch = writeBatch(db);
+        let opCount = 0;
+
+        for (const oldDoc of eskiSnap.docs) {
+          batch.delete(doc(db, "istatistikler", oldDoc.id));
+          opCount++;
+          if (opCount >= 450) {
+            await batch.commit();
+            batch = writeBatch(db);
+            opCount = 0;
+          }
+        }
+
+        const tarihler = Object.keys(sayac).sort();
+
+        for (const tarih of tarihler) {
+          batch.set(doc(db, "istatistikler", tarih), {
+            tarih: tarih,
+            ay: tarih.slice(0, 7),
+            yil: tarih.slice(0, 4),
+            toplam: sayac[tarih],
+            kaynak: "yeniden_olusturma",
+            updatedAt: serverTimestamp()
+          });
+          opCount++;
+
+          if (opCount >= 450) {
+            await batch.commit();
+            batch = writeBatch(db);
+            opCount = 0;
+          }
+        }
+
+        if (opCount > 0) await batch.commit();
+
+        showStatus(`İstatistikler yeniden oluşturuldu. ${okunan} geçmiş randevu sayıldı. ${tarihler.length} günlük istatistik yazıldı. ${atlanan} kayıt atlandı.`);
+      } catch (err) {
+        showStatus("İstatistik oluşturma hatası: " + err.message, true);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "İstatistikleri Yeniden Oluştur";
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      if (!email || !password) {
+        return showLoginStatus("E-posta ve şifre gir.");
+      }
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (err) {
+        showLoginStatus("Giriş başarısız: " + err.message);
+      }
+    });
+
+    document.getElementById("password").addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        document.getElementById("loginBtn").click();
+      }
+    });
+
+    logoutBtn.addEventListener("click", async () => {
+      await signOut(auth);
+    });
+
+    document.getElementById("refreshBtn").addEventListener("click", loadAppointments);
+    document.getElementById("movePastBtn").addEventListener("click", gecmisRandevularaTasi);
+    document.getElementById("rebuildStatsBtn").addEventListener("click", istatistikleriYenidenOlustur);
+    document.getElementById("refreshPastBtn").addEventListener("click", loadPastAppointments);
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        topbar.classList.add("hidden");
+        loginCard.classList.remove("hidden");
+        adminPanel.classList.add("hidden");
+        logoutBtn.classList.add("hidden");
+        return;
+      }
+
+      const ok = await isAdmin(user.uid);
+
+      if (!ok) {
+        topbar.classList.add("hidden");
+        await signOut(auth);
+        showLoginStatus("Bu kullanıcı admin değil. Firestore admins koleksiyonuna UID eklenmemiş.");
+        return;
+      }
+
+      loginCard.classList.add("hidden");
+      adminPanel.classList.remove("hidden");
+      topbar.classList.remove("hidden");
+      logoutBtn.classList.remove("hidden");
+
+      adminInfo.textContent = `Giriş yapıldı: ${user.email}`;
+
+      appointmentsBody.innerHTML = `<tr><td colspan="7">Aktif randevuları görmek için "Aktif Randevuları Yükle / Yenile" butonuna bas.</td></tr>`;
+      pastAppointmentsBody.innerHTML = `<tr><td colspan="7">Geçmiş randevuları görmek için "Son 50 Geçmiş Randevuyu Yükle" butonuna bas.</td></tr>`;
+    });
+  </script>
+
+</body>
+</html>
