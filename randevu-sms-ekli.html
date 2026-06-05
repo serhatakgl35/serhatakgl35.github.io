@@ -1295,14 +1295,10 @@ function smsGonder(numbers, message){
 
 function randevuSmsMesaji(data){
   return `Sayın ${data.name},
-
 Berber randevunuz oluşturulmuştur.
-
-Tarih: ${tarihGunluGoster(data.date)}
-Saat: ${data.time}
-Hizmet: ${data.service}
-
-Randevunuzu www.kantin10.com.tr üzerinden takip edebilirsiniz.`;
+${tarihGunluGoster(data.date)}
+${data.time}
+`;
 }
 
 function iki(n){return String(n).padStart(2,"0");}
