@@ -973,7 +973,7 @@ const DUYURU_DOC_ID = "berber_randevu";
 const TELEGRAM_BOT_TOKEN = "8635739693:AAFYGCIgGW7WTwvMIhh5Yvy_wXttPR2kC28";
 const TELEGRAM_CHAT_ID = "-1003670319520";
 
-// Berber randevusu alınınca SMS gönderen Google Apps Script Web App URL
+// SMS WEB APP URL - sms-admin.html dosyasında çalışan aynı URL ve aynı JSONP yöntemi kullanıldı.
 const SMS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw32Q03nQD1FJ9iSz2LgpB2S_QEzAdSSeLK1K3IIRI39eqOXowlloGVjYRGuoezqrFLlQ/exec";
 
 const MAKSIMUM_RANDEVU_GUNU = 9;
@@ -1195,48 +1195,6 @@ async function telegramMesajGonder(mesaj){
   }
 }
 
-function randevuSmsMesaji(data){
-  return `Sayın ${data.name}, berber randevunuz ${tarihGunluGoster(data.date)} saat ${data.time} için oluşturulmuştur. Hizmet: ${data.service}. Kantin10`;
-}
-
-async function randevuSmsGonder(data){
-  if(!SMS_WEB_APP_URL || SMS_WEB_APP_URL === "BURAYA_SMS_WEB_APP_URL") return;
-
-  const mesaj = randevuSmsMesaji(data);
-  const payload = {
-    islem:"smsGonder",
-    action:"sendSms",
-    tip:"berber_randevu_alindi",
-    kaynak:"berber_randevu",
-    name:data.name,
-    isim:data.name,
-    phone:data.phone,
-    telefon:data.phone,
-    number:data.phone,
-    numbers:[data.phone],
-    service:data.service,
-    hizmet:data.service,
-    date:data.date,
-    tarih:data.date,
-    time:data.time,
-    saat:data.time,
-    message:mesaj,
-    mesaj:mesaj,
-    text:mesaj
-  };
-
-  try{
-    await fetch(SMS_WEB_APP_URL,{
-      method:"POST",
-      mode:"no-cors",
-      headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body:JSON.stringify(payload)
-    });
-  }catch(e){
-    console.error("Randevu SMS hatası:", e);
-  }
-}
-
 function yeniRandevuTelegramMesaji(data){
   return `✂️ <b>Yeni Randevu</b>
 
@@ -1266,6 +1224,85 @@ function telefonuDuzenle(tel){
   if(temiz.startsWith("90")) temiz = "0" + temiz.slice(2);
   if(!temiz.startsWith("0")) temiz = "0" + temiz;
   return temiz.slice(0,11);
+}
+
+function smsTelefonDuzelt(tel){
+  let t = String(tel || "").replace(/\D/g,"");
+  if(t.startsWith("90") && t.length === 12) return t;
+  if(t.startsWith("0") && t.length === 11) return "9" + t;
+  if(t.startsWith("5") && t.length === 10) return "90" + t;
+  return t;
+}
+
+function smsGonder(numbers, message){
+  return new Promise((resolve, reject) => {
+    if(!SMS_WEB_APP_URL || SMS_WEB_APP_URL.includes("BURAYA")){
+      reject("SMS_WEB_APP_URL boş veya hatalı.");
+      return;
+    }
+
+    const temizNumbers = (numbers || [])
+      .map(smsTelefonDuzelt)
+      .filter(n => n && n.length >= 10);
+
+    if(!temizNumbers.length){
+      reject("SMS gönderilecek geçerli telefon numarası yok.");
+      return;
+    }
+
+    const callbackName = "smsCallback_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+    const script = document.createElement("script");
+
+    const timer = setTimeout(() => {
+      try{
+        delete window[callbackName];
+        script.remove();
+      }catch(e){}
+      reject("SMS Web App zaman aşımına uğradı.");
+    }, 20000);
+
+    window[callbackName] = function(data){
+      clearTimeout(timer);
+      try{
+        delete window[callbackName];
+        script.remove();
+      }catch(e){}
+
+      console.log("RANDEVU SMS WEB APP CEVAP:", data);
+      resolve(data);
+    };
+
+    const smsUrl =
+      SMS_WEB_APP_URL +
+      "?callback=" + encodeURIComponent(callbackName) +
+      "&numbers=" + encodeURIComponent(JSON.stringify(temizNumbers)) +
+      "&message=" + encodeURIComponent(message);
+
+    script.src = smsUrl;
+
+    script.onerror = function(){
+      clearTimeout(timer);
+      try{
+        delete window[callbackName];
+        script.remove();
+      }catch(e){}
+      reject("SMS Web App çağrısı başarısız.");
+    };
+
+    document.body.appendChild(script);
+  });
+}
+
+function randevuSmsMesaji(data){
+  return `Sayın ${data.name},
+
+Berber randevunuz oluşturulmuştur.
+
+Tarih: ${tarihGunluGoster(data.date)}
+Saat: ${data.time}
+Hizmet: ${data.service}
+
+Randevunuzu www.kantin10.com.tr üzerinden takip edebilirsiniz.`;
 }
 
 function iki(n){return String(n).padStart(2,"0");}
@@ -1806,13 +1843,19 @@ async function randevuAl(){
 
     await hatirlatmaKaydiOlustur(slotId,name,phone,service,date,time);
 
-    await randevuSmsGonder({
-      name,
-      phone,
-      service,
-      date,
-      time
-    });
+    try{
+      const smsSonuc = await smsGonder([phone], randevuSmsMesaji({
+        name,
+        phone,
+        service,
+        date,
+        time
+      }));
+
+      console.log("Randevu SMS sonucu:", smsSonuc);
+    }catch(smsErr){
+      console.warn("Randevu SMS gönderilemedi:", smsErr);
+    }
 
     await telegramMesajGonder(yeniRandevuTelegramMesaji({
       name,
