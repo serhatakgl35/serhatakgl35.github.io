@@ -1296,7 +1296,7 @@ function smsGonder(numbers, message){
 function randevuSmsMesaji(data){
   return `Sayın ${data.name},
 Berber randevunuz oluşturulmuştur.
-${tarihGunluGoster(data.date)}/${data.time}
+${tarihGunluGoster(data.date)}-${data.time}
 `;
 }
 
