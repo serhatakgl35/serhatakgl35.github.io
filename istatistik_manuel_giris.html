@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kantin10 İstatistik Manuel Giriş</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;background:#f5f5f7;color:#111;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif}
+    .topbar{position:sticky;top:0;z-index:10;background:#111;color:#fff;padding:14px;display:flex;gap:10px;overflow-x:auto}
+    .topbar a{color:#fff;text-decoration:none;background:#222;border:1px solid #333;padding:11px 14px;border-radius:13px;font-weight:800;white-space:nowrap}
+    .wrap{max-width:760px;margin:0 auto;padding:16px}
+    .card{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:24px;padding:20px;margin-bottom:16px;box-shadow:0 12px 32px rgba(0,0,0,.08)}
+    h1{font-size:28px;margin:0 0 8px} h2{margin:0 0 12px}
+    p{color:#666;line-height:1.5;margin:8px 0 14px}
+    label{display:block;font-weight:800;margin:12px 0 6px}
+    input,button,select{width:100%;padding:14px;border-radius:15px;border:1px solid #ddd;font-size:16px;background:#fff}
+    button{background:#111;color:#fff;font-weight:900;border:none;margin-top:14px;cursor:pointer}
+    button.green{background:#087f23} button.red{background:#d70015}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .status{display:none;margin-top:14px;padding:14px;border-radius:16px;font-weight:800;white-space:pre-wrap}
+    .hint{background:#f1f1f4;border:1px solid #e2e2e7;color:#555;border-radius:16px;padding:13px;line-height:1.45}
+    .hidden{display:none!important}
+    @media(max-width:640px){.grid{grid-template-columns:1fr}.wrap{padding:12px}h1{font-size:25px}}
+  </style>
+</head>
+<body>
+  <nav class="topbar">
+    <a href="adminpanel.html">Admin Panel</a>
+    <a href="istatistik.html">İstatistik</a>
+  </nav>
+
+  <div class="wrap">
+    <div id="loginCard" class="card">
+      <h1>Admin Girişi</h1>
+      <p>İstatistiklere manuel günlük/aylık kayıt eklemek için giriş yap.</p>
+      <label>Admin e-posta</label>
+      <input id="email" type="email" placeholder="Admin e-posta" autocomplete="email">
+      <label>Şifre</label>
+      <input id="password" type="password" placeholder="Şifre" autocomplete="current-password">
+      <button id="loginBtn">Giriş Yap</button>
+      <div id="loginStatus" class="status"></div>
+    </div>
+
+    <div id="panel" class="hidden">
+      <div class="card">
+        <h1>İstatistik Manuel Giriş</h1>
+        <p>Bu sayfa Firestore'daki <b>istatistikler</b> koleksiyonuna elle sayı yazar. Eski kayıtları silmez.</p>
+        <div class="hint">
+          Nisan için örnek: Tarih <b>2026-04-30</b>, Toplam <b>50</b><br>
+          Mayıs için örnek: Tarih <b>2026-05-31</b>, Toplam <b>31</b>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Kayıt Ekle / Güncelle</h2>
+        <label>Kayıt Türü</label>
+        <select id="mode">
+          <option value="daily">Günlük kayıt - doküman ID tarih olur</option>
+          <option value="monthly">Aylık toplam - doküman ID ay-toplam olur</option>
+        </select>
+
+        <div class="grid">
+          <div>
+            <label>Tarih</label>
+            <input id="dateInput" type="date" value="2026-04-30">
+          </div>
+          <div>
+            <label>Toplam kişi</label>
+            <input id="countInput" type="number" min="0" step="1" placeholder="Örn: 50">
+          </div>
+        </div>
+
+        <label>Kaynak açıklaması</label>
+        <input id="sourceInput" type="text" value="manuel_duzeltme" placeholder="manuel_duzeltme">
+
+        <button id="saveBtn" class="green">Firestore'a Yaz</button>
+        <button id="aprilBtn">Nisan 2026 = 50 Kişi Yaz</button>
+        <button id="mayBtn">Mayıs 2026 = 31 Kişi Yaz</button>
+        <button id="logoutBtn" class="red">Çıkış Yap</button>
+        <div id="status" class="status"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",
+      authDomain: "berber-randevu-14f7f.firebaseapp.com",
+      projectId: "berber-randevu-14f7f",
+      storageBucket: "berber-randevu-14f7f.appspot.com",
+      messagingSenderId: "BURAYA_MESSAGING_SENDER_ID",
+      appId: "1:280530860977:web:52c0df04c228896f211b90"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const loginCard = document.getElementById("loginCard");
+    const panel = document.getElementById("panel");
+    const loginStatus = document.getElementById("loginStatus");
+    const statusBox = document.getElementById("status");
+
+    function show(el, msg, ok=true){
+      el.style.display = "block";
+      el.style.background = ok ? "#e8f5e9" : "#ffe5e5";
+      el.textContent = msg;
+    }
+
+    async function isAdmin(uid){
+      const snap = await getDoc(doc(db, "admins", uid));
+      if(!snap.exists()) return false;
+      const data = snap.data();
+      return data.aktif === true && data.role === "admin";
+    }
+
+    function pad(n){ return String(n).padStart(2,"0"); }
+    function monthOf(dateStr){ return dateStr.slice(0,7); }
+    function yearOf(dateStr){ return dateStr.slice(0,4); }
+    function lastDayOfMonth(year, month){ return new Date(year, month, 0).getDate(); }
+
+    async function writeStat(dateStr, count, source, mode){
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) throw new Error("Tarih formatı hatalı.");
+      if(!Number.isInteger(count) || count < 0) throw new Error("Toplam kişi sayısı geçersiz.");
+
+      const ay = monthOf(dateStr);
+      const yil = yearOf(dateStr);
+      const docId = mode === "monthly" ? `${ay}-toplam` : dateStr;
+
+      await setDoc(doc(db, "istatistikler", docId), {
+        ay,
+        yil,
+        tarih: dateStr,
+        toplam: count,
+        kaynak: source || "manuel_duzeltme",
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      return docId;
+    }
+
+    document.getElementById("loginBtn").addEventListener("click", async()=>{
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      if(!email || !password) return show(loginStatus, "E-posta ve şifre gir.", false);
+      try { await signInWithEmailAndPassword(auth, email, password); }
+      catch(e){ show(loginStatus, "Giriş başarısız: " + e.message, false); }
+    });
+
+    document.getElementById("password").addEventListener("keydown", e=>{
+      if(e.key === "Enter") document.getElementById("loginBtn").click();
+    });
+
+    document.getElementById("saveBtn").addEventListener("click", async()=>{
+      try{
+        const dateStr = document.getElementById("dateInput").value;
+        const count = Number(document.getElementById("countInput").value);
+        const source = document.getElementById("sourceInput").value.trim();
+        const mode = document.getElementById("mode").value;
+        const id = await writeStat(dateStr, count, source, mode);
+        show(statusBox, `Kaydedildi.\nKoleksiyon: istatistikler\nDoküman ID: ${id}\nToplam: ${count}`);
+      }catch(e){ show(statusBox, "Hata: " + e.message, false); }
+    });
+
+    document.getElementById("aprilBtn").addEventListener("click", async()=>{
+      try{
+        const id = await writeStat("2026-04-30", 50, "manuel_nisan_duzeltme", "monthly");
+        show(statusBox, `Nisan kaydedildi. Doküman ID: ${id} / toplam: 50`);
+      }catch(e){ show(statusBox, "Hata: " + e.message, false); }
+    });
+
+    document.getElementById("mayBtn").addEventListener("click", async()=>{
+      try{
+        const id = await writeStat("2026-05-31", 31, "manuel_mayis_duzeltme", "monthly");
+        show(statusBox, `Mayıs kaydedildi. Doküman ID: ${id} / toplam: 31`);
+      }catch(e){ show(statusBox, "Hata: " + e.message, false); }
+    });
+
+    document.getElementById("logoutBtn").addEventListener("click", ()=>signOut(auth));
+
+    onAuthStateChanged(auth, async(user)=>{
+      if(!user){ loginCard.classList.remove("hidden"); panel.classList.add("hidden"); return; }
+      const ok = await isAdmin(user.uid);
+      if(!ok){ await signOut(auth); show(loginStatus, "Bu kullanıcı admin değil.", false); return; }
+      loginCard.classList.add("hidden"); panel.classList.remove("hidden");
+    });
+  </script>
+</body>
+</html>
