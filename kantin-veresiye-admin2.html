@@ -100,10 +100,8 @@ let personeller=[], aktifYetkili=null;
 function toast(t){$('toast').textContent=t;$('toast').classList.remove('hidden');setTimeout(()=>$('toast').classList.add('hidden'),2200)}
 function normalizePhone(v){let d=String(v||'').replace(/\D/g,'');if(d.startsWith('90'))d=d.slice(2);if(d&&!d.startsWith('0'))d='0'+d;return d.slice(0,11)}
 function smsTelefonDuzelt(v){let d=String(v||'').replace(/\D/g,'');if(d.startsWith('90')&&d.length===12)return d;if(d.startsWith('0')&&d.length===11)return '9'+d;if(d.startsWith('5')&&d.length===10)return '90'+d;return d}
-function smsMesajiOlustur(tutar,kalan){
-  const smsMesaji =
-`Sayın ${adSoyad(p)}, kantin hesabınıza ${amount}₺ borç eklenmiştir. Güncel borcunuzu görmek için kantin10.com.tr adresini ziyaret edebilirsiniz.`;
-  return mesaj.length > 150 ? `Kantin borcunuz: ${fmt(kalan)}. kantin10.com.tr` : mesaj;
+function smsMesajiOlustur(adSoyadText,tutar){
+  return `Sayın ${adSoyadText}, kantin hesabınıza ${tutar}₺ borç eklenmiştir. Güncel borcunuzu görmek için kantin10.com.tr adresini ziyaret edebilirsiniz.`;
 }
 function smsGonder(numbers,message){
   return new Promise((resolve,reject)=>{
@@ -178,7 +176,7 @@ $('loginTelefon').addEventListener('input',e=>{e.target.value=normalizePhone(e.t
 
     if(!isOdeme && durum){
       const smsTel=smsTelefonDuzelt(tel(p));
-      const mesaj=smsMesajiOlustur(amount,durum.kalan);
+      const mesaj=smsMesajiOlustur(adSoyad(p),amount);
 
       if(smsTel && smsTel.length>=10){
         try{
