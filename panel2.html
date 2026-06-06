@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <title>Dosyaya Erişilemedi — ERR_FILE_NOT_FOUND</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="İstenen dosyaya erişilemedi. Taşınmış, silinmiş ya da adı değiştirilmiş olabilir.">
+  <style>
+    :root{
+      --bg:#0f172a;
+      --panel:#0b1220;
+      --card:#111b2e;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --primary:#60a5fa;
+      --accent:#22c55e;
+      --warn:#f59e0b;
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+      background: radial-gradient(1200px 600px at 20% -10%, #1b2742 0%, #0f172a 60%), var(--bg);
+      color:var(--text);
+      display:flex; align-items:center; justify-content:center;
+      -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    }
+    .wrap{width:min(920px, 92vw)}
+    header{
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:24px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.2px;
+    }
+    .logo{
+      width:36px; height:36px; border-radius:9px;
+      background:linear-gradient(135deg,#60a5fa, #22c55e);
+      display:grid; place-items:center; color:#0b1220; font-weight:900;
+    }
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)),
+                 var(--card);
+      border:1px solid rgba(255,255,255,.06);
+      box-shadow:0 20px 60px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+      border-radius:var(--radius);
+      padding:32px;
+    }
+    .grid{display:grid; grid-template-columns:1.1fr .9fr; gap:28px}
+    @media (max-width: 840px){ .grid{grid-template-columns:1fr} }
+    h1{
+      margin:0 0 12px; font-size:clamp(26px, 3.2vw, 34px); line-height:1.15;
+    }
+    p{margin:0 0 14px; color:var(--muted)}
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      background:#13223c; color:#bfdbfe; border:1px solid rgba(96,165,250,.35);
+      padding:6px 10px; border-radius:999px; font-size:12px; letter-spacing:.3px;
+    }
+    .mono{font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,"Roboto Mono",monospace}
+    .actions{display:flex; flex-wrap:wrap; gap:12px; margin-top:18px}
+    .btn{
+      appearance:none; border:1px solid transparent; border-radius:10px;
+      padding:12px 16px; font-weight:600; cursor:pointer; transition:.2s ease;
+      background:var(--primary); color:#0b1220; box-shadow:0 8px 24px rgba(96,165,250,.3);
+    }
+    .btn:hover{filter:brightness(1.05)}
+    .btn.secondary{
+      background:#101a2d; color:var(--text); border-color:rgba(255,255,255,.08);
+      box-shadow:none;
+    }
+    .list{margin:14px 0 0; padding-left:18px; color:var(--muted)}
+    .list li{margin:6px 0}
+    .illu{
+      background: radial-gradient(600px 360px at 70% -40%, #1e2b4a 0%, #0b1220 60%), var(--panel);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:var(--radius);
+      display:grid; place-items:center; padding:24px; position:relative; overflow:hidden;
+      min-height:240px;
+    }
+    .doc{
+      width:120px; height:150px; border-radius:12px;
+      background:linear-gradient(180deg,#f8fafc,#e2e8f0);
+      box-shadow:0 14px 40px rgba(0,0,0,.35);
+      display:grid; grid-template-rows:1fr auto; place-items:center; color:#0f172a;
+      transform:rotate(-6deg);
+    }
+    .face{font-size:46px; line-height:1; margin-top:14px}
+    .bar{height:8px; width:72px; border-radius:6px; background:#cbd5e1; margin:10px 0 16px}
+    .spark{
+      position:absolute; inset:auto; width:10px; height:10px; border-radius:999px;
+      background:rgba(96,165,250,.7); filter:blur(2px);
+      animation:float 6s ease-in-out infinite;
+    }
+    .spark.s1{top:18%; left:14%}
+    .spark.s2{top:8%; right:18%; animation-delay:1s}
+    .spark.s3{bottom:10%; left:22%; animation-delay:2s}
+    @keyframes float{
+      0%,100%{transform:translateY(0)}
+      50%{transform:translateY(-10px)}
+    }
+    footer{
+      margin-top:22px; display:flex; justify-content:space-between; align-items:center;
+      color:var(--muted); font-size:13px;
+    }
+    a{color:#a5b4fc; text-decoration:none}
+    a:hover{text-decoration:underline}
+    /* Erişilebilirlik */
+    @media (prefers-reduced-motion: reduce){
+      .spark{animation:none}
+      .btn{transition:none}
+    }
+    .sr-only{
+      position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+      clip:rect(0,0,0,0);border:0;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap" role="main">
+    <header aria-label="Üst gezinme">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">K10</div>
+        <span>Kantin10</span>
+      </div>
+      <span class="badge" aria-live="polite">
+        <strong class="mono">ERR_FILE_NOT_FOUND</strong>
+      </span>
+    </header>
+
+    <section class="card grid" aria-labelledby="title">
+      <div>
+        <h1 id="title">Dosyanıza erişemiyoruz</h1>
+        <p>İstediğiniz dosya taşınmış, adı değiştirilmiş ya da silinmiş olabilir. Ayrıca bağlantı hatalı veya artık geçersiz olabilir.</p>
+        <ul class="list">
+          <li>Bağlantıyı ya da dosya adını <strong>yazım hatası</strong> için kontrol edin.</li>
+          <li>Dosyanın <strong>taşınmadığından veya silinmediğinden</strong> emin olun.</li>
+          <li>Yetki gerektiren bir konum ise gerekli <strong>erişim izinlerini</strong> kontrol edin.</li>
+        </ul>
+        <div class="actions">
+          <button class="btn" onclick="retry()" aria-label="Yeniden dene">Yeniden dene</button>
+          <a class="btn secondary" href="/" aria-label="Ana sayfaya dön">Ana sayfaya dön</a>
+        </div>
+        <p class="mono" id="hint" style="margin-top:12px;"></p>
+      </div>
+
+      <div class="illu" aria-hidden="true">
+        <div class="doc" aria-hidden="true">
+          <div class="face">:(</div>
+          <div class="bar"></div>
+        </div>
+        <span class="spark s1"></span>
+        <span class="spark s2"></span>
+        <span class="spark s3"></span>
+      </div>
+    </section>
+
+    <footer>
+      <span>Hata sayfası • Dosyaya erişilemedi</span>
+      <span>Destek: <a href="mailto:support@kantin10.com.tr">support@kantin10.com.tr</a></span>
+    </footer>
+  </div>
+
+  <script>
+    // Basit yeniden deneme ve tanı koyma ipucu
+    function retry(){
+      location.reload();
+    }
+
+    // Geliştiriciye yardımcı kısa ipuçları
+    (function(){
+      const hint = document.getElementById('hint');
+      const url = new URL(location.href);
+      const missing = url.searchParams.get('path') || '';
+      const lines = [];
+      if(missing) lines.push('Eksik dosya: ' + missing);
+      lines.push('Geçerli konum: ' + location.pathname);
+      try{
+        if('serviceWorker' in navigator){
+          navigator.serviceWorker.getRegistrations().then(regs=>{
+            if(regs.length) lines.push('Service Worker etkin: olası cache kontrolü gerekebilir.');
+            hint.textContent = lines.join(' • ');
+          });
+        } else {
+          hint.textContent = lines.join(' • ');
+        }
+      }catch(e){
+        hint.textContent = lines.join(' • ');
+      }
+    })();
+  </script>
+</body>
+</html>
