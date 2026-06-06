@@ -245,7 +245,7 @@ body{padding:10px}
     </div>
 
     <div id="durum" class="status">
-      Gün başlığına basınca gün aç/kapanır. Saat başlığına basınca o saat haftalık aç/kapanır. Boş slotlara basınca tek saat aç/kapanır.
+      Dolu randevuya basınca yönetici iptali yapılır ve SMS gider. Gün/saat başlıkları ile açma-kapama yapılır.
     </div>
 
     <div style="margin-top:16px; text-align:center;">
@@ -284,6 +284,9 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
+// SMS WEB APP URL - mevcut çalışan SMS altyapısı
+const SMS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw32Q03nQD1FJ9iSz2LgpB2S_QEzAdSSeLK1K3IIRI39eqOXowlloGVjYRGuoezqrFLlQ/exec";
 
 if(
   localStorage.getItem("berberGiris") !== "true" &&
@@ -330,6 +333,76 @@ function bildirim(metin){
   toast.classList.add("show");
   clearTimeout(window.toastTimer);
   window.toastTimer = setTimeout(()=>toast.classList.remove("show"),3000);
+}
+
+function smsTelefonDuzelt(tel){
+  let t = String(tel || "").replace(/\D/g,"");
+  if(t.startsWith("90") && t.length === 12) return t;
+  if(t.startsWith("0") && t.length === 11) return "9" + t;
+  if(t.startsWith("5") && t.length === 10) return "90" + t;
+  return t;
+}
+
+function smsGonder(numbers, message){
+  return new Promise((resolve, reject) => {
+    if(!SMS_WEB_APP_URL || SMS_WEB_APP_URL.includes("BURAYA")){
+      reject("SMS_WEB_APP_URL boş veya hatalı.");
+      return;
+    }
+
+    const temizNumbers = (numbers || [])
+      .map(smsTelefonDuzelt)
+      .filter(n => n && n.length >= 10);
+
+    if(!temizNumbers.length){
+      reject("SMS gönderilecek geçerli telefon numarası yok.");
+      return;
+    }
+
+    const callbackName = "smsCallback_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+    const script = document.createElement("script");
+
+    const timer = setTimeout(() => {
+      try{
+        delete window[callbackName];
+        script.remove();
+      }catch(e){}
+      reject("SMS Web App zaman aşımına uğradı.");
+    }, 20000);
+
+    window[callbackName] = function(data){
+      clearTimeout(timer);
+      try{
+        delete window[callbackName];
+        script.remove();
+      }catch(e){}
+      console.log("ADMIN RANDEVU SMS CEVAP:", data);
+      resolve(data);
+    };
+
+    const smsUrl =
+      SMS_WEB_APP_URL +
+      "?callback=" + encodeURIComponent(callbackName) +
+      "&numbers=" + encodeURIComponent(JSON.stringify(temizNumbers)) +
+      "&message=" + encodeURIComponent(message);
+
+    script.src = smsUrl;
+
+    script.onerror = function(){
+      clearTimeout(timer);
+      try{
+        delete window[callbackName];
+        script.remove();
+      }catch(e){}
+      reject("SMS Web App çağrısı başarısız.");
+    };
+
+    document.body.appendChild(script);
+  });
+}
+
+function yoneticiIptalSmsMesaji(r){
+  return `Sayın ${r.ad}, ${tarihFormatla(r.tarih)} ${r.saat} berber randevunuz yönetici tarafından iptal edilmiştir. En yakın tarihe tekrar randevu alınız.`;
 }
 
 function iki(n){return String(n).padStart(2,"0")}
@@ -553,7 +626,7 @@ function takvimCiz(){
       }
       else if(r){
         html += `
-          <td class="${gecmisMi(r.tarih,r.saat) ? "gecmis" : "dolu"}">
+          <td class="${gecmisMi(r.tarih,r.saat) ? "gecmis" : "dolu"} slot-click" onclick="randevuSil('${r.id}')">
             <div class="isim">${esc(r.ad)}</div>
             <div class="mini">${esc(r.telefon)}</div>
             <div class="mini">${esc(r.hizmet || "-")}</div>
@@ -599,6 +672,44 @@ window.takvimYukle = async function(){
     console.error(e);
     durum.innerText = "Takvim yüklenemedi. Firestore Rules kontrol edilmeli.";
     takvimAlan.innerHTML = "Hata oluştu.";
+  }
+}
+
+
+window.randevuSil = async function(id){
+  const r = randevular.find(x => x.id === id);
+  if(!r){
+    alert("Randevu bulunamadı. Takvimi yenile.");
+    return;
+  }
+
+  const smsMetni = yoneticiIptalSmsMesaji(r);
+  const onay = confirm(`${r.ad} adlı personelin ${tarihFormatla(r.tarih)} ${r.saat} randevusu silinsin mi?
+
+Gönderilecek SMS:
+${smsMetni}`);
+  if(!onay) return;
+
+  try{
+    durum.innerText = "Randevu siliniyor ve SMS gönderiliyor...";
+
+    await deleteDoc(doc(db,"randevular",r.id));
+
+    try{
+      await smsGonder([r.telefon], smsMetni);
+      bildirim("✅ Randevu silindi ve SMS gönderildi.");
+      durum.innerText = "Randevu silindi. SMS gönderildi. Saat tekrar müsait oldu.";
+    }catch(smsErr){
+      console.warn("Yönetici iptal SMS gönderilemedi:", smsErr);
+      bildirim("⚠️ Randevu silindi ancak SMS gönderilemedi.");
+      durum.innerText = "Randevu silindi fakat SMS gönderilemedi. SMS Web App kontrol edilmeli.";
+      alert("Randevu silindi ancak SMS gönderilemedi: " + smsErr);
+    }
+
+    await takvimYukle();
+  }catch(e){
+    console.error(e);
+    alert("Randevu silinirken hata oluştu: " + (e.message || e));
   }
 }
 
