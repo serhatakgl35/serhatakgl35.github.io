@@ -245,7 +245,7 @@ body{padding:10px}
     </div>
 
     <div id="durum" class="status">
-      Dolu randevuya basınca yönetici iptali yapılır ve SMS gider. Gün/saat başlıkları ile açma-kapama yapılır.
+      Gün başlığına basınca gün aç/kapanır. Saat başlığına basınca o saat haftalık aç/kapanır. Boş slotlara basınca tek saat aç/kapanır.
     </div>
 
     <div style="margin-top:16px; text-align:center;">
@@ -262,12 +262,18 @@ body{padding:10px}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
+  getAuth,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
   getFirestore,
   collection,
   getDocs,
   doc,
   setDoc,
   deleteDoc,
+  getDoc,
   query,
   where,
   documentId
@@ -284,17 +290,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
-// SMS WEB APP URL - mevcut çalışan SMS altyapısı
-const SMS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw32Q03nQD1FJ9iSz2LgpB2S_QEzAdSSeLK1K3IIRI39eqOXowlloGVjYRGuoezqrFLlQ/exec";
-
-if(
-  localStorage.getItem("berberGiris") !== "true" &&
-  localStorage.getItem("adminGiris") !== "true" &&
-  localStorage.getItem("adminLogin") !== "true"
-){
-  location.href = "adminpanel.html";
-}
+const auth = getAuth(app);
 
 const takvimAlan = document.getElementById("takvimAlan");
 const haftaYazi = document.getElementById("haftaYazi");
@@ -303,6 +299,9 @@ const toast = document.getElementById("toast");
 
 const SAATLER = ["09:00","09:50","10:30","11:20","13:20","14:00","14:50","15:30"];
 const GUNLER = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma"];
+const SMS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw32Q03nQD1FJ9iSz2LgpB2S_QEzAdSSeLK1K3IIRI39eqOXowlloGVjYRGuoezqrFLlQ/exec";
+
+let adminKullanici = null;
 
 function baslangicHaftasiBelirle(){
   const simdi = new Date();
@@ -334,6 +333,7 @@ function bildirim(metin){
   clearTimeout(window.toastTimer);
   window.toastTimer = setTimeout(()=>toast.classList.remove("show"),3000);
 }
+
 
 function smsTelefonDuzelt(tel){
   let t = String(tel || "").replace(/\D/g,"");
@@ -376,7 +376,7 @@ function smsGonder(numbers, message){
         delete window[callbackName];
         script.remove();
       }catch(e){}
-      console.log("ADMIN RANDEVU SMS CEVAP:", data);
+      console.log("ADMIN RANDEVU IPTAL SMS CEVAP:", data);
       resolve(data);
     };
 
@@ -403,6 +403,32 @@ function smsGonder(numbers, message){
 
 function yoneticiIptalSmsMesaji(r){
   return `Sayın ${r.ad}, ${tarihFormatla(r.tarih)} ${r.saat} berber randevunuz yönetici tarafından iptal edilmiştir. En yakın tarihe tekrar randevu alınız.`;
+}
+
+async function adminYetkiKontrol(){
+  return new Promise((resolve)=>{
+    onAuthStateChanged(auth, async(user)=>{
+      try{
+        if(!user){
+          location.href = "adminpanel.html";
+          return;
+        }
+
+        const snap = await getDoc(doc(db,"admins",user.uid));
+
+        if(!snap.exists() || snap.data().aktif !== true){
+          location.href = "adminpanel.html";
+          return;
+        }
+
+        adminKullanici = user;
+        resolve(true);
+      }catch(e){
+        console.error("Admin yetki kontrolü başarısız:", e);
+        location.href = "adminpanel.html";
+      }
+    });
+  });
 }
 
 function iki(n){return String(n).padStart(2,"0")}
@@ -683,33 +709,30 @@ window.randevuSil = async function(id){
     return;
   }
 
-  const smsMetni = yoneticiIptalSmsMesaji(r);
-  const onay = confirm(`${r.ad} adlı personelin ${tarihFormatla(r.tarih)} ${r.saat} randevusu silinsin mi?
-
-Gönderilecek SMS:
-${smsMetni}`);
-  if(!onay) return;
+  if(gecmisMi(r.tarih,r.saat)){
+    if(!confirm(`${r.ad} adlı personelin geçmiş randevusu silinsin mi?`)) return;
+  }else{
+    if(!confirm(`${r.ad} adlı personelin ${tarihFormatla(r.tarih)} ${r.saat} randevusu yönetici tarafından iptal edilip silinsin mi?\n\nPersonele SMS gönderilecek ve saat tekrar MÜSAİT görünecek.`)) return;
+  }
 
   try{
     durum.innerText = "Randevu siliniyor ve SMS gönderiliyor...";
 
-    await deleteDoc(doc(db,"randevular",r.id));
-
     try{
-      await smsGonder([r.telefon], smsMetni);
-      bildirim("✅ Randevu silindi ve SMS gönderildi.");
-      durum.innerText = "Randevu silindi. SMS gönderildi. Saat tekrar müsait oldu.";
+      await smsGonder([r.telefon], yoneticiIptalSmsMesaji(r));
     }catch(smsErr){
       console.warn("Yönetici iptal SMS gönderilemedi:", smsErr);
-      bildirim("⚠️ Randevu silindi ancak SMS gönderilemedi.");
-      durum.innerText = "Randevu silindi fakat SMS gönderilemedi. SMS Web App kontrol edilmeli.";
-      alert("Randevu silindi ancak SMS gönderilemedi: " + smsErr);
+      alert("Randevu silinecek ancak SMS gönderiminde hata oluştu: " + smsErr);
     }
 
+    await deleteDoc(doc(db,"randevular",r.id));
+
+    bildirim("✅ Randevu silindi. Saat müsait oldu.");
     await takvimYukle();
+    durum.innerText = "Randevu silindi. Personel SMS ile bilgilendirildi.";
   }catch(e){
     console.error(e);
-    alert("Randevu silinirken hata oluştu: " + (e.message || e));
+    alert("Randevu silinirken hata oluştu.");
   }
 }
 
@@ -839,12 +862,12 @@ window.sonrakiHafta = function(){
   takvimYukle();
 }
 
-window.cikis = function(){
-  localStorage.clear();
+window.cikis = async function(){
+  try{ await signOut(auth); }catch(e){}
   location.href = "adminpanel.html";
 }
 
-takvimYukle();
+adminYetkiKontrol().then(()=>takvimYukle());
 </script>
 
 </body>
