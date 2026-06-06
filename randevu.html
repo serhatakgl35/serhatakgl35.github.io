@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>Randevu Al</title>
 
-<style>
+<script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=CkE-wbbI_UmFbBYljSiLE3mMyXQXELn5tJOn4mfLGYc9I31ijwiPcmSIusrB5-ivmM0S2xTDkTVxZqfyipSl3xhouBQWedLKddS0XCQEzAu9wM77F7U391yoSBL9yAMoe0byGAWlhJo9zOEKM-1bJWiJYKJ5QYO3IvXlLTToP1PgF44yHSZccgMbMM_cmC6gonUNyI3ILdeSli6LQQL_TFbltxVkTGXSRWh_WPCgRJz0urW9CVfpDuVZrz6tyMgR6KVgI1lOlxHKK5JZiDV-WYGahTWPidJphsK2AI2_DnGj2cS-8_ies48OsDu9CNt6" charset="UTF-8"></script><style>
 *{box-sizing:border-box}
 
 :root{
@@ -1300,6 +1300,10 @@ ${tarihGunluGoster(data.date)}-${data.time}
 `;
 }
 
+function randevuIptalSmsMesaji(data){
+  return `Sayın ${data.name}, ${tarihGunluGoster(data.date)} ${data.time} berber randevunuz iptal edilmiştir.`;
+}
+
 function iki(n){return String(n).padStart(2,"0");}
 
 function formatDateLocal(date){
@@ -1614,16 +1618,25 @@ liste.addEventListener("click", async function(e){
       await deleteDoc(doc(db, KOLEKSIYON, id));
 
       if(silinecek){
-        await telegramMesajGonder(iptalTelegramMesaji({
+        const iptalData = {
           name: kayitAd(silinecek),
           phone: kayitTelefon(silinecek),
           service: kayitHizmet(silinecek),
           date: kayitTarih(silinecek),
           time: kayitSaat(silinecek)
-        }));
+        };
+
+        try{
+          const smsSonuc = await smsGonder([iptalData.phone], randevuIptalSmsMesaji(iptalData));
+          console.log("Randevu iptal SMS sonucu:", smsSonuc);
+        }catch(smsErr){
+          console.warn("Randevu iptal SMS gönderilemedi:", smsErr);
+        }
+
+        await telegramMesajGonder(iptalTelegramMesaji(iptalData));
       }
 
-      toastGoster("✅ Randevu silindi.");
+      toastGoster("✅ Randevu silindi. SMS gönderimi denendi.");
       await sistemiYenile();
     }catch(err){
       console.error(err);
