@@ -444,31 +444,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ADMIN GİRİŞ KONTROLÜ
-   Eski/yeni admin sayfalarında farklı localStorage anahtarları kullanılabildiği için
-   duyuru paneli admin girişini daha geniş kontrol eder.
+/* ADMIN PANEL UYUMLU GİRİŞ KONTROLÜ
+   Bu sayfa adminpanel.html içinden açılacağı için burada admin.html yönlendirmesi yapılmaz.
+   Eski sürümde localStorage anahtarı uyuşmadığında sayfa sürekli admin.html'e atıyordu.
 */
-function adminGirisVarMi(){
-  const kabulEdilenler = [
-    "adminGiris",
-    "adminLogin",
-    "adminGirdi",
-    "adminLoggedIn",
-    "kantinAdminGiris",
-    "yoneticiGiris",
-    "girisAdmin"
-  ];
-
-  return kabulEdilenler.some(function(key){
-    const v = localStorage.getItem(key) || sessionStorage.getItem(key);
-    return v === "true" || v === "1" || v === "ok" || v === "evet";
-  });
-}
-
-if(!adminGirisVarMi()){
-  // Admin girişi yoksa giriş sayfasına yönlendir.
-  location.href = "duyurupanel.html";
-}
 
 const HEDEFLER = {
   personel_panel: {
