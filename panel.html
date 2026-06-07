@@ -327,8 +327,8 @@ body{
 }
 
 
-/* ADMIN KONTROLLÜ DUYURU POP-UP */
-.duyuruOverlay{
+/* DUYURU POP-UP */
+.announcementOverlay{
   position:fixed;
   inset:0;
   z-index:9999;
@@ -340,106 +340,98 @@ body{
   backdrop-filter:blur(14px);
   -webkit-backdrop-filter:blur(14px);
 }
-.duyuruOverlay.show{display:flex}
-.duyuruPopup{
-  width:min(520px,100%);
-  position:relative;
-  overflow:hidden;
-  border-radius:34px;
-  background:rgba(255,255,255,.94);
-  border:1px solid rgba(255,255,255,.78);
-  box-shadow:0 34px 100px rgba(0,0,0,.28);
-  padding:26px;
-  animation:duyuruPop .22s ease both;
+
+.announcementOverlay.show{
+  display:flex;
 }
-@keyframes duyuruPop{
+
+.announcementPopup{
+  width:min(520px,100%);
+  background:rgba(255,255,255,.92);
+  border:1px solid rgba(255,255,255,.82);
+  border-radius:34px;
+  box-shadow:0 35px 100px rgba(0,0,0,.28);
+  padding:24px;
+  position:relative;
+  animation:announcementPop .22s ease both;
+}
+
+@keyframes announcementPop{
   from{opacity:0;transform:scale(.96) translateY(14px)}
   to{opacity:1;transform:scale(1) translateY(0)}
 }
-.duyuruPopup::before{
-  content:"";
+
+.announcementClose{
   position:absolute;
-  width:190px;
-  height:190px;
-  border-radius:50%;
-  right:-70px;
-  top:-80px;
-  background:rgba(17,17,17,.06);
-}
-.duyuruClose{
-  position:absolute;
-  right:16px;
   top:16px;
-  z-index:2;
-  width:40px;
-  height:40px;
+  right:16px;
+  width:42px;
+  height:42px;
   border:0;
-  border-radius:999px;
+  border-radius:50%;
   background:#111;
   color:#fff;
-  font-size:24px;
-  line-height:1;
-  cursor:pointer;
+  font-size:22px;
   font-weight:900;
-}
-.duyuruHead{
+  cursor:pointer;
   display:flex;
   align-items:center;
-  gap:12px;
-  padding-right:44px;
-  position:relative;
-  z-index:1;
+  justify-content:center;
 }
-.duyuruIcon{
-  width:48px;
-  height:48px;
-  border-radius:18px;
+
+.announcementIcon{
+  width:54px;
+  height:54px;
+  border-radius:20px;
   background:#111;
   color:#fff;
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:23px;
-  flex:0 0 auto;
-}
-.duyuruTitle{
   font-size:25px;
-  font-weight:1000;
-  letter-spacing:-.7px;
+  margin-bottom:16px;
 }
-.duyuruMsg{
-  margin-top:16px;
-  color:#374151;
-  font-weight:800;
+
+.announcementPopup h2{
+  margin:0 54px 10px 0;
+  font-size:30px;
+  letter-spacing:-.8px;
+  line-height:1.12;
+}
+
+.announcementPopup p{
+  margin:0;
+  color:#4b5563;
+  font-size:17px;
   line-height:1.55;
   white-space:pre-wrap;
-  position:relative;
-  z-index:1;
 }
-.duyuruOkBtn{
+
+.announcementActions{
+  display:flex;
+  gap:10px;
+  margin-top:20px;
+}
+
+.announcementBtn{
   width:100%;
   border:0;
   border-radius:18px;
-  padding:15px 16px;
-  margin-top:20px;
   background:#111;
   color:#fff;
+  padding:15px 18px;
   font-size:16px;
   font-weight:950;
   cursor:pointer;
-  position:relative;
-  z-index:1;
+  font-family:inherit;
 }
-.duyuruPopup.bilgi{background:linear-gradient(135deg,#eff6ff,#fff)}
-.duyuruPopup.uyari{background:linear-gradient(135deg,#fff7ed,#fff)}
-.duyuruPopup.onemli{background:linear-gradient(135deg,#fff1f2,#fff)}
-.duyuruPopup.uyari .duyuruIcon{background:#f97316}
-.duyuruPopup.onemli .duyuruIcon{background:#dc2626}
 
 @media(max-width:780px){
-  .duyuruPopup{border-radius:28px;padding:22px}
-  .duyuruTitle{font-size:22px}
-  .duyuruMsg{font-size:15px}
+  .announcementOverlay{padding:14px}
+  .announcementPopup{border-radius:28px;padding:20px}
+  .announcementPopup h2{font-size:25px}
+  .announcementPopup p{font-size:15px}
+  .announcementClose{top:14px;right:14px;width:38px;height:38px}
 }
 
 </style>
@@ -450,6 +442,22 @@ body{
 <div class="topbar">
   <button onclick="logout()">Çıkış Yap</button>
 </div>
+
+
+
+<!-- PANEL DUYURU POP-UP -->
+<div id="announcementOverlay" class="announcementOverlay" role="dialog" aria-modal="true" aria-labelledby="announcementTitle">
+  <div class="announcementPopup">
+    <button class="announcementClose" type="button" onclick="duyuruKapat()" aria-label="Duyuruyu kapat">×</button>
+    <div class="announcementIcon">📢</div>
+    <h2 id="announcementTitle">Duyuru</h2>
+    <p id="announcementText"></p>
+    <div class="announcementActions">
+      <button class="announcementBtn" type="button" onclick="duyuruKapat()">Tamam, kapat</button>
+    </div>
+  </div>
+</div>
+<!-- /PANEL DUYURU POP-UP -->
 
 <div class="wrap">
 
@@ -595,37 +603,7 @@ body{
 
 </div>
 
-
-<!-- ADMIN KONTROLLÜ DUYURU POP-UP -->
-<div id="duyuruOverlay" class="duyuruOverlay" aria-hidden="true">
-  <div id="duyuruPopup" class="duyuruPopup bilgi" role="dialog" aria-modal="true" aria-labelledby="duyuruPopupBaslik">
-    <button id="duyuruClose" class="duyuruClose" type="button" aria-label="Duyuruyu kapat">×</button>
-    <div class="duyuruHead">
-      <div class="duyuruIcon">📢</div>
-      <div id="duyuruPopupBaslik" class="duyuruTitle">Duyuru</div>
-    </div>
-    <div id="duyuruPopupMesaj" class="duyuruMsg"></div>
-    <button id="duyuruOkBtn" class="duyuruOkBtn" type="button">Tamam, kapat</button>
-  </div>
-</div>
-<!-- /ADMIN KONTROLLÜ DUYURU POP-UP -->
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey:"AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",
-  authDomain:"berber-randevu-14f7f.firebaseapp.com",
-  projectId:"berber-randevu-14f7f",
-  storageBucket:"berber-randevu-14f7f.firebasestorage.app",
-  messagingSenderId:"280530860977",
-  appId:"1:280530860977:web:52c0df04c228896f211b90"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
+<script>
 const tel = localStorage.getItem("musteriTelefon");
 const ad  = localStorage.getItem("musteriAd") || "Personel";
 
@@ -636,77 +614,57 @@ if(!tel){
 document.getElementById("welcome").innerHTML =
   "Hoşgeldiniz <b>" + ad + "</b>";
 
+/* PANEL DUYURU POP-UP AYARLARI
+   Bu sürümde duyuru, personel panele her giriş yaptığında yeniden görünür.
+   Kapatma butonu sadece o anki ekranda kapatır.
+*/
+const DUYURU_AKTIF = true;
+const DUYURU_ID = "panel_duyuru_2026_06_07_1";
+const DUYURU_BASLIK = "Duyuru";
+const DUYURU_MESAJ = `Sayın personelimiz,
 
-const PANEL_DUYURU_REF = doc(db, "duyurular", "personel_panel");
-const duyuruOverlay = document.getElementById("duyuruOverlay");
-const duyuruPopup = document.getElementById("duyuruPopup");
-const duyuruPopupBaslik = document.getElementById("duyuruPopupBaslik");
-const duyuruPopupMesaj = document.getElementById("duyuruPopupMesaj");
-const duyuruClose = document.getElementById("duyuruClose");
-const duyuruOkBtn = document.getElementById("duyuruOkBtn");
-let aktifDuyuruKapatmaKey = "";
+Kantin10 personel panelinde yapılan duyuru ve bilgilendirmeleri buradan takip edebilirsiniz.`;
 
-function temizMetin(v){
-  return String(v || "").trim();
-}
+function duyuruAc(){
+  const overlay = document.getElementById("announcementOverlay");
+  const title = document.getElementById("announcementTitle");
+  const text = document.getElementById("announcementText");
 
-function duyuruTipClass(tip){
-  const t = String(tip || "bilgi").toLowerCase();
-  if(t === "uyari" || t === "warning") return "uyari";
-  if(t === "onemli" || t === "danger" || t === "kirmizi") return "onemli";
-  return "bilgi";
+  if(!overlay || !title || !text) return;
+  if(!DUYURU_AKTIF) return;
+
+  // Her girişte gösterilecek: kapatıldı kaydı kontrol edilmez.
+  title.textContent = DUYURU_BASLIK;
+  text.textContent = DUYURU_MESAJ;
+
+  overlay.classList.add("show");
+  document.body.style.overflow = "hidden";
 }
 
 function duyuruKapat(){
-  if(aktifDuyuruKapatmaKey){
-    localStorage.setItem(aktifDuyuruKapatmaKey,"true");
-  }
-  duyuruOverlay.classList.remove("show");
-  duyuruOverlay.setAttribute("aria-hidden","true");
+  const overlay = document.getElementById("announcementOverlay");
+  if(overlay) overlay.classList.remove("show");
+  // Sadece bu oturumda kapatır. Sayfaya tekrar girince yeniden açılır.
+  document.body.style.overflow = "";
 }
 
-async function panelDuyurusuYukle(){
-  try{
-    const snap = await getDoc(PANEL_DUYURU_REF);
-    if(!snap.exists()) return;
+window.duyuruKapat = duyuruKapat;
 
-    const d = snap.data() || {};
-    if(d.aktif === false) return;
-
-    const mesaj = temizMetin(d.mesaj || d.text || "");
-    if(!mesaj) return;
-
-    const baslik = temizMetin(d.baslik || "Duyuru");
-    const duyuruId = temizMetin(d.duyuruId || d.id || (baslik + "_" + mesaj));
-    aktifDuyuruKapatmaKey = "panelDuyuruKapatildi_" + duyuruId;
-
-    if(localStorage.getItem(aktifDuyuruKapatmaKey) === "true") return;
-
-    duyuruPopup.classList.remove("bilgi","uyari","onemli");
-    duyuruPopup.classList.add(duyuruTipClass(d.tip));
-    duyuruPopupBaslik.textContent = baslik;
-    duyuruPopupMesaj.textContent = mesaj;
-
-    duyuruOverlay.classList.add("show");
-    duyuruOverlay.setAttribute("aria-hidden","false");
-  }catch(e){
-    console.warn("Panel duyurusu okunamadı:", e);
-  }
+const duyuruOverlay = document.getElementById("announcementOverlay");
+if(duyuruOverlay){
+  duyuruOverlay.addEventListener("click", function(e){
+    if(e.target === duyuruOverlay) duyuruKapat();
+  });
 }
-
-duyuruClose.addEventListener("click", duyuruKapat);
-duyuruOkBtn.addEventListener("click", duyuruKapat);
-duyuruOverlay.addEventListener("click", function(e){
-  if(e.target === duyuruOverlay) duyuruKapat();
-});
 
 document.addEventListener("keydown", function(e){
-  if(e.key === "Escape" && duyuruOverlay.classList.contains("show")) duyuruKapat();
+  if(e.key === "Escape") duyuruKapat();
 });
 
-panelDuyurusuYukle();
+setTimeout(duyuruAc, 350);
 
-window.logout = function logout(){
+
+function logout(){
   localStorage.removeItem("musteriGiris");
   localStorage.removeItem("musteriTelefon");
   localStorage.removeItem("musteriAd");
@@ -796,7 +754,7 @@ if(new Date().getTime() >= bilancoAktifTarih){
 
     const gun = Math.floor(fark / (1000 * 60 * 60 * 24));
     const saat = Math.floor((fark % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const dakika = Math.floor((fark % (1000 * 60 * 60)) / (1000 * 60));
+    const dakika = Math.floor((fark % (1000 * 60)) / (1000 * 60));
 
     document.getElementById("bilancoGun").innerText = gun;
     document.getElementById("bilancoSaat").innerText = saat;
