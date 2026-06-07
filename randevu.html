@@ -4,8 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>Randevu Al</title>
-
-<script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=CkE-wbbI_UmFbBYljSiLE3mMyXQXELn5tJOn4mfLGYc9I31ijwiPcmSIusrB5-ivmM0S2xTDkTVxZqfyipSl3xhouBQWedLKddS0XCQEzAu9wM77F7U391yoSBL9yAMoe0byGAWlhJo9zOEKM-1bJWiJYKJ5QYO3IvXlLTToP1PgF44yHSZccgMbMM_cmC6gonUNyI3ILdeSli6LQQL_TFbltxVkTGXSRWh_WPCgRJz0urW9CVfpDuVZrz6tyMgR6KVgI1lOlxHKK5JZiDV-WYGahTWPidJphsK2AI2_DnGj2cS-8_ies48OsDu9CNt6" charset="UTF-8"></script><style>
+<style>
 *{box-sizing:border-box}
 
 :root{
@@ -702,6 +701,21 @@ th{
   .slot{font-size:12px;min-height:68px}
   .etiket{font-size:8px;padding:2px 5px}
 }
+
+
+/* MOBİL HIZLANDIRMA: telefonda ağır blur/animasyon efektlerini azaltır */
+@media(max-width:760px){
+  .bg-orb{display:none}
+  body{
+    background:var(--bg);
+  }
+  .hero,.panel,.duyuru-panel,.topbar{
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
+    animation:none !important;
+    box-shadow:0 10px 26px rgba(0,0,0,.08);
+  }
+}
 </style>
 </head>
 
@@ -936,7 +950,6 @@ function k10GlobalLogout(){
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
 import {
   getFirestore,
   collection,
@@ -961,7 +974,6 @@ const firebaseConfig = {
   measurementId: "G-NK6DBBQQNZ"};
 
 const app = initializeApp(firebaseConfig);
-getAnalytics(app);
 const db = getFirestore(app);
 
 const KOLEKSIYON = "randevular";
@@ -2131,14 +2143,60 @@ if(/^\d{4}-\d{2}-\d{2}$/.test(urlDate)){
   dateInput.value = urlDate;
 }
 
-await musteriAdiniGetir();
-await duyuruYukle();
-await sistemiYenile();
-// randevuCanliDinle(); // READ azaltmak için kapalı
+// MOBİL HIZLANDIRMA:
+// Eskiden sayfa açılışında isim + duyuru + randevular + saatler + liste + haftalık takvim
+// hepsi sırayla bekleniyordu. Telefonlarda açılışı ağır hissettiren ana sebep buydu.
+// Bu sürümde önce form ve kullanıcının randevusu yüklenir; haftalık takvim mobilde biraz sonra çizilir.
+async function ilkAcilis(){
+  try{
+    liste.innerHTML = `<li class="empty">Randevular yükleniyor...</li>`;
+    tabloAlan.innerHTML = `<div class="info">Takvim hazırlanıyor...</div>`;
 
-if(urlTime){
-  timeSelect.value = urlTime;
+    await Promise.allSettled([
+      musteriAdiniGetir(),
+      duyuruYukle()
+    ]);
+
+    await aktifRandevulariYukle();
+
+    await Promise.allSettled([
+      saatleriGuncelle(),
+      listele()
+    ]);
+
+    if(urlTime){
+      timeSelect.value = urlTime;
+    }
+
+    const mobilMi = window.matchMedia && window.matchMedia("(max-width: 760px)").matches;
+
+    const takvimiGuvenliCiz = async () => {
+      try{
+        await takvimCiz();
+      }catch(e){
+        console.error("Takvim çizilemedi:", e);
+        tabloAlan.innerHTML = `<div class="info">Takvim yüklenemedi. Yenile butonuna basınız.</div>`;
+      }
+    };
+
+    if(mobilMi){
+      haftaYazi.textContent = "Takvim yükleniyor...";
+      if("requestIdleCallback" in window){
+        requestIdleCallback(()=>takvimiGuvenliCiz(), {timeout:1800});
+      }else{
+        setTimeout(()=>takvimiGuvenliCiz(), 700);
+      }
+    }else{
+      await takvimiGuvenliCiz();
+    }
+  }catch(e){
+    console.error("İlk açılış hatası:", e);
+    toastGoster("Sayfa yüklenirken hata oluştu. Yenile butonuna basınız.");
+  }
 }
+
+ilkAcilis();
+// randevuCanliDinle(); // READ azaltmak için kapalı
 </script>
 </body>
 </html>
