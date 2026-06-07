@@ -444,10 +444,29 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-if(
-  localStorage.getItem("adminGiris") !== "true" &&
-  localStorage.getItem("adminLogin") !== "true"
-){
+/* ADMIN GİRİŞ KONTROLÜ
+   Eski/yeni admin sayfalarında farklı localStorage anahtarları kullanılabildiği için
+   duyuru paneli admin girişini daha geniş kontrol eder.
+*/
+function adminGirisVarMi(){
+  const kabulEdilenler = [
+    "adminGiris",
+    "adminLogin",
+    "adminGirdi",
+    "adminLoggedIn",
+    "kantinAdminGiris",
+    "yoneticiGiris",
+    "girisAdmin"
+  ];
+
+  return kabulEdilenler.some(function(key){
+    const v = localStorage.getItem(key) || sessionStorage.getItem(key);
+    return v === "true" || v === "1" || v === "ok" || v === "evet";
+  });
+}
+
+if(!adminGirisVarMi()){
+  // Admin girişi yoksa giriş sayfasına yönlendir.
   location.href = "admin.html";
 }
 
