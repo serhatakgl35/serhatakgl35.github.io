@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Randevu Duyuru Paneli</title>
+<title>Duyuru Yönetim Paneli</title>
 
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -342,7 +342,7 @@ input:focus,textarea:focus,select:focus{
   <div class="topbar-inner">
     <div class="brand">
       <div class="logo">📢</div>
-      <div>Duyuru Paneli</div>
+      <div>Duyuru Yönetimi</div>
     </div>
     <div class="nav">
       <a href="adminpanel.html">Admin Paneli</a>
@@ -354,14 +354,20 @@ input:focus,textarea:focus,select:focus{
 
 <div class="wrap">
   <section class="hero">
-    <h1>Randevu Sayfası Duyurusu</h1>
-    <p>Buradan yazdığın duyuru, personelin randevu sayfasının üst kısmında görünür. Sistem sadece tek belge okur/yazar.</p>
+    <h1>Duyuru Yönetimi</h1>
+    <p>Buradan yazdığın duyuruyu ister personel panelinde pop-up olarak, ister randevu sayfasında üst duyuru olarak gösterebilirsin.</p>
   </section>
 
   <div class="grid">
     <section class="card">
       <h2>Duyuru Düzenle</h2>
-      <div class="muted">Kaydedilen veri: <b>duyurular / berber_randevu</b></div>
+      <div class="muted">Kaydedilen veri seçtiğin sayfaya göre <b>duyurular</b> koleksiyonuna yazılır.</div>
+
+      <label>Duyuru Yeri</label>
+      <select id="hedef">
+        <option value="personel_panel">Personel Paneli - Pop-up</option>
+        <option value="berber_randevu">Randevu Sayfası - Üst Duyuru</option>
+      </select>
 
       <div class="row">
         <div>
@@ -399,7 +405,7 @@ input:focus,textarea:focus,select:focus{
 
     <section class="card">
       <h2>Önizleme</h2>
-      <div class="muted">Randevu sayfasında yaklaşık böyle görünür.</div>
+      <div class="muted">Seçilen sayfada yaklaşık böyle görünür.</div>
 
       <div style="margin-top:12px">
         <span id="durumPill" class="pill passive"><span class="dot"></span><span id="durumText">Pasif</span></span>
@@ -442,11 +448,30 @@ if(
   localStorage.getItem("adminGiris") !== "true" &&
   localStorage.getItem("adminLogin") !== "true"
 ){
-  location.href = "duyurupanel.html";
+  location.href = "admin.html";
 }
 
-const DUYURU_REF = doc(db, "duyurular", "berber_randevu");
+const HEDEFLER = {
+  personel_panel: {
+    docId: "personel_panel",
+    ad: "Personel Paneli Pop-up"
+  },
+  berber_randevu: {
+    docId: "berber_randevu",
+    ad: "Randevu Sayfası Üst Duyuru"
+  }
+};
 
+function seciliHedef(){
+  const key = hedefEl.value || "personel_panel";
+  return HEDEFLER[key] ? key : "personel_panel";
+}
+
+function duyuruRefAl(){
+  return doc(db, "duyurular", HEDEFLER[seciliHedef()].docId);
+}
+
+const hedefEl = document.getElementById("hedef");
 const aktifEl = document.getElementById("aktif");
 const tipEl = document.getElementById("tip");
 const baslikEl = document.getElementById("baslik");
@@ -491,12 +516,12 @@ function onizlemeGuncelle(){
 
   durumPill.classList.remove("active","passive");
   durumPill.classList.add(aktif ? "active" : "passive");
-  durumText.textContent = aktif ? "Aktif - Personelde görünür" : "Pasif - Personelde görünmez";
+  durumText.textContent = aktif ? "Aktif - " + HEDEFLER[seciliHedef()].ad + " görünür" : "Pasif - Görünmez";
 }
 
 async function duyuruYukle(){
   try{
-    const snap = await getDoc(DUYURU_REF);
+    const snap = await getDoc(duyuruRefAl());
 
     if(!snap.exists()){
       aktifEl.value = "false";
@@ -504,7 +529,7 @@ async function duyuruYukle(){
       baslikEl.value = "Duyuru";
       mesajEl.value = "";
       onizlemeGuncelle();
-      statusYaz("Henüz kayıtlı duyuru yok. Yazıp kaydedebilirsin.");
+      statusYaz(HEDEFLER[seciliHedef()].ad + " için henüz kayıtlı duyuru yok. Yazıp kaydedebilirsin.");
       return;
     }
 
@@ -515,7 +540,7 @@ async function duyuruYukle(){
     mesajEl.value = d.mesaj || "";
 
     onizlemeGuncelle();
-    statusYaz("Mevcut duyuru yüklendi.", "ok");
+    statusYaz(HEDEFLER[seciliHedef()].ad + " duyurusu yüklendi.", "ok");
   }catch(e){
     console.error(e);
     statusYaz("Duyuru yüklenemedi. Firestore Rules veya bağlantı kontrol edilmeli.", "err");
@@ -537,16 +562,18 @@ async function duyuruKaydet(){
   statusYaz("Duyuru kaydediliyor...");
 
   try{
-    await setDoc(DUYURU_REF, {
+    await setDoc(duyuruRefAl(), {
       aktif,
       tip,
       baslik,
       mesaj,
+      duyuruId: String(Date.now()),
+      hedef: seciliHedef(),
       updatedAt: serverTimestamp()
     }, { merge:true });
 
     onizlemeGuncelle();
-    statusYaz(aktif ? "Duyuru kaydedildi ve aktif edildi." : "Duyuru kaydedildi ama pasif durumda.", "ok");
+    statusYaz(aktif ? HEDEFLER[seciliHedef()].ad + " duyurusu kaydedildi ve aktif edildi." : HEDEFLER[seciliHedef()].ad + " duyurusu kaydedildi ama pasif durumda.", "ok");
   }catch(e){
     console.error(e);
     statusYaz("Duyuru kaydedilemedi. Firestore Rules kontrol edilmeli.", "err");
@@ -556,14 +583,15 @@ async function duyuruKaydet(){
 }
 
 async function duyuruPasifYap(){
-  if(!confirm("Duyuru pasife alınsın mı? Personel randevu sayfasında görünmeyecek.")) return;
+  if(!confirm("Seçili duyuru pasife alınsın mı? Personelde görünmeyecek.")) return;
 
   pasifBtn.disabled = true;
   statusYaz("Duyuru pasife alınıyor...");
 
   try{
-    await setDoc(DUYURU_REF, {
+    await setDoc(duyuruRefAl(), {
       aktif:false,
+      hedef: seciliHedef(),
       updatedAt: serverTimestamp()
     }, { merge:true });
 
@@ -593,6 +621,7 @@ window.cikis = function(){
   location.href = "admin.html";
 }
 
+hedefEl.addEventListener("change", duyuruYukle);
 aktifEl.addEventListener("change", onizlemeGuncelle);
 tipEl.addEventListener("change", onizlemeGuncelle);
 baslikEl.addEventListener("input", onizlemeGuncelle);
