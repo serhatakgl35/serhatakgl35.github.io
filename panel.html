@@ -644,7 +644,6 @@ const duyuruPopupBaslik = document.getElementById("duyuruPopupBaslik");
 const duyuruPopupMesaj = document.getElementById("duyuruPopupMesaj");
 const duyuruClose = document.getElementById("duyuruClose");
 const duyuruOkBtn = document.getElementById("duyuruOkBtn");
-let aktifDuyuruKapatmaKey = "";
 
 function temizMetin(v){
   return String(v || "").trim();
@@ -658,9 +657,7 @@ function duyuruTipClass(tip){
 }
 
 function duyuruKapat(){
-  if(aktifDuyuruKapatmaKey){
-    localStorage.setItem(aktifDuyuruKapatmaKey,"true");
-  }
+  // Sadece bu oturumda kapatır. Sayfaya tekrar girildiğinde duyuru yeniden açılır.
   duyuruOverlay.classList.remove("show");
   duyuruOverlay.setAttribute("aria-hidden","true");
 }
@@ -677,11 +674,8 @@ async function panelDuyurusuYukle(){
     if(!mesaj) return;
 
     const baslik = temizMetin(d.baslik || "Duyuru");
-    const duyuruId = temizMetin(d.duyuruId || d.id || (baslik + "_" + mesaj));
-    aktifDuyuruKapatmaKey = "panelDuyuruKapatildi_" + duyuruId;
 
-    if(localStorage.getItem(aktifDuyuruKapatmaKey) === "true") return;
-
+    // Her panel açılışında gösterilir. Kapatıldı bilgisi localStorage'a kaydedilmez.
     duyuruPopup.classList.remove("bilgi","uyari","onemli");
     duyuruPopup.classList.add(duyuruTipClass(d.tip));
     duyuruPopupBaslik.textContent = baslik;
