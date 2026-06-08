@@ -164,7 +164,7 @@ const firebaseConfig={
 
 const GIRIS_SAYFASI="index.html";
 const PANEL_SAYFASI="panel.html";
-const FIYAT_GOSTER=false;
+const FIYAT_GOSTER=true;
 const STOK_ADEDI_GOSTER=true;
 
 const CACHE_KEY="kantin_stok_cache_v1";
@@ -432,7 +432,7 @@ function render(){
         <div class="body">
           <div class="name">${esc(p.ad)}</div>
           <div class="meta">${esc(p.kategori||"Genel")}${p.barkod?" · "+esc(p.barkod):""}</div>
-          <div class="price ${FIYAT_GOSTER?"":"hiddenPrice"}">${Number(p.satisFiyat||0).toLocaleString("tr-TR")} TL</div>
+          <div class="price ${FIYAT_GOSTER?"":"hiddenPrice"}">Satış Fiyatı: ${Number(p.satisFiyat||0).toLocaleString("tr-TR")} TL</div>
 
           <div class="foot">
             <span class="pill ${s[0]}">${s[1]}</span>
