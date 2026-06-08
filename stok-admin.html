@@ -309,7 +309,11 @@
         const adminRef = doc(db, "admins", user.uid);
         const adminSnap = await getDoc(adminRef);
 
-        if (adminSnap.exists() && adminSnap.data().aktif === true) {
+        const adminData = adminSnap.exists() ? (adminSnap.data() || {}) : {};
+        const aktifDeger = adminData.aktif;
+        const adminAktif = aktifDeger === true || aktifDeger === "true" || aktifDeger === "evet" || aktifDeger === 1 || aktifDeger === "1";
+
+        if (adminSnap.exists() && adminAktif) {
           isAdmin = true;
           $("adminStatus").textContent = "Yetkili admin";
           log("Admin yetkisi onaylandı: admins/" + user.uid);
@@ -317,7 +321,9 @@
           isAdmin = false;
           $("adminStatus").textContent = "Yetki yok";
           log("Admin yetkisi bulunamadı veya aktif değil: admins/" + user.uid);
-          alert("Bu kullanıcı Firestore admins koleksiyonunda aktif admin değil.");
+          log("Çözüm: Firestore > admins koleksiyonunda belge ID şu UID olmalı: " + user.uid);
+          log("Bu belgenin içinde aktif alanı boolean true olmalı. String yazdıysan bu dosya onu da kabul eder ama Firestore Rules yine boolean true isteyebilir.");
+          alert("Bu kullanıcı Firestore admins koleksiyonunda aktif admin değil. UID işlem kaydına yazıldı.");
         }
       } catch (e) {
         isAdmin = false;
@@ -584,8 +590,9 @@
         if (count) await batch.commit();
 
         log("Tamamlandı. Toplam aktarılan ürün: " + total);
+        log("Firestore koleksiyonu: stok_urunleri");
         log("Not: Mevcut ürünlerin görselleri korundu. Yeni ürünlerde Excel'deki Görsel URL kullanıldı.");
-        alert("Stok aktarımı tamamlandı.");
+        alert("Stok aktarımı tamamlandı. Toplam aktarılan ürün: " + total);
       } catch (e) {
         console.error(e);
         alert("Aktarım hatası: " + e.message);
