@@ -149,6 +149,8 @@ import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebas
 import {
   getFirestore,
   collection,
+  doc,
+  getDoc,
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -167,13 +169,31 @@ const PANEL_SAYFASI="panel.html";
 const FIYAT_GOSTER=true;
 const STOK_ADEDI_GOSTER=true;
 
-const CACHE_KEY="kantin_stok_cache_v1";
-const CACHE_TIME_KEY="kantin_stok_cache_time_v1";
-const CACHE_SURESI=10*60*1000;
+const CACHE_KEY="kantin_stok_cache_v5";
+const CACHE_TIME_KEY="kantin_stok_cache_time_v5";
+const CACHE_SURESI=0;
+
+// Admin panelden yapılan değişiklikler hemen görünsün diye eski cihaz önbelleklerini temizler.
+try{
+  [
+    "kantin_stok_cache_v1",
+    "kantin_stok_cache_time_v1",
+    "kantin_stok_cache_v2",
+    "kantin_stok_cache_time_v2",
+    "kantin_stok_cache_v3",
+    "kantin_stok_cache_time_v3"
+  ].forEach(k=>localStorage.removeItem(k));
+}catch(e){}
 
 const app=initializeApp(firebaseConfig);
 getAnalytics(app);
 const db=getFirestore(app);
+
+try{
+  Object.keys(localStorage).forEach(k=>{
+    if(k.startsWith("kantin_stok_cache")) localStorage.removeItem(k);
+  });
+}catch(e){}
 
 let products=[];
 let yuklendi=false;
@@ -256,8 +276,8 @@ function sayfayiKur(){
           Ürünler gün sonunda güncellenir. Anlık güncellenmez. 
         </p>
 
-        <button class="btn" onclick="stoklariGoster(false)">Stokları Göster</button>
-        <button class="btn btnLight" onclick="stoklariGoster(true)">Yenile</button>
+        <button class="btn" onclick="stoklariGoster(true)">Stokları Göster</button>
+        <button class="btn btnLight" onclick="stoklariGoster(true)">Firebase’den Yenile</button>
 
         <div class="cacheNote" id="cacheNote"></div>
       </div>
@@ -444,7 +464,7 @@ function render(){
   }).join("");
 }
 
-window.stoklariGoster=async function(forceRefresh=false){
+window.stoklariGoster=async function(forceRefresh=true){
   try{
     $("startBox").style.display="none";
     $("filters").style.display="none";
@@ -453,7 +473,7 @@ window.stoklariGoster=async function(forceRefresh=false){
     $("countBadge").textContent="Yükleniyor...";
     $("updateBadge").textContent="Kontrol ediliyor";
 
-    const cached=forceRefresh ? null : cacheOku();
+    const cached=null; // Her açılışta Firebase okunur; eski liste gösterilmez.
 
     if(cached && Array.isArray(cached.products)){
       products=cached.products;
@@ -468,11 +488,26 @@ window.stoklariGoster=async function(forceRefresh=false){
 
     $("updateBadge").textContent="Firestore okunuyor";
 
+    let aktifListeId="";
+    try{
+      const metaSnap=await getDoc(doc(db,"stok_meta","aktif_liste"));
+      if(metaSnap.exists()){
+        aktifListeId=String(metaSnap.data().listeId||"").trim();
+      }
+    }catch(metaErr){
+      console.warn("Aktif liste bilgisi okunamadı",metaErr);
+    }
+
     const snap=await getDocs(collection(db,"stok_urunleri"));
 
     products=snap.docs
       .map(d=>({id:d.id,...d.data()}))
-      .filter(p=>p.aktif!==false)
+      .filter(p=>{
+        if(aktifListeId){
+          return p.aktif===true && String(p.listeId||"")===aktifListeId;
+        }
+        return p.aktif===true;
+      })
       .sort((a,b)=>String(a.ad||"").localeCompare(String(b.ad||""),"tr"));
 
     const cacheData={
@@ -484,7 +519,7 @@ window.stoklariGoster=async function(forceRefresh=false){
 
     yuklendi=true;
 
-    $("updateBadge").textContent="Son güncelleme: "+fmtDateFromMs(cacheData.time);
+    $("updateBadge").textContent="Firebase’den güncellendi: "+fmtDateFromMs(cacheData.time);
 
     filtreleriAktifEt();
     render();
