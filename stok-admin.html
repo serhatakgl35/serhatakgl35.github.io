@@ -151,6 +151,7 @@
       collection,
       doc,
       getDoc,
+      getDocs,
       writeBatch,
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -171,6 +172,15 @@
     let products = [];
     let currentUser = null;
     let isAdmin = false;
+
+    /*
+      GÖRSEL KORUMA AYARI
+      false = Excel yüklerken mevcut Firestore görsellerini ezmez.
+      Böylece tabloya yeni satır/ürün eklenince görsel sırası kaysa bile eski ürünlerin görselleri bozulmaz.
+      Yeni ürünlerde mevcut görsel olmadığı için Excel'deki Görsel URL yine yazılır.
+      Bir ürünün görselini özellikle değiştirmek istersen bu değeri geçici olarak true yapıp tekrar aktarabilirsin.
+    */
+    const EXCEL_GORSEL_URL_MEVCUT_GORSELI_EZSIN = false;
 
     const $ = id => document.getElementById(id);
 
@@ -237,6 +247,53 @@
       if (q <= 0) return ["yok", "TÜKENDİ"];
       if (q <= 5) return ["az", "AZ KALDI"];
       return ["ok", "STOKTA VAR"];
+    }
+
+    async function mevcutGorselHaritasiGetir() {
+      const map = new Map();
+
+      try {
+        const snap = await getDocs(collection(db, "stok_urunleri"));
+
+        snap.docs.forEach(d => {
+          const data = d.data() || {};
+          const img = String(data.gorselUrl || "").trim();
+
+          if (!img) return;
+
+          map.set("id:" + d.id, img);
+
+          if (data.barkod) {
+            map.set("barkod:" + key(data.barkod), img);
+          }
+
+          if (data.ad) {
+            map.set("ad:" + key(data.ad), img);
+          }
+        });
+
+        log("Mevcut görseller korumaya alındı: " + map.size + " eşleşme");
+      } catch (e) {
+        log("Mevcut görseller okunamadı. Aktarım yine devam eder: " + e.message);
+      }
+
+      return map;
+    }
+
+    function guvenliGorselUrl(p, mevcutMap) {
+      const excelImg = String(p.gorselUrl || "").trim();
+
+      if (EXCEL_GORSEL_URL_MEVCUT_GORSELI_EZSIN && excelImg) {
+        return excelImg;
+      }
+
+      const onceki =
+        mevcutMap.get("id:" + p.id) ||
+        (p.barkod ? mevcutMap.get("barkod:" + key(p.barkod)) : "") ||
+        mevcutMap.get("ad:" + key(p.ad)) ||
+        "";
+
+      return onceki || excelImg || "";
     }
 
     async function checkAdminByUid(user) {
@@ -492,15 +549,20 @@
       }
 
       try {
+        const mevcutGorseller = await mevcutGorselHaritasiGetir();
+
         let batch = writeBatch(db);
         let count = 0;
         let total = 0;
 
         for (const p of products) {
+          const korunmusGorselUrl = guvenliGorselUrl(p, mevcutGorseller);
+
           batch.set(
             doc(collection(db, "stok_urunleri"), p.id),
             {
               ...p,
+              gorselUrl: korunmusGorselUrl,
               updatedAt: serverTimestamp(),
               updatedByUid: currentUser.uid,
               updatedByEmail: currentUser.email || ""
@@ -522,6 +584,7 @@
         if (count) await batch.commit();
 
         log("Tamamlandı. Toplam aktarılan ürün: " + total);
+        log("Not: Mevcut ürünlerin görselleri korundu. Yeni ürünlerde Excel'deki Görsel URL kullanıldı.");
         alert("Stok aktarımı tamamlandı.");
       } catch (e) {
         console.error(e);
