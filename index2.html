@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Giriş</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#f5f5f7;
+  --text:#111;
+  --muted:#666;
+  --card:#fff;
+  --dark:#111;
+  --shadow:0 18px 55px rgba(0,0,0,.10);
+  --soft:0 8px 25px rgba(0,0,0,.08);
+  --r:26px;
+}
+body{
+  margin:0;
+  min-height:100vh;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(255,255,255,.95), transparent 32%),
+    radial-gradient(circle at 80% 0%, rgba(225,229,238,.9), transparent 35%),
+    var(--bg);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif;
+}
+.topbar{
+  position:sticky;top:0;z-index:20;
+  background:rgba(17,17,17,.94);
+  color:white;
+  padding:14px 18px;
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+  box-shadow:0 4px 18px rgba(0,0,0,.18);
+  backdrop-filter:blur(16px);
+}
+.topbar a,.topbar button{
+  background:white;color:#111;text-decoration:none;border:0;
+  border-radius:999px;padding:9px 15px;font-weight:900;cursor:pointer;
+}
+.wrap{width:min(1180px,100%);margin:28px auto;padding:0 16px}
+.centerWrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.card{
+  background:rgba(255,255,255,.88);
+  border-radius:var(--r);
+  padding:24px;
+  box-shadow:var(--shadow);
+  backdrop-filter:blur(18px);
+  margin-bottom:18px;
+}
+.loginCard{width:100%;max-width:430px}
+.logo{
+  width:62px;height:62px;border-radius:20px;background:#111;color:white;
+  display:flex;align-items:center;justify-content:center;font-size:28px;
+  margin:0 auto 16px;
+}
+h1{font-size:30px;margin:0 0 10px;font-weight:950;letter-spacing:-.5px}
+h2,h3{margin-top:0}
+p{color:var(--muted);line-height:1.45}
+label{font-weight:800;font-size:14px;display:block;margin:0 0 6px}
+input,select{
+  width:100%;
+  padding:14px;
+  border-radius:16px;
+  border:1px solid rgba(0,0,0,.10);
+  margin-bottom:14px;
+  font-size:16px;
+  background:#f0f2f6;
+  outline:none;
+}
+input:focus,select:focus{border-color:#111;background:white}
+button.main,.btnMain{
+  width:100%;
+  display:block;
+  text-align:center;
+  background:#111;
+  color:white;
+  border:0;
+  border-radius:17px;
+  padding:15px 16px;
+  font-weight:950;
+  font-size:16px;
+  cursor:pointer;
+  text-decoration:none;
+}
+button.main:disabled{opacity:.55;cursor:not-allowed}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+.menuGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+.menuCard{
+  background:white;border-radius:28px;padding:26px;text-decoration:none;color:#111;
+  box-shadow:var(--shadow);transition:.18s transform,.18s box-shadow;
+}
+.menuCard:hover{transform:translateY(-3px);box-shadow:0 22px 65px rgba(0,0,0,.13)}
+.menuIcon{
+  width:58px;height:58px;border-radius:20px;background:#111;color:white;
+  display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:14px;
+}
+.muted{color:var(--muted);font-size:14px}
+.msg{margin-top:12px;color:#c62828;font-weight:800;text-align:center;min-height:20px}
+.iban{
+  background:#f5f5f7;
+  border-radius:18px;
+  padding:16px;
+  font-size:18px;
+  font-weight:950;
+  word-break:break-word;
+}
+.status{display:inline-block;padding:8px 13px;border-radius:999px;font-weight:950;font-size:13px;white-space:nowrap}
+.odendi{background:#dcfce7;color:#166534}
+.bekliyor{background:#fef3c7;color:#92400e}
+.reddedildi{background:#fee2e2;color:#991b1b}
+.tableWrap{overflow:auto;border-radius:18px}
+table{width:100%;border-collapse:collapse;background:white}
+th,td{padding:13px 14px;border-bottom:1px solid #eee;text-align:left;font-size:14px;vertical-align:middle}
+th{background:#f8f8f8;font-weight:950}
+.small{
+  background:#111;color:white;border:0;border-radius:12px;
+  padding:9px 11px;font-weight:900;cursor:pointer;margin:2px;
+}
+.green{background:#15803d}.red{background:#b91c1c}.gray{background:#4b5563}
+.tutarInput{width:95px!important;padding:8px!important;border-radius:10px!important;margin:0!important}
+.hide{display:none!important}
+
+.forgotToggle{
+  margin-top:14px;
+  text-align:center;
+}
+.forgotToggle button{
+  background:transparent;
+  color:#111;
+  border:0;
+  font-weight:900;
+  cursor:pointer;
+  text-decoration:underline;
+  font-size:14px;
+  padding:8px;
+}
+.forgotBox{
+  display:none;
+  margin-top:16px;
+  padding:16px;
+  border-radius:20px;
+  background:rgba(245,245,247,.95);
+  border:1px solid rgba(0,0,0,.08);
+}
+.forgotBox.show{display:block}
+.forgotTitle{
+  margin:0 0 8px;
+  font-size:18px;
+  font-weight:950;
+  letter-spacing:-.2px;
+}
+.forgotInfo{
+  margin:0 0 14px;
+  color:var(--muted);
+  font-size:13px;
+}
+.forgotMsg{
+  margin-top:10px;
+  min-height:20px;
+  font-weight:900;
+  text-align:center;
+  color:#111;
+}
+.forgotMsg.err{color:#c62828}
+.forgotMsg.ok{color:#166534}
+
+@media(max-width:720px){
+  h1{font-size:25px}
+  .wrap{padding:0 10px}
+  .card{padding:18px;border-radius:22px}
+  th,td{font-size:13px;padding:10px}
+}
+</style>
+</head>
+<body>
+<div class="centerWrap">
+  <div class="card loginCard">
+    <div class="logo">✂️</div>
+    <h1 style="text-align:center">Giriş Yap</h1>
+    <p style="text-align:center">Telefon ve şifre ile giriş yap</p>
+
+    <label>Telefon</label>
+    <input type="tel" id="tel" placeholder="05XXXXXXXXX" autocomplete="tel">
+
+    <label>Şifre</label>
+    <input type="password" id="sifre" autocomplete="current-password">
+
+    <button class="main" id="btn">Giriş Yap</button>
+
+    <div class="grid" style="margin-top:14px;grid-template-columns:1fr 1fr">
+      <a class="btnMain" style="background:white;color:#111;border:1px solid rgba(0,0,0,.12)" href="kayit.html">Kayıt Ol</a>
+      <a class="btnMain" style="background:white;color:#111;border:1px solid rgba(0,0,0,.12)" href="istatistik.html">İstatistik</a>
+    </div>
+
+    <div class="forgotToggle">
+      <button type="button" id="forgotToggleBtn">Şifremi Unuttum</button>
+    </div>
+
+    <div id="forgotBox" class="forgotBox">
+      <div class="forgotTitle">Şifre Sıfırlama</div>
+      <p class="forgotInfo">Sadece sistemde kayıtlı ve onaylı üyeler doğrulama kodu alabilir.</p>
+
+      <label>Telefon</label>
+      <input type="tel" id="forgotTel" placeholder="05XXXXXXXXX" autocomplete="tel">
+
+      <button class="main" type="button" id="forgotSendBtn">Doğrulama Kodu Gönder</button>
+
+      <div id="forgotCodeArea" style="display:none;margin-top:14px;">
+        <label>Doğrulama Kodu</label>
+        <input type="text" id="forgotCode" placeholder="6 haneli kod" inputmode="numeric" maxlength="6">
+
+        <label>Yeni Şifre</label>
+        <input type="password" id="forgotNewPass" placeholder="Yeni şifre" autocomplete="new-password">
+
+        <button class="main" type="button" id="forgotVerifyBtn">Şifreyi Değiştir</button>
+      </div>
+
+      <div id="forgotMsg" class="forgotMsg"></div>
+    </div>
+
+    <div id="msg" class="msg"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+
+const firebaseConfig = {
+  apiKey:"AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",
+  authDomain:"berber-randevu-14f7f.firebaseapp.com",
+  projectId:"berber-randevu-14f7f",
+  storageBucket: "berber-randevu-14f7f.firebasestorage.app",
+  messagingSenderId: "280530860977",
+  appId: "1:280530860977:web:52c0df04c228896f211b90",
+  measurementId: "G-NK6DBBQQNZ"};
+
+
+const app = initializeApp(firebaseConfig);
+getAnalytics(app);
+const db = getFirestore(app);
+
+const telInput = document.getElementById("tel");
+const sifreInput = document.getElementById("sifre");
+const btn = document.getElementById("btn");
+const msg = document.getElementById("msg");
+
+// ŞİFREMİ UNUTTUM / SMS WEB APP
+// Bu URL, daha önce çalışan Google Apps Script Web App URL adresindir.
+// Apps Script tarafında action=sifreKodGonder ve action=sifreKodDogrula işlemleri bulunmalıdır.
+const SMS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw32Q03nQD1FJ9iSz2LgpB2S_QEzAdSSeLK1K3IIRI39eqOXowlloGVjYRGuoezqrFLlQ/exec";
+
+const forgotToggleBtn = document.getElementById("forgotToggleBtn");
+const forgotBox = document.getElementById("forgotBox");
+const forgotTelInput = document.getElementById("forgotTel");
+const forgotSendBtn = document.getElementById("forgotSendBtn");
+const forgotVerifyBtn = document.getElementById("forgotVerifyBtn");
+const forgotCodeArea = document.getElementById("forgotCodeArea");
+const forgotCodeInput = document.getElementById("forgotCode");
+const forgotNewPassInput = document.getElementById("forgotNewPass");
+const forgotMsg = document.getElementById("forgotMsg");
+
+function formatTel(v){
+  v = String(v || "").replace(/\D/g,"");
+  if(!v) return "";
+  if(v.startsWith("90")) v = v.slice(2);
+  if(!v.startsWith("0")) v = "0" + v;
+  return v.slice(0,11);
+}
+
+telInput.addEventListener("input",(e)=>{
+  const eski=e.target.value;
+  const yeni=formatTel(eski);
+  if(eski===yeni) return;
+  e.target.value=yeni;
+  requestAnimationFrame(()=>e.target.setSelectionRange(yeni.length,yeni.length));
+});
+
+telInput.addEventListener("paste",(e)=>{
+  e.preventDefault();
+  const data=(e.clipboardData || window.clipboardData).getData("text");
+  const temiz=formatTel(data);
+  telInput.value=temiz;
+  requestAnimationFrame(()=>telInput.setSelectionRange(temiz.length,temiz.length));
+});
+
+function setForgotMsg(text, type){
+  forgotMsg.textContent = text || "";
+  forgotMsg.classList.remove("err","ok");
+  if(type) forgotMsg.classList.add(type);
+}
+
+function normalizeTel10(v){
+  v = String(v || "").replace(/\D/g,"");
+  if(v.startsWith("90")) v = v.slice(2);
+  if(v.startsWith("0")) v = v.slice(1);
+  return v.slice(0,10);
+}
+
+forgotToggleBtn.addEventListener("click",()=>{
+  forgotBox.classList.toggle("show");
+  setForgotMsg("", "");
+  if(forgotBox.classList.contains("show")){
+    forgotTelInput.value = telInput.value || "";
+    setTimeout(()=>forgotTelInput.focus(),50);
+  }
+});
+
+forgotTelInput.addEventListener("input",(e)=>{
+  const eski=e.target.value;
+  const yeni=formatTel(eski);
+  if(eski===yeni) return;
+  e.target.value=yeni;
+  requestAnimationFrame(()=>e.target.setSelectionRange(yeni.length,yeni.length));
+});
+
+forgotTelInput.addEventListener("paste",(e)=>{
+  e.preventDefault();
+  const data=(e.clipboardData || window.clipboardData).getData("text");
+  const temiz=formatTel(data);
+  forgotTelInput.value=temiz;
+  requestAnimationFrame(()=>forgotTelInput.setSelectionRange(temiz.length,temiz.length));
+});
+
+forgotCodeInput.addEventListener("input",(e)=>{
+  e.target.value = String(e.target.value || "").replace(/\D/g,"").slice(0,6);
+});
+
+async function sifreKodGonder(){
+  const tel11 = formatTel(forgotTelInput.value.trim());
+  const tel10 = normalizeTel10(tel11);
+  setForgotMsg("", "");
+
+  if(!tel11 || tel11.length !== 11 || tel10.length !== 10){
+    setForgotMsg("Telefon hatalı", "err");
+    return;
+  }
+
+  forgotSendBtn.disabled = true;
+  forgotSendBtn.textContent = "Kontrol ediliyor...";
+
+  try{
+    const res = await fetch(SMS_WEB_APP_URL, {
+      method:"POST",
+      body:JSON.stringify({
+        action:"sifreKodGonder",
+        telefon:tel10
+      })
+    });
+
+    const data = await res.json();
+
+    if(data.success){
+      forgotCodeArea.style.display = "block";
+      setForgotMsg(data.message || "Telefon kayıtlıysa doğrulama kodu gönderilecektir.", "ok");
+      setTimeout(()=>forgotCodeInput.focus(),80);
+    }else{
+      setForgotMsg(data.message || "Kod gönderilemedi.", "err");
+    }
+  }catch(e){
+    console.error(e);
+    setForgotMsg("Bağlantı hatası oluştu.", "err");
+  }finally{
+    forgotSendBtn.disabled = false;
+    forgotSendBtn.textContent = "Doğrulama Kodu Gönder";
+  }
+}
+
+async function sifreKodDogrula(){
+  const tel11 = formatTel(forgotTelInput.value.trim());
+  const tel10 = normalizeTel10(tel11);
+  const kod = String(forgotCodeInput.value || "").trim();
+  const yeniSifre = String(forgotNewPassInput.value || "").trim();
+  setForgotMsg("", "");
+
+  if(!tel11 || tel11.length !== 11 || tel10.length !== 10){
+    setForgotMsg("Telefon hatalı", "err");
+    return;
+  }
+
+  if(kod.length !== 6){
+    setForgotMsg("6 haneli doğrulama kodunu gir.", "err");
+    return;
+  }
+
+  if(yeniSifre.length < 4){
+    setForgotMsg("Yeni şifre en az 4 karakter olsun.", "err");
+    return;
+  }
+
+  forgotVerifyBtn.disabled = true;
+  forgotVerifyBtn.textContent = "Kontrol...";
+
+  try{
+    const res = await fetch(SMS_WEB_APP_URL, {
+      method:"POST",
+      body:JSON.stringify({
+        action:"sifreKodDogrula",
+        telefon:tel10,
+        kod:kod,
+        yeniSifre:yeniSifre
+      })
+    });
+
+    const data = await res.json();
+
+    if(data.success){
+      setForgotMsg(data.message || "Şifre başarıyla değiştirildi.", "ok");
+      sifreInput.value = yeniSifre;
+      telInput.value = tel11;
+      forgotCodeInput.value = "";
+      forgotNewPassInput.value = "";
+      setTimeout(()=>{
+        forgotBox.classList.remove("show");
+        msg.textContent = "Şifre değiştirildi. Giriş yapabilirsin.";
+      },900);
+    }else{
+      setForgotMsg(data.message || "Kod doğrulanamadı.", "err");
+    }
+  }catch(e){
+    console.error(e);
+    setForgotMsg("Bağlantı hatası oluştu.", "err");
+  }finally{
+    forgotVerifyBtn.disabled = false;
+    forgotVerifyBtn.textContent = "Şifreyi Değiştir";
+  }
+}
+
+forgotSendBtn.onclick = sifreKodGonder;
+forgotVerifyBtn.onclick = sifreKodDogrula;
+forgotNewPassInput.addEventListener("keydown",e=>{ if(e.key==="Enter") sifreKodDogrula(); });
+
+async function login(){
+  const tel = formatTel(telInput.value.trim());
+  const sifre = sifreInput.value.trim();
+  msg.textContent="";
+
+  if(!tel || tel.length !== 11){ msg.textContent="Telefon hatalı"; return; }
+  if(!sifre){ msg.textContent="Şifre gir"; return; }
+
+  btn.disabled=true;
+  btn.textContent="Kontrol...";
+
+  try{
+    const ref = doc(db,"personeller",tel);
+    const snap = await getDoc(ref);
+
+    if(!snap.exists()){ msg.textContent="Kayıt yok"; return; }
+
+    const data = snap.data();
+
+    const durum = String(data.durum || "").toLocaleLowerCase("tr-TR");
+    const aktifMi = data.aktif === true || data.active === true || durum === "aktif";
+
+    if(!aktifMi){
+      msg.textContent = "Hesabınız yönetici onayı bekliyor.";
+      alert("Hesabınız yönetici onayı bekliyor. Yönetici onayından sonra giriş yapabilirsiniz.");
+      return;
+    }
+
+    if(String(data.sifre || data.password || data.pass || "") !== String(sifre)){
+      msg.textContent="Şifre yanlış";
+      return;
+    }
+
+    localStorage.setItem("musteriGiris","true");
+    localStorage.setItem("musteriTelefon",tel);
+    localStorage.setItem("musteriAd",data.isim || data.adSoyad || data.ad || data.name || "");
+    localStorage.setItem("personelDocId",tel);
+
+    location.href="panel.html";
+  }catch(e){
+    msg.textContent="Hata oluştu";
+    console.error(e);
+  }finally{
+    btn.disabled=false;
+    btn.textContent="Giriş Yap";
+  }
+}
+
+btn.onclick=login;
+sifreInput.addEventListener("keydown",e=>{ if(e.key==="Enter") login(); });
+</script>
+</body>
+</html>
