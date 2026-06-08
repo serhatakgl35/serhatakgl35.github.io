@@ -542,6 +542,10 @@
       }
     });
 
+    function yeniYuklemeId(){
+      return "stok_" + Date.now() + "_" + Math.random().toString(36).slice(2,8);
+    }
+
     $("uploadBtn").onclick = async () => {
       if (!currentUser || !isAdmin) {
         alert("Admin girişi gerekli.");
@@ -555,7 +559,46 @@
       }
 
       try {
+        const yuklemeId = yeniYuklemeId();
+        log("Yeni aktif liste ID: " + yuklemeId);
+
         const mevcutGorseller = await mevcutGorselHaritasiGetir();
+
+        // ÖNEMLİ: Excel dosyasında olmayan eski ürünler Firestore'da kalmasın diye
+        // önce stok_urunleri koleksiyonundaki tüm ürünleri pasif yapıyoruz.
+        // Sonra yüklenen Excel ürünlerini aktif:true olarak tekrar yazıyoruz.
+        // stok.html aktif:false olan ürünleri göstermez.
+        log("Mevcut stok kayıtları pasife alınıyor...");
+        const eskiSnap = await getDocs(collection(db, "stok_urunleri"));
+        let pasifBatch = writeBatch(db);
+        let pasifCount = 0;
+        let pasifTotal = 0;
+
+        for (const eskiDoc of eskiSnap.docs) {
+          pasifBatch.set(
+            doc(db, "stok_urunleri", eskiDoc.id),
+            {
+              aktif: false,
+              pasifAt: serverTimestamp(),
+              pasifByUid: currentUser.uid,
+              pasifByEmail: currentUser.email || ""
+            },
+            { merge: true }
+          );
+
+          pasifCount++;
+          pasifTotal++;
+
+          if (pasifCount === 450) {
+            await pasifBatch.commit();
+            pasifBatch = writeBatch(db);
+            pasifCount = 0;
+            log(pasifTotal + " eski kayıt pasife alındı...");
+          }
+        }
+
+        if (pasifCount) await pasifBatch.commit();
+        log("Pasife alınan eski kayıt: " + pasifTotal);
 
         let batch = writeBatch(db);
         let count = 0;
@@ -568,6 +611,8 @@
             doc(collection(db, "stok_urunleri"), p.id),
             {
               ...p,
+              aktif: true,
+              listeId: yuklemeId,
               gorselUrl: korunmusGorselUrl,
               updatedAt: serverTimestamp(),
               updatedByUid: currentUser.uid,
@@ -583,16 +628,35 @@
             await batch.commit();
             batch = writeBatch(db);
             count = 0;
-            log(total + " ürün aktarıldı...");
+            log(total + " ürün aktif olarak aktarıldı...");
           }
         }
 
         if (count) await batch.commit();
 
-        log("Tamamlandı. Toplam aktarılan ürün: " + total);
+        try {
+          const metaBatch = writeBatch(db);
+          metaBatch.set(
+            doc(db, "stok_meta", "aktif_liste"),
+            {
+              listeId: yuklemeId,
+              aktifUrunSayisi: total,
+              updatedAt: serverTimestamp(),
+              updatedByUid: currentUser.uid,
+              updatedByEmail: currentUser.email || ""
+            },
+            { merge: true }
+          );
+          await metaBatch.commit();
+          log("Aktif liste bilgisi yazıldı: stok_meta/aktif_liste");
+        } catch(metaErr) {
+          log("UYARI: stok_meta/aktif_liste yazılamadı. Aktif:false sistemi yine çalışır. Hata: " + metaErr.message);
+        }
+
+        log("Tamamlandı. Excel'den aktif aktarılan ürün: " + total);
         log("Firestore koleksiyonu: stok_urunleri");
-        log("Not: Mevcut ürünlerin görselleri korundu. Yeni ürünlerde Excel'deki Görsel URL kullanıldı.");
-        alert("Stok aktarımı tamamlandı. Toplam aktarılan ürün: " + total);
+        log("Not: Excel'de olmayan eski ürünler pasif yapıldı. stok.html onları göstermez.");
+        alert("Stok aktarımı tamamlandı. Aktif ürün: " + total + " / Pasife alınan eski kayıt: " + pasifTotal);
       } catch (e) {
         console.error(e);
         alert("Aktarım hatası: " + e.message);
