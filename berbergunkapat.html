@@ -4,8 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Berber Haftalık Takvim</title>
-
-<script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=nPW-sH37JDgmURZT9xWOp0mcDA2M9Kykc1ucfs8HtrIZtrOwT-htFyU-LiHnH6-WaEeQQINlwVP_8LwlKXjaAodOgpUFJ4-SHRiwL-CmiQECHJBPfrh9Blt9TTL_AXsEjpd5XnOke7Z-Tc9ORa_j0JKxVzQovmyTRTL7kzZBsnIHBbrRweQNXHoBRplamT-f8_GTMpk9E4YSDfWj_t3Co9FbTR6YEG0fsqsNPrLol6NzjnLx7lvjXGrMUMKETlFfeacPzC8E3H7lnUdqMiivpXiik9MxBlPoPmtTbsj_q5bYy1ze9SOEToKR0KnQGDVgpwrCkPPcsN6fM362YEaIiw" charset="UTF-8"></script><style>
+<style>
 *{box-sizing:border-box}
 
 body{
@@ -216,7 +215,16 @@ bottom:34px;
 @media(max-width:700px){
 body{padding:10px}
 .topbar{flex-direction:column;align-items:flex-start;gap:10px}
-.controls .btn{width:100%}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.controls .btn{width:100%;padding:10px 8px}
+.panel{padding:12px;border-radius:18px}
+.table-wrap{-webkit-overflow-scrolling:touch}
+table{min-width:720px}
+th,td{padding:6px 3px}
+.saat{width:62px;font-size:13px}
+.isim{font-size:11px}
+.mini{font-size:9px}
+.etiket{font-size:8px;padding:3px 6px}
 }
 </style>
 </head>
@@ -265,11 +273,14 @@ import {
   getFirestore,
   collection,
   getDocs,
+  getDoc,
   doc,
   setDoc,
   deleteDoc,
   updateDoc,
-  serverTimestamp
+  serverTimestamp,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -559,29 +570,80 @@ async function verileriAl(){
   kapaliGunler = {};
   kapaliSaatler = {};
 
-  const rSnap = await getDocs(collection(db,"randevular"));
-  rSnap.forEach(x=>{
-    const r = normalize(x.data(),x.id);
+  const gunler = haftaGunleri(aktifHafta);
+  const haftaBas = tarihKey(gunler[0]);
+  const haftaBit = tarihKey(gunler[4]);
 
-    if(r.durum === "iptal" || r.durum === "cancelled" || r.durum === "canceled") return;
+  // HIZLANDIRMA:
+  // Eskiden bütün randevular / kapalı günler / kapalı saatler çekiliyordu.
+  // Telefonda yavaş açılmasının ana sebebi buydu.
+  // Artık sadece ekranda görünen haftanın verisi okunuyor.
 
-    if(r.tarih && r.saat && r.ad && r.telefon){
-      randevular.push(r);
+  const randevuMap = new Map();
+  const tarihAlanlari = ["tarih", "date", "kayitTarih"];
+
+  const randevuSorgulari = tarihAlanlari.map(async alan => {
+    try{
+      const q = query(
+        collection(db,"randevular"),
+        where(alan, ">=", haftaBas),
+        where(alan, "<=", haftaBit)
+      );
+
+      const snap = await getDocs(q);
+      snap.forEach(x=>{
+        if(randevuMap.has(x.id)) return;
+
+        const r = normalize(x.data(),x.id);
+        if(r.durum === "iptal" || r.durum === "cancelled" || r.durum === "canceled") return;
+
+        if(r.tarih && r.saat && r.ad && r.telefon){
+          randevuMap.set(x.id,r);
+        }
+      });
+    }catch(e){
+      console.warn("Randevu haftalık sorgu başarısız:", alan, e);
     }
   });
 
-  const gSnap = await getDocs(collection(db,"kapali_gunler"));
-  gSnap.forEach(x=>{
-    kapaliGunler[x.id] = true;
+  await Promise.all(randevuSorgulari);
+  randevular = Array.from(randevuMap.values());
+
+  // Kapalı günler: belge ID'si tarih olduğu için sadece 5 gün okunuyor.
+  await Promise.all(gunler.map(async g=>{
+    const t = tarihKey(g);
+    try{
+      const ref = doc(db,"kapali_gunler",t);
+      const snap = await getDoc(ref);
+      if(snap.exists()) kapaliGunler[t] = true;
+    }catch(e){
+      console.warn("Kapalı gün okunamadı:", t, e);
+    }
+  }));
+
+  // Kapalı saatler: belge ID'si tarih_saat olduğu için sadece 5 gün x 8 saat okunuyor.
+  const saatOkumalari = [];
+  gunler.forEach(g=>{
+    const t = tarihKey(g);
+    SAATLER.forEach(saat=>{
+      const id = t + "_" + saat.replace(":","-");
+      saatOkumalari.push((async()=>{
+        try{
+          const snap = await getDoc(doc(db,"kapali_saatler",id));
+          if(snap.exists()){
+            const d = snap.data() || {};
+            const ktarih = d.tarih || t;
+            const ksaat = d.saat || saat;
+            kapaliSaatler[ktarih+"_"+ksaat] = snap.id;
+          }
+        }catch(e){
+          console.warn("Kapalı saat okunamadı:", id, e);
+        }
+      })());
+    });
   });
 
-  const sSnap = await getDocs(collection(db,"kapali_saatler"));
-  sSnap.forEach(x=>{
-    const d = x.data();
-    if(d.tarih && d.saat){
-      kapaliSaatler[d.tarih+"_"+d.saat] = x.id;
-    }
-  });
+  await Promise.all(saatOkumalari);
 }
 
 function takvimCiz(){
