@@ -1638,17 +1638,12 @@ liste.addEventListener("click", async function(e){
           time: kayitSaat(silinecek)
         };
 
-        try{
-          const smsSonuc = await smsGonder([iptalData.phone], randevuIptalSmsMesaji(iptalData));
-          console.log("Randevu iptal SMS sonucu:", smsSonuc);
-        }catch(smsErr){
-          console.warn("Randevu iptal SMS gönderilemedi:", smsErr);
-        }
-
+        // Randevu silinince SMS gönderimi iptal edildi.
+        // Sadece Telegram bildirimi gönderilir.
         await telegramMesajGonder(iptalTelegramMesaji(iptalData));
       }
 
-      toastGoster("✅ Randevu silindi. SMS gönderimi denendi.");
+      toastGoster("✅ Randevu silindi.");
       await sistemiYenile();
     }catch(err){
       console.error(err);
