@@ -295,6 +295,8 @@ tr:last-child td{border-bottom:0}
 .action-btn.waiting{background:#f97316}
 .action-btn.passive{background:#b91c1c}
 .action-btn.delete{background:#374151}
+.action-btn.reset{background:#7c3aed}
+.action-btn.phone{background:#0f766e}
 
 .empty{
   text-align:center;
@@ -408,7 +410,7 @@ tr:last-child td{border-bottom:0}
 
   <section class="hero">
     <h1>Personel Üyelik Onayları</h1>
-    <p>Yeni kayıt olan personelleri buradan görebilir, üyelik durumlarını aktif, beklemede veya pasif yapabilirsin.</p>
+    <p>Yeni kayıt olan personelleri buradan görebilir, üyelik durumlarını aktif, beklemede veya pasif yapabilir; şifre sıfırlama ve iletişim telefonu güncelleme işlemlerini yapabilirsin.</p>
   </section>
 
   <section class="summary">
@@ -478,7 +480,7 @@ tr:last-child td{border-bottom:0}
     </div>
 
     <p class="small-muted">
-      Not: Onay verilen personel giriş sayfasından sisteme girebilir. Beklemede veya pasif olan personel giriş yapamaz.
+      Not: Onay verilen personel giriş sayfasından sisteme girebilir. Beklemede veya pasif olan personel giriş yapamaz. Telefon güncelleme işlemi sadece iletişim bilgisini değiştirir; personelin belge ID'si aynı kalır.
     </p>
   </section>
 
@@ -528,6 +530,17 @@ function escapeHTML(v){
     .replaceAll(">","&gt;")
     .replaceAll('"',"&quot;")
     .replaceAll("'","&#039;");
+}
+
+function telefonTemizle(v){
+  let t = String(v || "").replace(/\D/g, "");
+  if(t.startsWith("90")) t = "0" + t.slice(2);
+  if(t.length === 10) t = "0" + t;
+  return t.slice(0, 11);
+}
+
+function sifreGecerliMi(sifre){
+  return String(sifre || "").trim().length >= 4;
 }
 
 function adSoyadGetir(p){
@@ -714,6 +727,8 @@ function listeyiCiz(){
           <div class="actions">
             <button class="action-btn approve" onclick="durumDegistir('${escapeHTML(p.id)}','aktif')">Onayla</button>
             <button class="action-btn edit" onclick="personelAdDuzenle('${escapeHTML(p.id)}')">İsim Düzenle</button>
+            <button class="action-btn phone" onclick="telefonGuncelle('${escapeHTML(p.id)}')">Telefon Güncelle</button>
+            <button class="action-btn reset" onclick="sifreSifirla('${escapeHTML(p.id)}')">Şifre Sıfırla</button>
             <button class="action-btn waiting" onclick="durumDegistir('${escapeHTML(p.id)}','beklemede')">Beklet</button>
             <button class="action-btn passive" onclick="durumDegistir('${escapeHTML(p.id)}','pasif')">Pasif</button>
             <button class="action-btn delete" onclick="personelSil('${escapeHTML(p.id)}')">Sil</button>
@@ -809,6 +824,102 @@ async function personelAdDuzenle(id){
   }catch(e){
     console.error(e);
     mesajYaz("err", "Ad soyad güncellenemedi. Firebase izinlerini kontrol et.");
+  }
+}
+
+async function telefonGuncelle(id){
+  if(!id) return;
+
+  const p = personeller.find(x => x.id === id);
+  if(!p){
+    mesajYaz("err", "Personel bulunamadı.");
+    return;
+  }
+
+  const mevcutTelefon = telefonTemizle(p.telefon || p.phone || p.iletisimTelefonu || "");
+  const yeniTelefonRaw = prompt(
+    "Yeni iletişim telefon numarasını yaz:\n\nNot: Bu işlem belge ID'sini değiştirmez. Sadece iletişim telefonu alanını günceller.",
+    mevcutTelefon || ""
+  );
+
+  if(yeniTelefonRaw === null) return;
+
+  const yeniTelefon = telefonTemizle(yeniTelefonRaw);
+
+  if(yeniTelefon.length !== 11 || !yeniTelefon.startsWith("05")){
+    mesajYaz("err", "Telefon numarası 05 ile başlayan 11 haneli olmalı.");
+    return;
+  }
+
+  if(!confirm(`${adSoyadGetir(p)} için iletişim telefonu ${yeniTelefon} olarak güncellensin mi?\n\nPersonel ID aynı kalacak: ${id}`)) return;
+
+  try{
+    await updateDoc(doc(db, "personeller", id), {
+      telefon: yeniTelefon,
+      phone: yeniTelefon,
+      iletisimTelefonu: yeniTelefon,
+      updatedAt: new Date().toISOString()
+    });
+
+    p.telefon = yeniTelefon;
+    p.phone = yeniTelefon;
+    p.iletisimTelefonu = yeniTelefon;
+    p.updatedAt = new Date().toISOString();
+
+    listeyiCiz();
+    mesajYaz("ok", "İletişim telefonu güncellendi. Personel ID değiştirilmedi.");
+
+  }catch(e){
+    console.error(e);
+    mesajYaz("err", "Telefon güncellenemedi. Firebase izinlerini kontrol et.");
+  }
+}
+
+async function sifreSifirla(id){
+  if(!id) return;
+
+  const p = personeller.find(x => x.id === id);
+  if(!p){
+    mesajYaz("err", "Personel bulunamadı.");
+    return;
+  }
+
+  const yeniSifre = prompt(
+    `${adSoyadGetir(p)} için yeni geçici şifreyi yaz:\n\nEn az 4 karakter olmalı.`,
+    "123456"
+  );
+
+  if(yeniSifre === null) return;
+
+  const temizSifre = String(yeniSifre).trim();
+
+  if(!sifreGecerliMi(temizSifre)){
+    mesajYaz("err", "Şifre en az 4 karakter olmalı.");
+    return;
+  }
+
+  if(!confirm(`${adSoyadGetir(p)} personelinin şifresi sıfırlansın mı?`)) return;
+
+  try{
+    await updateDoc(doc(db, "personeller", id), {
+      sifre: temizSifre,
+      password: temizSifre,
+      geciciSifre: true,
+      sifreSifirlandi: true,
+      updatedAt: new Date().toISOString()
+    });
+
+    p.sifre = temizSifre;
+    p.password = temizSifre;
+    p.geciciSifre = true;
+    p.sifreSifirlandi = true;
+    p.updatedAt = new Date().toISOString();
+
+    mesajYaz("ok", `Şifre sıfırlandı. Yeni geçici şifre: ${temizSifre}`);
+
+  }catch(e){
+    console.error(e);
+    mesajYaz("err", "Şifre sıfırlanamadı. Firebase izinlerini kontrol et.");
   }
 }
 
@@ -1011,6 +1122,8 @@ window.listeyiCiz = listeyiCiz;
 window.durumDegistir = durumDegistir;
 window.personelSil = personelSil;
 window.personelAdDuzenle = personelAdDuzenle;
+window.telefonGuncelle = telefonGuncelle;
+window.sifreSifirla = sifreSifirla;
 window.pdfExport = pdfExport;
 
 verileriYukle();
