@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personel Paneli</title>
+
+<style>
+*{box-sizing:border-box}
+
+:root{
+  --bg:#f5f5f7;
+  --text:#111;
+  --muted:#6b7280;
+  --shadow:0 18px 60px rgba(0,0,0,.10);
+  --shadow2:0 10px 35px rgba(0,0,0,.08);
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:
+    radial-gradient(circle at top left, rgba(255,255,255,.95), transparent 28%),
+    radial-gradient(circle at top right, rgba(220,224,235,.9), transparent 30%),
+    #f5f5f7;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif;
+  color:var(--text);
+}
+
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:50;
+  background:rgba(17,17,17,.92);
+  backdrop-filter:blur(18px);
+  padding:14px 18px;
+  display:flex;
+  justify-content:center;
+  box-shadow:0 8px 30px rgba(0,0,0,.18);
+}
+
+.topbar button{
+  border:0;
+  background:white;
+  color:#111;
+  border-radius:999px;
+  padding:12px 20px;
+  font-weight:900;
+  cursor:pointer;
+  font-size:15px;
+}
+
+.wrap{
+  width:min(1400px,100%);
+  margin:26px auto;
+  padding:0 18px 40px;
+}
+
+.hero{
+  background:rgba(255,255,255,.82);
+  backdrop-filter:blur(18px);
+  border-radius:38px;
+  padding:38px;
+  box-shadow:var(--shadow);
+  margin-bottom:24px;
+}
+
+.hero h1{
+  margin:0;
+  font-size:64px;
+  font-weight:1000;
+  letter-spacing:-2px;
+}
+
+.hero p{
+  margin-top:16px;
+  color:var(--muted);
+  font-size:22px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:22px;
+}
+
+.card{
+  position:relative;
+  overflow:hidden;
+  border-radius:36px;
+  padding:30px;
+  text-decoration:none;
+  color:#111;
+  min-height:280px;
+  box-shadow:var(--shadow2);
+}
+
+.card::before{
+  content:"";
+  position:absolute;
+  width:180px;
+  height:180px;
+  border-radius:50%;
+  background:rgba(255,255,255,.22);
+  left:-70px;
+  top:-70px;
+}
+
+.card::after{
+  content:"";
+  position:absolute;
+  width:120px;
+  height:120px;
+  border-radius:50%;
+  background:rgba(255,255,255,.14);
+  right:-40px;
+  bottom:-40px;
+}
+
+.cardTop{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:26px;
+  position:relative;
+  z-index:2;
+}
+
+.badge{
+  background:#111;
+  color:white;
+  border-radius:999px;
+  padding:10px 16px;
+  font-size:13px;
+  font-weight:900;
+}
+
+.arrow{
+  width:56px;
+  height:56px;
+  border-radius:18px;
+  background:white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:28px;
+  font-weight:900;
+  box-shadow:0 10px 25px rgba(0,0,0,.10);
+}
+
+.card h2{
+  margin:0 0 14px;
+  font-size:36px;
+  line-height:1.1;
+  letter-spacing:-1px;
+  position:relative;
+  z-index:2;
+}
+
+.card p{
+  margin:0;
+  line-height:1.6;
+  font-size:17px;
+  position:relative;
+  z-index:2;
+}
+
+.card.dark{
+  background:linear-gradient(135deg,#0f172a,#111827,#1e293b);
+  color:white;
+}
+
+.card.dark p{
+  color:rgba(255,255,255,.90);
+}
+
+.card.dark .badge{
+  background:white;
+  color:#111;
+}
+
+.card.dark .arrow{
+  background:rgba(255,255,255,.14);
+  color:white;
+}
+
+.card.blue{
+  background:linear-gradient(135deg,#eef3ff,#e5ecff);
+}
+
+.card.green{
+  background:linear-gradient(135deg,#ecfff1,#dff8e6);
+}
+
+.card.gold{
+  background:linear-gradient(135deg,#fff7ed,#ffedd5);
+}
+
+.maintenanceBadge{
+  background:#ff9f0a !important;
+  color:white !important;
+}
+
+.activeBadge{
+  background:#16a34a !important;
+  color:white !important;
+}
+
+.maintenanceCard{
+  min-height:430px;
+}
+
+.countdownWrapper{
+  margin-top:26px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:24px;
+  padding:14px;
+  position:relative;
+  z-index:2;
+}
+
+.countdownTitle{
+  font-size:13px;
+  opacity:.9;
+  margin-bottom:14px;
+  font-weight:700;
+  letter-spacing:.3px;
+}
+
+.countdownBox{
+  display:flex;
+  gap:12px;
+}
+
+.countItem{
+  flex:1;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:18px;
+  padding:14px 8px;
+  text-align:center;
+}
+
+.countItem span{
+  display:block;
+  font-size:28px;
+  font-weight:1000;
+  color:#ffb020;
+  margin-bottom:4px;
+}
+
+.countItem small{
+  font-size:11px;
+  opacity:.9;
+  letter-spacing:.5px;
+}
+
+
+
+/* PERSONEL PANELİ YILDIZ DERECELENDİRME ANKETİ */
+.anketBox{
+  position:relative;
+  overflow:hidden;
+  margin:0 0 24px;
+  border-radius:34px;
+  background:rgba(255,255,255,.88);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  box-shadow:var(--shadow2);
+  padding:28px;
+  border:1px solid rgba(255,255,255,.78);
+}
+.anketBox.kapanis{
+  opacity:0;
+  transform:translateY(-10px) scale(.98);
+  transition:.28s ease;
+}
+.anketBox::before{
+  content:"";
+  position:absolute;
+  width:230px;
+  height:230px;
+  border-radius:50%;
+  right:-85px;
+  top:-105px;
+  background:linear-gradient(135deg,rgba(245,158,11,.18),rgba(255,255,255,.15));
+}
+.anketHead{
+  position:relative;
+  z-index:1;
+  display:flex;
+  gap:16px;
+  align-items:center;
+  margin-bottom:22px;
+}
+.anketLogo{
+  width:60px;
+  height:60px;
+  border-radius:22px;
+  background:#111;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:29px;
+  flex:0 0 auto;
+  box-shadow:0 12px 28px rgba(0,0,0,.13);
+}
+.anketTitle{
+  margin:0;
+  font-size:30px;
+  line-height:1.1;
+  font-weight:1000;
+  letter-spacing:-.8px;
+}
+.anketDesc{
+  margin:8px 0 0;
+  color:var(--muted);
+  font-size:16px;
+  font-weight:750;
+  line-height:1.35;
+}
+.starBox{
+  position:relative;
+  z-index:1;
+  background:linear-gradient(135deg,#fff,#f8fafc);
+  border:1px solid rgba(17,17,17,.08);
+  border-radius:28px;
+  padding:24px 18px;
+  box-shadow:0 12px 28px rgba(0,0,0,.06);
+}
+.starRating{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:8px;
+  direction:ltr;
+}
+.starBtn{
+  border:0;
+  background:transparent;
+  color:#d1d5db;
+  font-size:58px;
+  line-height:1;
+  cursor:pointer;
+  padding:4px 3px;
+  transition:.16s ease;
+  text-shadow:0 8px 18px rgba(0,0,0,.08);
+}
+.starBtn:hover{
+  transform:translateY(-3px) scale(1.04);
+}
+.starBtn.secili{
+  color:#f59e0b;
+}
+.starBtn:disabled{
+  cursor:default;
+  transform:none;
+  opacity:.8;
+}
+.starHint{
+  margin-top:12px;
+  text-align:center;
+  color:#111827;
+  font-size:19px;
+  font-weight:1000;
+  min-height:26px;
+}
+.starScale{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:12px;
+  color:#6b7280;
+  font-size:12px;
+  font-weight:900;
+}
+.anketActions{
+  position:relative;
+  z-index:1;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  margin-top:18px;
+}
+.anketStatus{
+  color:#6b7280;
+  font-weight:850;
+  font-size:14px;
+  min-height:20px;
+}
+.anketBtn{
+  border:0;
+  border-radius:18px;
+  background:#111;
+  color:#fff;
+  font-size:15px;
+  font-weight:1000;
+  padding:14px 22px;
+  cursor:pointer;
+  min-width:170px;
+}
+.anketBtn:disabled{
+  background:#9ca3af;
+  cursor:not-allowed;
+}
+
+@media(max-width:780px){
+  .anketBox{padding:20px;border-radius:26px;margin-bottom:14px}
+  .anketHead{align-items:flex-start;margin-bottom:16px}
+  .anketLogo{width:50px;height:50px;border-radius:18px;font-size:24px}
+  .anketTitle{font-size:24px}
+  .anketDesc{font-size:14px}
+  .starBox{border-radius:24px;padding:20px 10px}
+  .starRating{gap:2px}
+  .starBtn{font-size:44px;padding:3px 1px}
+  .starHint{font-size:17px}
+  .starScale{font-size:11px}
+  .anketActions{flex-direction:column;align-items:stretch}
+  .anketBtn{width:100%}
+}
+
+.footer{
+  text-align:center;
+  margin-top:34px;
+  color:#9ca3af;
+  font-size:15px;
+}
+
+@media(max-width:780px){
+  .hero{
+    padding:28px;
+    border-radius:28px;
+  }
+
+  .hero h1{
+    font-size:42px;
+  }
+
+  .hero p{
+    font-size:18px;
+  }
+
+  .grid{
+    grid-template-columns:1fr;
+  }
+
+  .card{
+    border-radius:28px;
+    min-height:240px;
+    padding:24px;
+  }
+
+  .maintenanceCard{
+    min-height:450px;
+  }
+
+  .card h2{
+    font-size:30px;
+  }
+
+  .card p{
+    font-size:15px;
+  }
+
+  .countItem span{
+    font-size:24px;
+  }
+}
+
+
+
+/* MOBİL HIZLANDIRMA VE KOMPAKT GÖRÜNÜM */
+@media(max-width:780px){
+  .topbar{padding:10px 12px}
+  .topbar button{padding:10px 16px;font-size:14px}
+  .wrap{margin:14px auto;padding:0 12px 24px}
+  .hero{padding:20px;border-radius:24px;margin-bottom:14px}
+  .hero h1{font-size:34px;letter-spacing:-1px}
+  .hero p{font-size:16px;margin-top:8px}
+  .grid{gap:14px}
+  .card{min-height:auto;padding:20px;border-radius:24px}
+  .maintenanceCard{min-height:auto}
+  .cardTop{margin-bottom:18px}
+  .card h2{font-size:26px;margin-bottom:10px}
+  .card p{font-size:14px;line-height:1.5}
+  .arrow{width:46px;height:46px;border-radius:15px;font-size:24px}
+  .badge{padding:8px 13px;font-size:12px}
+  .countdownWrapper{margin-top:18px;border-radius:18px}
+  .countItem{padding:10px 6px}
+}
+
+
+/* ADMIN KONTROLLÜ DUYURU POP-UP */
+.duyuruOverlay{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  background:rgba(0,0,0,.42);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+}
+.duyuruOverlay.show{display:flex}
+.duyuruPopup{
+  width:min(520px,100%);
+  position:relative;
+  overflow:hidden;
+  border-radius:34px;
+  background:rgba(255,255,255,.94);
+  border:1px solid rgba(255,255,255,.78);
+  box-shadow:0 34px 100px rgba(0,0,0,.28);
+  padding:26px;
+  animation:duyuruPop .22s ease both;
+}
+@keyframes duyuruPop{
+  from{opacity:0;transform:scale(.96) translateY(14px)}
+  to{opacity:1;transform:scale(1) translateY(0)}
+}
+.duyuruPopup::before{
+  content:"";
+  position:absolute;
+  width:190px;
+  height:190px;
+  border-radius:50%;
+  right:-70px;
+  top:-80px;
+  background:rgba(17,17,17,.06);
+}
+.duyuruClose{
+  position:absolute;
+  right:16px;
+  top:16px;
+  z-index:2;
+  width:40px;
+  height:40px;
+  border:0;
+  border-radius:999px;
+  background:#111;
+  color:#fff;
+  font-size:24px;
+  line-height:1;
+  cursor:pointer;
+  font-weight:900;
+}
+.duyuruHead{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding-right:44px;
+  position:relative;
+  z-index:1;
+}
+.duyuruIcon{
+  width:48px;
+  height:48px;
+  border-radius:18px;
+  background:#111;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:23px;
+  flex:0 0 auto;
+}
+.duyuruTitle{
+  font-size:25px;
+  font-weight:1000;
+  letter-spacing:-.7px;
+}
+.duyuruMsg{
+  margin-top:16px;
+  color:#374151;
+  font-weight:800;
+  line-height:1.55;
+  white-space:pre-wrap;
+  position:relative;
+  z-index:1;
+}
+.duyuruOkBtn{
+  width:100%;
+  border:0;
+  border-radius:18px;
+  padding:15px 16px;
+  margin-top:20px;
+  background:#111;
+  color:#fff;
+  font-size:16px;
+  font-weight:950;
+  cursor:pointer;
+  position:relative;
+  z-index:1;
+}
+.duyuruPopup.bilgi{background:linear-gradient(135deg,#eff6ff,#fff)}
+.duyuruPopup.uyari{background:linear-gradient(135deg,#fff7ed,#fff)}
+.duyuruPopup.onemli{background:linear-gradient(135deg,#fff1f2,#fff)}
+.duyuruPopup.uyari .duyuruIcon{background:#f97316}
+.duyuruPopup.onemli .duyuruIcon{background:#dc2626}
+
+@media(max-width:780px){
+  .duyuruPopup{border-radius:28px;padding:22px}
+  .duyuruTitle{font-size:22px}
+  .duyuruMsg{font-size:15px}
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <button onclick="logout()">Çıkış Yap</button>
+</div>
+
+<div class="wrap">
+
+  <section class="hero">
+    <h1>Personel Paneli</h1>
+    <p id="welcome">Hoşgeldiniz</p>
+  </section>
+
+  <!-- ADMIN PANELDEN YÖNETİLEN YILDIZ DERECELENDİRME ANKETİ -->
+  <section class="anketBox" id="panelAnket" style="display:none">
+    <div class="anketHead">
+      <div class="anketLogo" id="anketLogo">⭐</div>
+      <div>
+        <h2 class="anketTitle" id="anketBaslik">Kantin10 değerlendirmesi</h2>
+        <p class="anketDesc" id="anketAciklama">Sistemi 1 ile 5 yıldız arasında değerlendirin. Seçiminiz yönetime iletilecektir.</p>
+      </div>
+    </div>
+
+    <div class="starBox">
+      <div class="starRating" id="starRating" aria-label="Yıldız derecelendirmesi"></div>
+      <div class="starHint" id="starHint">Kaç yıldız verirsiniz?</div>
+      <div class="starScale">
+        <span>1 yıldız</span>
+        <span>5 yıldız</span>
+      </div>
+    </div>
+
+    <div class="anketActions">
+      <div class="anketStatus" id="anketStatus">Yıldız seçip gönderin.</div>
+      <button class="anketBtn" id="anketGonderBtn" type="button" disabled>Oyumu Gönder</button>
+    </div>
+  </section>
+  <!-- /ADMIN PANELDEN YÖNETİLEN YILDIZ DERECELENDİRME ANKETİ -->
+
+
+  <section class="grid">
+
+    <div class="card dark maintenanceCard" id="berberKart">
+      <div class="cardTop">
+        <div class="badge maintenanceBadge">GEÇİCİ KAPALI</div>
+        <div class="arrow">⏳</div>
+      </div>
+
+      <h2>Berber Randevusu</h2>
+
+      <p>
+        Berber personelin mehil iznine çıkması sebebiyle
+        <b>1 Haziran</b> tarihinden itibaren yeniden randevu alınabilecektir.
+        <br><br>
+        Platform <b>29 Mayıs 2026</b> tarihinde tekrar aktif olacaktır.
+      </p>
+
+      <div class="countdownWrapper">
+        <div class="countdownTitle">PLATFORMUN AKTİF OLMASINA KALAN SÜRE</div>
+
+        <div class="countdownBox">
+          <div class="countItem">
+            <span id="gun">0</span>
+            <small>GÜN</small>
+          </div>
+
+          <div class="countItem">
+            <span id="saat">0</span>
+            <small>SAAT</small>
+          </div>
+
+          <div class="countItem">
+            <span id="dakika">0</span>
+            <small>DAKİKA</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <a class="card blue" href="kantin-veresiye.html">
+      <div class="cardTop">
+        <div class="badge">KANTİN</div>
+        <div class="arrow">→</div>
+      </div>
+
+      <h2>Kantin Borçları</h2>
+
+      <p>
+        Güncel kantin veresiye borcunu ve ödeme geçmişini görüntüle.
+      </p>
+    </a>
+
+    <a class="card green" href="odeme.html">
+      <div class="cardTop">
+        <div class="badge">ÇAY OCAĞI</div>
+        <div class="arrow">→</div>
+      </div>
+
+      <h2>Çay Ocağı Ödemeleri</h2>
+
+      <p>
+        Aidat, ödeme durumu, borç ve kalan bakiye bilgilerini görüntüle.
+      </p>
+    </a>
+
+    <a class="card gold" href="stok.html">
+      <div class="cardTop">
+        <div class="badge">STOK</div>
+        <div class="arrow">→</div>
+      </div>
+
+      <h2>Kantin Stok Listesi</h2>
+
+      <p>
+        Kantindeki güncel ürünleri, stok durumlarını ve adet bilgilerini görüntüle.
+      </p>
+    </a>
+
+
+    <a class="card blue" href="https://www.kantin10.com.tr/depo-teslim-listesi.html">
+      <div class="cardTop">
+        <div class="badge">DEPO</div>
+        <div class="arrow">→</div>
+      </div>
+
+      <h2>Malzeme Tüketim Grafikleri</h2>
+
+      <p>
+        Çay, şeker, ahşap karıştırıcı ve Türk kahvesi teslimatlarını
+        grafikler üzerinden görüntüle.
+      </p>
+    </a>
+
+    <div class="card dark maintenanceCard" id="bilancoKart">
+      <div class="cardTop">
+        <div class="badge maintenanceBadge">GEÇİCİ KAPALI</div>
+        <div class="arrow">⏳</div>
+      </div>
+
+      <h2>Çay Ocağı Bilançosu</h2>
+
+      <p>
+        Çay ocağı bilanço sistemi şu anda kullanıma kapalıdır.
+        <br><br>
+        Platform <b>21 Mayıs 2026</b> tarihinde otomatik olarak aktif olacaktır.
+      </p>
+
+      <div class="countdownWrapper">
+        <div class="countdownTitle">BİLANÇO SİSTEMİNİN AKTİF OLMASINA KALAN SÜRE</div>
+
+        <div class="countdownBox">
+          <div class="countItem">
+            <span id="bilancoGun">0</span>
+            <small>GÜN</small>
+          </div>
+
+          <div class="countItem">
+            <span id="bilancoSaat">0</span>
+            <small>SAAT</small>
+          </div>
+
+          <div class="countItem">
+            <span id="bilancoDakika">0</span>
+            <small>DAKİKA</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <div class="footer">
+    Kantin10 Personel Sistemi
+  </div>
+
+</div>
+
+
+<!-- ADMIN KONTROLLÜ DUYURU POP-UP -->
+<div id="duyuruOverlay" class="duyuruOverlay" aria-hidden="true">
+  <div id="duyuruPopup" class="duyuruPopup bilgi" role="dialog" aria-modal="true" aria-labelledby="duyuruPopupBaslik">
+    <button id="duyuruClose" class="duyuruClose" type="button" aria-label="Duyuruyu kapat">×</button>
+    <div class="duyuruHead">
+      <div class="duyuruIcon">📢</div>
+      <div id="duyuruPopupBaslik" class="duyuruTitle">Duyuru</div>
+    </div>
+    <div id="duyuruPopupMesaj" class="duyuruMsg"></div>
+    <button id="duyuruOkBtn" class="duyuruOkBtn" type="button">Tamam, kapat</button>
+  </div>
+</div>
+<!-- /ADMIN KONTROLLÜ DUYURU POP-UP -->
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",
+  authDomain:"berber-randevu-14f7f.firebaseapp.com",
+  projectId:"berber-randevu-14f7f",
+  storageBucket:"berber-randevu-14f7f.firebasestorage.app",
+  messagingSenderId:"280530860977",
+  appId:"1:280530860977:web:52c0df04c228896f211b90"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const tel = localStorage.getItem("musteriTelefon");
+const ad  = localStorage.getItem("musteriAd") || "Personel";
+
+if(!tel){
+  location.href = "index.html";
+}
+
+document.getElementById("welcome").innerHTML =
+  "Hoşgeldiniz <b>" + ad + "</b>";
+
+
+
+
+
+/* ADMIN PANELDEN YÖNETİLEN YILDIZ DERECELENDİRME ANKETİ */
+const ANKET_AYAR_REF = doc(db, "panel_anket_ayarlar", "personel_panel");
+const panelAnketEl = document.getElementById("panelAnket");
+const anketLogo = document.getElementById("anketLogo");
+const anketBaslik = document.getElementById("anketBaslik");
+const anketAciklama = document.getElementById("anketAciklama");
+const starRating = document.getElementById("starRating");
+const starHint = document.getElementById("starHint");
+const anketGonderBtn = document.getElementById("anketGonderBtn");
+const anketStatus = document.getElementById("anketStatus");
+
+const VARSAYILAN_ANKET = {
+  aktif:true,
+  tip:"yildiz",
+  anketId:"kantin10_yildiz_anket_v1",
+  logo:"⭐",
+  baslik:"Kantin10 değerlendirmesi",
+  aciklama:"Sistemi 1 ile 5 yıldız arasında değerlendirin. Seçiminiz yönetime iletilecektir."
+};
+
+let PANEL_ANKET_ID = VARSAYILAN_ANKET.anketId;
+let secilenPuan = 0;
+let starButonlari = [];
+
+function anketDocId(){
+  return String(PANEL_ANKET_ID + "_" + tel).replace(/[\\/#?\[\]]/g,"_");
+}
+
+function metinTemizle(v, fallback=""){
+  const t = String(v || "").trim();
+  return t || fallback;
+}
+
+function yildizMetni(puan){
+  const liste = {
+    1:"Çok zayıf",
+    2:"Zayıf",
+    3:"Orta",
+    4:"İyi",
+    5:"Çok iyi"
+  };
+  return liste[Number(puan)] || "Kaç yıldız verirsiniz?";
+}
+
+function yildizSecimGoster(puan){
+  starButonlari.forEach(btn => {
+    const deger = Number(btn.dataset.puan || 0);
+    btn.classList.toggle("secili", deger <= puan);
+  });
+  starHint.textContent = puan ? (puan + " yıldız - " + yildizMetni(puan)) : "Kaç yıldız verirsiniz?";
+}
+
+function yildizlariCiz(){
+  starRating.innerHTML = "";
+
+  for(let i=1; i<=5; i++){
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "starBtn";
+    btn.dataset.puan = String(i);
+    btn.setAttribute("aria-label", i + " yıldız");
+    btn.innerHTML = "★";
+
+    btn.addEventListener("click", function(){
+      if(btn.disabled) return;
+      secilenPuan = i;
+      yildizSecimGoster(secilenPuan);
+      anketGonderBtn.disabled = false;
+      anketStatus.textContent = "Seçiminiz hazır. Göndermek için butona basın.";
+    });
+
+    btn.addEventListener("mouseenter", function(){
+      if(btn.disabled) return;
+      yildizSecimGoster(i);
+    });
+
+    starRating.appendChild(btn);
+  }
+
+  starRating.addEventListener("mouseleave", function(){
+    yildizSecimGoster(secilenPuan);
+  });
+
+  starButonlari = Array.from(document.querySelectorAll(".starBtn"));
+}
+
+function anketSecimiKilitle(metin){
+  starButonlari.forEach(btn => btn.disabled = true);
+  anketGonderBtn.disabled = true;
+  if(metin) anketStatus.textContent = metin;
+}
+
+function anketiGizle(gecikmeMs = 800){
+  if(!panelAnketEl) return;
+  window.setTimeout(function(){
+    panelAnketEl.classList.add("kapanis");
+    window.setTimeout(function(){
+      panelAnketEl.style.display = "none";
+      panelAnketEl.classList.remove("kapanis");
+    }, 300);
+  }, gecikmeMs);
+}
+
+function cevapPuaniniOku(d){
+  if(!d) return 0;
+  const p = Number(d.puan || 0);
+  if(p >= 1 && p <= 5) return p;
+  const m = String(d.cevap || "").match(/yildiz_(\d)/);
+  if(m) return Number(m[1]);
+  return 0;
+}
+
+async function panelAnketKontrolEt(){
+  if(!tel) return false;
+
+  const localKey = "panelAnketOylandi_" + PANEL_ANKET_ID + "_" + tel;
+
+  try{
+    const yeniRef = doc(db, "panel_anket_cevaplari", anketDocId());
+    const yeniSnap = await getDoc(yeniRef);
+
+    if(yeniSnap.exists()){
+      const d = yeniSnap.data() || {};
+      const puan = cevapPuaniniOku(d);
+      if(d.anketId === PANEL_ANKET_ID && puan){
+        secilenPuan = puan;
+        yildizSecimGoster(secilenPuan);
+        localStorage.setItem(localKey, "true");
+        anketSecimiKilitle("Bu anket için oyunuz alınmıştır. Teşekkür ederiz.");
+        return true;
+      }
+    }
+
+    const eskiRef = doc(db, "panel_anket_cevaplari", tel);
+    const eskiSnap = await getDoc(eskiRef);
+
+    if(eskiSnap.exists()){
+      const d = eskiSnap.data() || {};
+      const puan = cevapPuaniniOku(d);
+      if(d.anketId === PANEL_ANKET_ID && puan){
+        secilenPuan = puan;
+        yildizSecimGoster(secilenPuan);
+        localStorage.setItem(localKey, "true");
+        anketSecimiKilitle("Bu anket için oyunuz alınmıştır. Teşekkür ederiz.");
+        return true;
+      }
+    }
+
+    if(localStorage.getItem(localKey) === "true"){
+      anketSecimiKilitle("Bu cihazdan daha önce oy kullanılmıştır. Teşekkür ederiz.");
+      return true;
+    }
+  }catch(e){
+    console.warn("Anket kontrol edilemedi:", e);
+  }
+
+  return false;
+}
+
+anketGonderBtn.addEventListener("click", async function(){
+  if(!secilenPuan){
+    anketStatus.textContent = "Lütfen önce yıldız seçin.";
+    return;
+  }
+
+  anketGonderBtn.disabled = true;
+  anketStatus.textContent = "Oyunuz kaydediliyor...";
+
+  try{
+    const localKey = "panelAnketOylandi_" + PANEL_ANKET_ID + "_" + tel;
+    const cevap = "yildiz_" + secilenPuan;
+    const cevapMetni = secilenPuan + " Yıldız - " + yildizMetni(secilenPuan);
+
+    await setDoc(doc(db, "panel_anket_cevaplari", anketDocId()), {
+      anketId: PANEL_ANKET_ID,
+      tip:"yildiz",
+      telefon: tel,
+      ad: ad,
+      puan: secilenPuan,
+      cevap: cevap,
+      cevapMetni: cevapMetni,
+      sayfa: "panel.html",
+      guncellemeTarihi: serverTimestamp()
+    }, { merge:true });
+
+    localStorage.setItem(localKey, "true");
+    anketSecimiKilitle("Oyunuz başarıyla kaydedildi. Teşekkür ederiz.");
+    anketiGizle(900);
+  }catch(e){
+    console.error("Anket kaydedilemedi:", e);
+    anketGonderBtn.disabled = false;
+    anketStatus.textContent = "Anket kaydedilemedi. İnternet bağlantınızı kontrol edip tekrar deneyin.";
+  }
+});
+
+async function panelAnketYukle(){
+  try{
+    const snap = await getDoc(ANKET_AYAR_REF);
+    const ayar = snap.exists() ? { ...VARSAYILAN_ANKET, ...(snap.data() || {}) } : VARSAYILAN_ANKET;
+
+    if(ayar.aktif === false){
+      panelAnketEl.style.display = "none";
+      return;
+    }
+
+    PANEL_ANKET_ID = metinTemizle(ayar.anketId, VARSAYILAN_ANKET.anketId);
+    anketLogo.textContent = metinTemizle(ayar.logo, VARSAYILAN_ANKET.logo);
+    anketBaslik.textContent = metinTemizle(ayar.baslik, VARSAYILAN_ANKET.baslik);
+    anketAciklama.textContent = metinTemizle(ayar.aciklama, VARSAYILAN_ANKET.aciklama);
+
+    yildizlariCiz();
+    yildizSecimGoster(0);
+
+    const dahaOnceOyVerdi = await panelAnketKontrolEt();
+    if(dahaOnceOyVerdi){
+      panelAnketEl.style.display = "none";
+      return;
+    }
+
+    panelAnketEl.style.display = "block";
+  }catch(e){
+    console.warn("Anket ayarları okunamadı, varsayılan yıldız anketi gösteriliyor:", e);
+    PANEL_ANKET_ID = VARSAYILAN_ANKET.anketId;
+    anketLogo.textContent = VARSAYILAN_ANKET.logo;
+    anketBaslik.textContent = VARSAYILAN_ANKET.baslik;
+    anketAciklama.textContent = VARSAYILAN_ANKET.aciklama;
+    yildizlariCiz();
+    yildizSecimGoster(0);
+    const dahaOnceOyVerdi = await panelAnketKontrolEt();
+    if(!dahaOnceOyVerdi) panelAnketEl.style.display = "block";
+  }
+}
+
+panelAnketYukle();
+
+
+const PANEL_DUYURU_REF = doc(db, "duyurular", "personel_panel");
+const duyuruOverlay = document.getElementById("duyuruOverlay");
+const duyuruPopup = document.getElementById("duyuruPopup");
+const duyuruPopupBaslik = document.getElementById("duyuruPopupBaslik");
+const duyuruPopupMesaj = document.getElementById("duyuruPopupMesaj");
+const duyuruClose = document.getElementById("duyuruClose");
+const duyuruOkBtn = document.getElementById("duyuruOkBtn");
+let aktifDuyuruKapatmaKey = "";
+
+function temizMetin(v){
+  return String(v || "").trim();
+}
+
+function duyuruTipClass(tip){
+  const t = String(tip || "bilgi").toLowerCase();
+  if(t === "uyari" || t === "warning") return "uyari";
+  if(t === "onemli" || t === "danger" || t === "kirmizi") return "onemli";
+  return "bilgi";
+}
+
+function duyuruKapat(){
+  if(aktifDuyuruKapatmaKey){
+    localStorage.setItem(aktifDuyuruKapatmaKey,"true");
+  }
+  duyuruOverlay.classList.remove("show");
+  duyuruOverlay.setAttribute("aria-hidden","true");
+}
+
+async function panelDuyurusuYukle(){
+  try{
+    const snap = await getDoc(PANEL_DUYURU_REF);
+    if(!snap.exists()) return;
+
+    const d = snap.data() || {};
+    if(d.aktif === false) return;
+
+    const mesaj = temizMetin(d.mesaj || d.text || "");
+    if(!mesaj) return;
+
+    const baslik = temizMetin(d.baslik || "Duyuru");
+    const duyuruId = temizMetin(d.duyuruId || d.id || (baslik + "_" + mesaj));
+    aktifDuyuruKapatmaKey = "panelDuyuruKapatildi_" + duyuruId;
+
+    if(localStorage.getItem(aktifDuyuruKapatmaKey) === "true") return;
+
+    duyuruPopup.classList.remove("bilgi","uyari","onemli");
+    duyuruPopup.classList.add(duyuruTipClass(d.tip));
+    duyuruPopupBaslik.textContent = baslik;
+    duyuruPopupMesaj.textContent = mesaj;
+
+    duyuruOverlay.classList.add("show");
+    duyuruOverlay.setAttribute("aria-hidden","false");
+  }catch(e){
+    console.warn("Panel duyurusu okunamadı:", e);
+  }
+}
+
+duyuruClose.addEventListener("click", duyuruKapat);
+duyuruOkBtn.addEventListener("click", duyuruKapat);
+duyuruOverlay.addEventListener("click", function(e){
+  if(e.target === duyuruOverlay) duyuruKapat();
+});
+
+document.addEventListener("keydown", function(e){
+  if(e.key === "Escape" && duyuruOverlay.classList.contains("show")) duyuruKapat();
+});
+
+panelDuyurusuYukle();
+
+window.logout = function logout(){
+  localStorage.removeItem("musteriGiris");
+  localStorage.removeItem("musteriTelefon");
+  localStorage.removeItem("musteriAd");
+  localStorage.removeItem("personelDocId");
+
+  location.href = "index.html";
+}
+
+/* BERBER RANDEVUSU 29 MAYIS 2026'DA OTOMATİK AKTİF OLUR */
+const aktifTarih = new Date("2026-05-29T00:00:00").getTime();
+const berberKart = document.getElementById("berberKart");
+
+if(new Date().getTime() >= aktifTarih){
+
+  berberKart.outerHTML = `
+    <a class="card dark" href="randevu.html">
+      <div class="cardTop">
+        <div class="badge activeBadge">AKTİF</div>
+        <div class="arrow">→</div>
+      </div>
+
+      <h2>Berber Randevusu</h2>
+
+      <p>
+        Berber randevu sistemine giriş yapabilir,
+        randevu oluşturabilir ve mevcut randevularınızı görüntüleyebilirsiniz.
+      </p>
+    </a>
+  `;
+
+}else{
+
+  function geriSayim(){
+    const suAn = new Date().getTime();
+    const fark = aktifTarih - suAn;
+
+    if(fark <= 0){
+      location.reload();
+      return;
+    }
+
+    const gun = Math.floor(fark / (1000 * 60 * 60 * 24));
+    const saat = Math.floor((fark % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const dakika = Math.floor((fark % (1000 * 60 * 60)) / (1000 * 60));
+
+    document.getElementById("gun").innerText = gun;
+    document.getElementById("saat").innerText = saat;
+    document.getElementById("dakika").innerText = dakika;
+  }
+
+  geriSayim();
+  setInterval(geriSayim,1000);
+}
+
+/* ÇAY OCAĞI BİLANÇOSU 21 MAYIS 2026'DA OTOMATİK AKTİF OLUR */
+const bilancoAktifTarih = new Date("2026-05-21T00:00:00").getTime();
+const bilancoKart = document.getElementById("bilancoKart");
+
+if(new Date().getTime() >= bilancoAktifTarih){
+
+  bilancoKart.outerHTML = `
+    <a class="card gold" href="personel-cay-bilanco.html">
+      <div class="cardTop">
+        <div class="badge activeBadge">AKTİF</div>
+        <div class="arrow">→</div>
+      </div>
+
+      <h2>Çay Ocağı Bilançosu</h2>
+
+      <p>
+        Güncel çay ocağı bilançosunu, gider kalemlerini,
+        kasa özetini ve dönem bilgilerini görüntüleyebilirsiniz.
+      </p>
+    </a>
+  `;
+
+}else{
+
+  function bilancoGeriSayim(){
+    const suAn = new Date().getTime();
+    const fark = bilancoAktifTarih - suAn;
+
+    if(fark <= 0){
+      location.reload();
+      return;
+    }
+
+    const gun = Math.floor(fark / (1000 * 60 * 60 * 24));
+    const saat = Math.floor((fark % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const dakika = Math.floor((fark % (1000 * 60 * 60)) / (1000 * 60));
+
+    document.getElementById("bilancoGun").innerText = gun;
+    document.getElementById("bilancoSaat").innerText = saat;
+    document.getElementById("bilancoDakika").innerText = dakika;
+  }
+
+  bilancoGeriSayim();
+  setInterval(bilancoGeriSayim,1000);
+}
+</script>
+
+
+</body>
+</html>
