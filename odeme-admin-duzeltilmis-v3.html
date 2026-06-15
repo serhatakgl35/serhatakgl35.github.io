@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ödeme Admin Paneli</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#f5f5f7;--text:#111;--muted:#666;--shadow:0 12px 32px rgba(0,0,0,.08);--soft:0 5px 16px rgba(0,0,0,.06);--r:24px}
+body{margin:0;min-height:100vh;color:var(--text);background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif}
+.topbar{position:sticky;top:0;z-index:20;background:rgba(17,17,17,.94);padding:14px 18px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;box-shadow:0 3px 12px rgba(0,0,0,.14)}
+.topbar a,.topbar button{background:white;color:#111;text-decoration:none;border:0;border-radius:999px;padding:9px 15px;font-weight:900;cursor:pointer}
+.wrap{width:min(1180px,100%);margin:28px auto;padding:0 16px}
+.centerWrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.card{background:rgba(255,255,255,.90);border-radius:var(--r);padding:24px;box-shadow:var(--soft);margin-bottom:16px}
+.loginCard{width:100%;max-width:430px}.logo{width:62px;height:62px;border-radius:20px;background:#111;color:white;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px}
+h1{font-size:34px;margin:0 0 12px;font-weight:950;letter-spacing:-.5px}h2,h3{margin-top:0}p{color:var(--muted);line-height:1.45}
+label{font-weight:800;font-size:14px;display:block;margin:0 0 6px}
+input,select,textarea{width:100%;padding:14px;border-radius:16px;border:1px solid rgba(0,0,0,.10);margin-bottom:14px;font-size:16px;background:#f0f2f6;outline:none;font-family:inherit}
+textarea{min-height:110px;resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:#111;background:white}
+button.main,.btnMain{width:100%;display:block;text-align:center;background:#111;color:white;border:0;border-radius:17px;padding:15px 16px;font-weight:950;font-size:16px;cursor:pointer;text-decoration:none}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}.muted{color:var(--muted);font-size:14px}.msg{margin-top:12px;color:#c62828;font-weight:800;text-align:center;min-height:20px}
+.status{display:inline-block;padding:8px 13px;border-radius:999px;font-weight:950;font-size:13px;white-space:nowrap}.odendi{background:#dcfce7;color:#166534}.bekliyor{background:#fef3c7;color:#92400e}.reddedildi,.gecikti{background:#fee2e2;color:#991b1b}.mazeret{background:#e0f2fe;color:#075985}
+.tableWrap{overflow:auto;border-radius:18px}table{width:100%;border-collapse:collapse;background:white}th,td{padding:13px 14px;border-bottom:1px solid #eee;text-align:left;font-size:14px;vertical-align:middle}th{background:#f8f8f8;font-weight:950}
+.small{background:#111;color:white;border:0;border-radius:12px;padding:9px 11px;font-weight:900;cursor:pointer;margin:2px}.green{background:#15803d}.red{background:#b91c1c}.gray{background:#4b5563}
+.tutarInput{width:105px!important;padding:8px!important;border-radius:10px!important;margin:0!important}
+.toolsRow{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end;margin-top:14px}.importBox{background:#f8fafc;border:1px dashed rgba(0,0,0,.18);border-radius:18px;padding:14px}.importActions{display:flex;gap:8px;flex-wrap:wrap}.miniBtn{background:#111;color:white;border:0;border-radius:14px;padding:11px 13px;font-weight:950;cursor:pointer}.miniBtn.green{background:#15803d}.miniMsg{font-size:13px;font-weight:800;margin-top:8px;color:#166534;min-height:18px}.searchInput{background:white!important;border:1px solid rgba(0,0,0,.12)!important;margin-bottom:0!important}
+.smsBox{background:#f8fafc;border:1px solid rgba(0,0,0,.08);border-radius:22px;padding:16px;margin-top:12px}
+.waQueueBox{display:none;background:white;border:1px solid rgba(0,0,0,.08);border-radius:18px;padding:14px;margin-top:12px;box-shadow:0 4px 12px rgba(0,0,0,.04)}
+.waQueueBox.show{display:block}
+.waProgress{font-weight:950;color:#111;margin-bottom:8px}
+.waCurrent{color:#166534;font-weight:950;margin-bottom:10px}
+.waActions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.waActions button{margin:0}
+
+.smsInfo{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:10px 0}
+.smsPill{background:white;border-radius:16px;padding:13px;font-weight:950;box-shadow:0 4px 12px rgba(0,0,0,.04)}
+.fazla,.tamam{display:inline-block;margin-top:6px;color:#166534;background:#dcfce7;padding:6px 10px;border-radius:999px;font-weight:950}
+.borc{display:inline-block;margin-top:6px;color:#991b1b;background:#fee2e2;padding:6px 10px;border-radius:999px;font-weight:950}
+.hide{display:none!important}
+@media(max-width:720px){
+.toolsRow{grid-template-columns:1fr}.importActions{display:block}.miniBtn{width:100%;margin-top:8px}.waActions{grid-template-columns:1fr}
+.wrap{padding:0 10px;margin:16px auto}.card{padding:16px;border-radius:20px}h1{font-size:26px}h3{font-size:17px}.topbar{padding:10px 8px}.topbar a,.topbar button{padding:8px 11px;font-size:12px}
+.grid{grid-template-columns:1fr;gap:10px}.tableWrap{overflow:visible;border-radius:0}table,thead,tbody,tr,td{display:block;width:100%}thead{display:none}tr{background:#fff;border-radius:18px;padding:10px;margin-bottom:10px;box-shadow:0 4px 12px rgba(0,0,0,.055)}td{border:0;padding:7px 6px;font-size:13px}td::before{content:attr(data-label);display:block;font-size:11px;color:#777;font-weight:950;margin-bottom:3px}.tutarInput{width:92px!important}.small{padding:8px 9px;font-size:12px}.status{font-size:12px;padding:7px 10px}
+}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<div id="adminLogin" class="centerWrap">
+  <div class="card loginCard">
+    <div class="logo">☕</div>
+    <h1 style="text-align:center">Ödeme Admin</h1>
+    <p style="text-align:center">Çay ocağı ödeme takibi</p>
+    <label>Admin Kullanıcı</label>
+    <input id="adminUser" placeholder="admin">
+    <label>Şifre</label>
+    <input id="adminPass" type="password">
+    <button class="main" onclick="adminLogin()">Giriş Yap</button>
+    <div id="loginMsg" class="msg"></div>
+  </div>
+</div>
+
+<div id="adminPanel" class="hide">
+  <div class="topbar">
+    <a href="adminpanel.html">Yönetim Merkezi</a>
+    <button onclick="adminLogout()">Çıkış</button>
+    <a href="index.html">Personel Giriş</a>
+  </div>
+
+  <div class="wrap">
+    <div class="card">
+      <h1>Admin Ödeme Takibi</h1>
+      <p>Ödeme dönemi ayın 15'inden sonraki ayın 14'üne kadardır. Yeni dönem her ayın 15'inde başlar.</p>
+
+      <div class="grid">
+        <div>
+          <label>Dönem Seç</label>
+          <input id="adminAy" type="month" onchange="donemDegisti()">
+          <p class="muted" id="donemLabelAdmin"></p>
+        </div>
+
+        <div>
+          <label>Filtre</label>
+          <select id="adminFiltre" onchange="adminEkraniCiz()">
+            <option value="hepsi">Hepsi</option>
+            <option value="odendi">Ödendi</option>
+            <option value="odeme_bekliyor">Ödeme Bekliyor</option>
+            <option value="reddedildi">Reddedildi</option>
+            <option value="rapor_mazeret">Rapor/Mazeret</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Bu Dönem Toplanacak Tutar</label>
+          <input id="aylikTutarInput" type="number" min="0" placeholder="Örn: 600">
+        </div>
+      </div>
+
+      <button class="main" style="background:#2563eb" onclick="adminListele(false)">Seçili Dönemi Yükle / Listele</button>
+      <button class="main" style="margin-top:12px;background:#4b5563" onclick="adminListele(true)">Personel Cache Yenile</button>
+      <button class="main" style="margin-top:12px" onclick="aylikTutarKaydet()">Bu Dönem Tutarını Kaydet</button>
+      <button class="main" style="margin-top:12px;background:#15803d" onclick="csvIndir()">Tabloyu CSV İndir</button>
+      <p class="muted" id="readInfo" style="margin-top:10px">Liste henüz yüklenmedi. Read azaltmak için tablo otomatik açılmaz.</p>
+
+      <div class="toolsRow">
+        <div>
+          <label>Personel Ara</label>
+          <input id="personelArama" class="searchInput" placeholder="İsim yazınca liste filtrelenir" oninput="adminEkraniCiz()">
+        </div>
+
+        <div class="importBox">
+          <label>Ödeme Tablosu İçe Aktar</label>
+          <input id="dekontExcel" type="file" accept=".csv,.txt,.xlsx,.xls" style="margin-bottom:8px">
+          <div class="importActions">
+            <button class="miniBtn green" onclick="dekontIceriAktar()">Excel / CSV Yükle ve İşle</button>
+            <button class="miniBtn" onclick="ornekDekontCsvIndir()">Excel Şablonu İndir</button>
+          </div>
+          <div id="importMsg" class="miniMsg"></div>
+          <p class="muted" style="margin:8px 0 0">
+            Yükleme formatı: <b>Personel</b> ve <b>Tutar</b>. Telefonla eşleşme yapılmaz. Büyük/küçük harf fark etmez.
+          </p>
+        </div>
+      </div>
+
+      <div class="smsBox">
+        <h3>Borçlulara WhatsApp Gönder</h3>
+        <p class="muted">
+          Bu bölüm seçili dönemde <b>Ödeme Bekliyor</b> durumundaki personelleri bulur ve WhatsApp mesajlarını sırayla hazırlar.
+        </p>
+
+        <div class="smsInfo">
+          <div class="smsPill">Alıcı: Borçlu personel</div>
+          <div class="smsPill">Kaynak: Personeller</div>
+          <div class="smsPill">Durum: Ödeme Bekliyor</div>
+        </div>
+
+        <label>WhatsApp Mesajı</label>
+        <textarea id="smsMesaj">Sayın {AD},
+{DONEM} dönemi çay ocağı aidat ödemeniz henüz sistemde görünmemektedir.
+Ödemenizi uygun olduğunuzda gerçekleştirmenizi rica ederiz.
+Ödeme durumunuzu ve detayları aşağıdaki bağlantı üzerinden kontrol edebilirsiniz.
+
+www.kantin10.com.tr
+
+Anlayışınız ve katkılarınız için teşekkür ederiz.</textarea>
+
+        <button class="main" style="background:#15803d" onclick="borclularaWhatsAppGonder()">Borçluları Hazırla ve İlk Kişiyi Aç</button>
+
+        <div class="waQueueBox" id="waQueueBox">
+          <div class="waProgress" id="waProgress">Hazırlanıyor...</div>
+          <div class="waCurrent" id="waCurrent">Sıradaki kişi bekleniyor.</div>
+          <div class="waActions">
+            <button class="main" style="background:#15803d" onclick="whatsappSiradakiAc()">Sonraki Kişiye Geç</button>
+            <button class="main" style="background:#4b5563" onclick="whatsappSirayiSifirla()">Sırayı Sıfırla</button>
+          </div>
+        </div>
+
+        <div id="smsMsg" class="miniMsg"></div>
+      </div>
+
+      <p class="muted">
+        CSV dosyası Excel’de açılır. İçinde personel adı, dönem aidatı, ödenen tutar,
+        geçmiş bakiye, bu dönem bakiye ve genel bakiye bulunur. Telefon numarası dışa aktarılmaz.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>Özet</h3>
+      <div id="adminOzet" class="grid"></div>
+    </div>
+
+    <div class="card">
+      <h3>Personel Listesi</h3>
+      <div class="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Personel</th>
+              <th>Dönem</th>
+              <th>Ödenen Tutar</th>
+              <th>Durum</th>
+              <th>İşlem</th>
+            </tr>
+          </thead>
+          <tbody id="adminTable"><tr><td colspan="5">Listeyi görmek için üstteki <b>Seçili Dönemi Yükle / Listele</b> butonuna bas.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, getDocs, doc, getDoc, setDoc, serverTimestamp, query, where, deleteField } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import * as XLSX from "https://cdn.sheetjs.com/xlsx-0.20.2/package/xlsx.mjs";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",
+  authDomain:"berber-randevu-14f7f.firebaseapp.com",
+  projectId:"berber-randevu-14f7f",
+  storageBucket:"berber-randevu-14f7f.firebasestorage.app",
+  messagingSenderId:"280530860977",
+  appId:"1:280530860977:web:52c0df04c228896f211b90"
+};
+
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
+const auth=getAuth(app);
+
+const ODEME_COLLECTION="cay_odemeler";
+const AYAR_COLLECTION="cay_ayarlar";
+const PERSONEL_COLLECTION="personeller";
+const VARSAYILAN_AIDAT=300;
+const SMS_PROXY_URL="https://script.google.com/macros/s/AKfycbyCZuwIIqRiSAutQwBkvcWfU01sedNX0_inynnX1Svoj2JTvQSzxnd2zTJPPfuk8S-HVg/exec";
+
+function temizTelefon(tel){
+  tel=String(tel||"").replace(/\D/g,"");
+  if(tel.startsWith("90")) tel="0"+tel.slice(2);
+  if(tel && !tel.startsWith("0")) tel="0"+tel;
+  return tel.slice(0,11);
+}
+
+function smsTelefonFormatla(tel){
+  let t=String(tel||"").replace(/\D/g,"");
+  if(t.startsWith("90")) return t.slice(0,12);
+  if(t.startsWith("0")) return "90"+t.slice(1);
+  if(t.startsWith("5")) return "90"+t;
+  return t;
+}
+
+function ayAdi(key){const m=Number(String(key||"").split("-")[1]);return ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"][m-1]||key;}
+function addMonthsKey(key,delta){const [y,m]=String(key).split("-").map(Number);const d=new Date(y,m-1+delta,1);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");}
+function donemKey(date=new Date()){const y=date.getFullYear(),m=date.getMonth()+1;if(date.getDate()>=15)return y+"-"+String(m).padStart(2,"0");const d=new Date(y,m-2,1);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");}
+function donemLabel(key){const next=addMonthsKey(key,1);return `15 ${ayAdi(key)} - 14 ${ayAdi(next)}`;}
+function donemGectiMi(key){return String(key)<donemKey(new Date());}
+function kayitMazeretMi(kayit){return !!(kayit&&(kayit.odemeTuru==="rapor_mazeret"||kayit.muaf===true||kayit.raporMazeret===true));}
+function gorunenDurum(durum,kayit){return kayitMazeretMi(kayit)?"rapor_mazeret":durum;}
+function durumText(durum,key,kayit=null){if(kayitMazeretMi(kayit)||durum==="rapor_mazeret")return "Rapor/Mazeret - Borç Yok";if(durum==="odendi")return "Ödendi";if(durum==="reddedildi")return "Reddedildi";if(donemGectiMi(key))return "ÖDEME GEÇTİ - Dönem: "+ayAdi(key);return "Ödeme Bekliyor";}
+function durumClass(durum,key,kayit=null){if(kayitMazeretMi(kayit)||durum==="rapor_mazeret")return "mazeret";if(durum==="odendi")return "odendi";if(durum==="reddedildi")return "reddedildi";if(donemGectiMi(key))return "gecikti";return "bekliyor";}
+function odemeDocId(key,tel){return key+"_"+temizTelefon(tel);}
+
+async function donemTutariGetir(db,key,fallback=VARSAYILAN_AIDAT){try{const snap=await getDoc(doc(db,AYAR_COLLECTION,key));if(snap.exists()){const t=Number(snap.data().aylikTutar||0);if(t>0)return t;}}catch(e){console.warn(e)}return fallback;}
+function hesaplananOdenenTutar(durum,tutar,aidat=aktifDonemTutari,kayit=null){
+  if(kayitMazeretMi(kayit)||durum==="rapor_mazeret")return Number(aidat||0);
+  if(durum==="odeme_bekliyor")return 0;
+  return Number(tutar||0);
+}
+function bakiyeText(net){net=Number(net||0);if(net>0)return net+" TL Fazla";if(net<0)return Math.abs(net)+" TL Borç";return "0 TL";}
+function csvEscape(v){v=String(v??"");if(v.includes('"')||v.includes(";")||v.includes("\n")){return '"'+v.replaceAll('"','""')+'"'}return v;}
+function csvSatir(arr){return arr.map(csvEscape).join(";");}
+
+let sonRaporSatirlari=[];
+let sonRaporOzet=null;
+let aktifDonemTutari=VARSAYILAN_AIDAT;
+let whatsappKuyruk=[];
+let whatsappIndex=0;
+let whatsappAktifDonem="";
+let whatsappMesajSablon="";
+
+const PERSONEL_CACHE_KEY="cay_personel_cache_v3";
+const PERSONEL_CACHE_TIME_KEY="cay_personel_cache_time_v3";
+const PERSONEL_CACHE_SURE=30*60*1000;
+
+let aktifPersoneller=[];
+let aktifOdemeler={};
+let aktifOncekiOdemeler={};
+let aktifOncekiDonemKey="";
+let aktifOncekiDonemTutari=VARSAYILAN_AIDAT;
+let aktifDonemKey="";
+let listeYuklendi=false;
+
+async function adminMi(user){try{const snap=await getDoc(doc(db,"admins",user.uid));if(!snap.exists())return false;const d=snap.data()||{};return d.aktif===true&&(!d.role||d.role==="admin");}catch(e){console.error("Admin kontrol hatası",e);return false;}}
+function getAd(p){return p.isim||p.adSoyad||p.ad||p.name||p.fullName||"İsimsiz Personel";}
+function normalizeTR(v){return String(v||"").toLocaleLowerCase("tr-TR").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/ı/g,"i").replace(/ğ/g,"g").replace(/ü/g,"u").replace(/ş/g,"s").replace(/ö/g,"o").replace(/ç/g,"c").replace(/[^a-z0-9 ]/gi," ").replace(/\s+/g," ").trim();}
+function kelimeler(v){return normalizeTR(v).split(" ").filter(x=>x.length>=2);}
+function isimEslesir(gelenAd,sistemAd){const gNorm=normalizeTR(gelenAd),sNorm=normalizeTR(sistemAd);if(!gNorm||!sNorm)return false;if(gNorm===sNorm)return true;if(gNorm.includes(sNorm)||sNorm.includes(gNorm))return true;const gKelimeler=kelimeler(gelenAd),sKelimeler=kelimeler(sistemAd);if(gKelimeler.length===0||sKelimeler.length===0)return false;return sKelimeler.every(k=>gKelimeler.includes(k))||gKelimeler.every(k=>sKelimeler.includes(k));}
+function eslesenKisiyiBul(gelenAd,personeller){const adNorm=normalizeTR(gelenAd);if(!adNorm)return null;let tam=personeller.filter(p=>p.norm===adNorm);if(tam.length===1)return tam[0];let benzer=personeller.filter(p=>isimEslesir(gelenAd,p.ad));if(benzer.length===1)return benzer[0];return null;}
+function parseMoney(v){let raw=String(v??"").trim();if(!raw)return null;raw=raw.replace(/TL|₺/gi,"").replace(/\s/g,"");if(raw.includes(",")&&raw.includes("."))raw=raw.replace(/\./g,"").replace(",",".");else if(raw.includes(","))raw=raw.replace(",",".");const n=Number(raw.replace(/[^0-9.-]/g,""));return Number.isFinite(n)?n:null;}
+function getAlan(obj,adaylar){const keys=Object.keys(obj||{});for(const aday of adaylar){const nk=normalizeTR(aday);const found=keys.find(k=>normalizeTR(k)===nk||normalizeTR(k).includes(nk));if(found)return obj[found];}return "";}
+function getTelefonFromDoc(id,p){return temizTelefon(p.telefon||p.phone||p.tel||p.gsm||id||"");}
+function getAktif(p){if(p.aktif===false)return false;if(p.active===false)return false;if(p.durum==="pasif")return false;return true;}
+
+function sayiDegeri(v){
+  if(v===undefined||v===null||v==="")return null;
+  const n=Number(String(v).replace(/TL|₺/gi,"").replace(/\s/g,"").replace(",","."));
+  return Number.isFinite(n)?n:null;
+}
+
+function ilkSayisalDeger(...degerler){
+  for(const v of degerler){
+    const n=sayiDegeri(v);
+    if(n!==null)return n;
+  }
+  return null;
+}
+
+function getBakiye(p){
+  p=p||{};
+
+  const net=ilkSayisalDeger(p.bakiyeNet,p.netBakiye,p.genelNet,p.donemSonuNet);
+  if(net!==null)return net;
+
+  const borc=ilkSayisalDeger(p.gecmisBorc,p.devredenBorc,p.oncekiBorc,p.borc);
+  if(borc!==null)return -Math.abs(borc);
+
+  const fazla=ilkSayisalDeger(p.gecmisFazla,p.devredenFazla,p.fazlaBakiye,p.alacak,p.kredi);
+  if(fazla!==null)return Math.abs(fazla);
+
+  const eski=ilkSayisalDeger(p.bakiye,p.gecmisBakiye);
+  return eski!==null?eski:0;
+}
+
+function kayitNetDegeri(kayit){
+  if(!kayit)return null;
+
+  const net=ilkSayisalDeger(kayit.donemSonuNet,kayit.genelNet,kayit.bakiyeNet,kayit.netBakiye,kayit.devredenNet);
+  if(net!==null)return net;
+
+  const borc=ilkSayisalDeger(kayit.devredenBorc,kayit.gecmisBorc,kayit.oncekiDevirBorc,kayit.borc);
+  if(borc!==null)return -Math.abs(borc);
+
+  const fazla=ilkSayisalDeger(kayit.fazlaBakiye,kayit.gecmisFazla,kayit.oncekiDevirFazla,kayit.alacak,kayit.kredi);
+  if(fazla!==null)return Math.abs(fazla);
+
+  return null;
+}
+
+function oncekiDevirNetHesapla(personel,tel){
+  const oncekiKayit=aktifOncekiOdemeler[tel]||null;
+
+  if(oncekiKayit){
+    const kayitNet=kayitNetDegeri(oncekiKayit);
+    if(kayitNet!==null)return kayitNet;
+
+    const oncekiDurum=oncekiKayit.durum||"odeme_bekliyor";
+    const oncekiTutar=oncekiKayit.tutar!==undefined?Number(oncekiKayit.tutar):aktifOncekiDonemTutari;
+    const oncekiOdenen=hesaplananOdenenTutar(oncekiDurum,oncekiTutar,aktifOncekiDonemTutari,oncekiKayit);
+    return oncekiOdenen-aktifOncekiDonemTutari;
+  }
+
+  return getBakiye(personel);
+}
+
+function odemeHesabiYap(personel,tel,durum,tutar,aidat,kayit=null){
+  const oncekiDevirNet=oncekiDevirNetHesapla(personel,tel);
+  const buDonemOdenen=hesaplananOdenenTutar(durum,tutar,aidat,kayit);
+  const buDonemNet=buDonemOdenen-Number(aidat||0);
+  const genelNet=oncekiDevirNet+buDonemNet;
+  const oncekiDevirBorc=Math.max(0,-oncekiDevirNet);
+  const oncekiDevirFazla=Math.max(0,oncekiDevirNet);
+  const toplamKapatilacak=Math.max(0,Number(aidat||0)+oncekiDevirBorc-oncekiDevirFazla);
+
+  return {oncekiDevirNet,oncekiDevirBorc,oncekiDevirFazla,buDonemOdenen,buDonemNet,genelNet,toplamKapatilacak};
+}
+
+function bakiyeAlanlari(hesap){
+  return {
+    oncekiDevirNet:hesap.oncekiDevirNet,
+    oncekiDevirBorc:hesap.oncekiDevirBorc,
+    oncekiDevirFazla:hesap.oncekiDevirFazla,
+    toplamKapatilacak:hesap.toplamKapatilacak,
+    buDonemNet:hesap.buDonemNet,
+    donemSonuNet:hesap.genelNet,
+    devredenBorc:Math.max(0,-hesap.genelNet),
+    fazlaBakiye:Math.max(0,hesap.genelNet)
+  };
+}
+
+async function personelBakiyeGuncelle(tel,genelNet,key){
+  const p=aktifPersoneller.find(x=>getTelefonFromDoc(x.id,x)===tel);
+  if(!p)return;
+  await setDoc(doc(db,PERSONEL_COLLECTION,p.id),{
+    bakiye:genelNet,
+    bakiyeNet:genelNet,
+    sonOdemeDonemi:key,
+    bakiyeGuncellendi:serverTimestamp()
+  },{merge:true});
+  p.bakiye=genelNet;
+  p.bakiyeNet=genelNet;
+}
+
+async function donemOdemeleriGetir(key){
+  const q=query(collection(db,ODEME_COLLECTION),where("ay","==",key));
+  const snap=await getDocs(q);
+  const map={};
+  snap.forEach(d=>{
+    const o={id:d.id,...d.data()};
+    const telKey=temizTelefon(o.telefon||o.personelId||"");
+    if(!telKey)return;
+    map[telKey]=o;
+  });
+  return map;
+}
+
+window.adminLogin=function(){location.href="adminpanel.html";};
+window.adminLogout=async function(){localStorage.removeItem("adminLogin");localStorage.removeItem("adminGiris");localStorage.removeItem("cay_admin_login");await signOut(auth);location.href="adminpanel.html";};
+function adminAc(){
+  document.getElementById("adminLogin").classList.add("hide");
+  document.getElementById("adminPanel").classList.remove("hide");
+  document.getElementById("adminAy").value=donemKey();
+  donemDegisti();
+  document.getElementById("adminOzet").innerHTML=`<div class="card"><h3>Hazır</h3><p class="muted">Liste otomatik yüklenmez. Read azaltmak için dönem seçip butona bas.</p></div>`;
+}
+
+window.aylikTutarKaydet=async function(){
+  const key=document.getElementById("adminAy").value||donemKey();
+  const tutar=Number(document.getElementById("aylikTutarInput").value||0);
+  if(!tutar||tutar<=0)return alert("Geçerli bir tutar gir.");
+  await setDoc(doc(db,AYAR_COLLECTION,key),{aylikTutar:tutar,donem:key,donemEtiketi:donemLabel(key),updatedAt:serverTimestamp()},{merge:true});
+  aktifDonemTutari=tutar;
+  alert("Dönem tutarı kaydedildi.");
+  if(listeYuklendi) adminEkraniCiz();
+};
+
+
+window.donemDegisti=function(){
+  const key=document.getElementById("adminAy").value||donemKey();
+  document.getElementById("donemLabelAdmin").textContent="Dönem: "+donemLabel(key);
+  listeYuklendi=false;
+  aktifOncekiOdemeler={};
+  aktifOncekiDonemKey="";
+  sonRaporSatirlari=[];
+  sonRaporOzet=null;
+  document.getElementById("adminTable").innerHTML=`<tr><td colspan="5">Dönem değişti. Listeyi görmek için <b>Seçili Dönemi Yükle / Listele</b> butonuna bas.</td></tr>`;
+  document.getElementById("adminOzet").innerHTML=`<div class="card"><h3>Dönem Seçildi</h3><p class="muted">${donemLabel(key)}</p></div>`;
+  const readInfo=document.getElementById("readInfo");
+  if(readInfo) readInfo.textContent="Dönem değişti. Firestore okumamak için tablo otomatik yenilenmedi.";
+};
+
+function personelCacheOku(){
+  try{
+    const raw=localStorage.getItem(PERSONEL_CACHE_KEY);
+    const time=Number(localStorage.getItem(PERSONEL_CACHE_TIME_KEY)||0);
+    if(!raw||!time)return null;
+    if(Date.now()-time>PERSONEL_CACHE_SURE)return null;
+    const arr=JSON.parse(raw);
+    return Array.isArray(arr)?arr:null;
+  }catch(e){
+    return null;
+  }
+}
+
+function personelCacheYaz(arr){
+  try{
+    localStorage.setItem(PERSONEL_CACHE_KEY,JSON.stringify(arr));
+    localStorage.setItem(PERSONEL_CACHE_TIME_KEY,String(Date.now()));
+  }catch(e){
+    console.warn("Personel cache yazılamadı",e);
+  }
+}
+
+async function personelleriGetir(forceRefresh=false){
+  if(!forceRefresh){
+    const cached=personelCacheOku();
+    if(cached){
+      const readInfo=document.getElementById("readInfo");
+      if(readInfo) readInfo.textContent="Personel listesi cache’den açıldı. Bu bölüm için personel read oluşmadı.";
+      return cached;
+    }
+  }
+
+  const snap=await getDocs(collection(db,PERSONEL_COLLECTION));
+  const arr=[];
+  snap.forEach(pdoc=>{
+    const p={id:pdoc.id,...pdoc.data()};
+    if(getAktif(p))arr.push(p);
+  });
+
+  arr.sort((a,b)=>getAd(a).localeCompare(getAd(b),"tr",{sensitivity:"base"}));
+  personelCacheYaz(arr);
+
+  const readInfo=document.getElementById("readInfo");
+  if(readInfo) readInfo.textContent=`Personel listesi Firestore’dan okundu: ${arr.length} personel. 30 dakika cache’de tutulacak.`;
+
+  return arr;
+}
+
+window.adminListele=async function(forcePersonelRefresh=false){
+  const key=document.getElementById("adminAy").value||donemKey();
+
+  try{
+    document.getElementById("adminTable").innerHTML=`<tr><td colspan="5">Liste yükleniyor...</td></tr>`;
+    document.getElementById("donemLabelAdmin").textContent="Dönem: "+donemLabel(key);
+
+    aktifDonemTutari=await donemTutariGetir(db,key,VARSAYILAN_AIDAT);
+    document.getElementById("aylikTutarInput").value=aktifDonemTutari;
+
+    aktifPersoneller=await personelleriGetir(forcePersonelRefresh);
+    aktifOdemeler=await donemOdemeleriGetir(key);
+    aktifOncekiDonemKey=addMonthsKey(key,-1);
+    aktifOncekiDonemTutari=await donemTutariGetir(db,aktifOncekiDonemKey,VARSAYILAN_AIDAT);
+    aktifOncekiOdemeler=await donemOdemeleriGetir(aktifOncekiDonemKey);
+    aktifDonemKey=key;
+    listeYuklendi=true;
+
+    adminEkraniCiz();
+
+    const odemeSayisi=Object.keys(aktifOdemeler).length;
+    const readInfo=document.getElementById("readInfo");
+    if(readInfo){
+      readInfo.textContent += ` Seçili dönem ödeme kaydı: ${odemeSayisi}. Arama/filtre artık read oluşturmaz.`;
+    }
+
+  }catch(e){
+    console.error(e);
+    document.getElementById("adminTable").innerHTML=`<tr><td colspan="5">Liste yüklenemedi: ${e.message}</td></tr>`;
+    const readInfo=document.getElementById("readInfo");
+    if(readInfo) readInfo.textContent="Liste yüklenirken hata oluştu.";
+  }
+};
+
+window.adminEkraniCiz=function(){
+  if(!listeYuklendi){
+    const key=document.getElementById("adminAy").value||donemKey();
+    document.getElementById("donemLabelAdmin").textContent="Dönem: "+donemLabel(key);
+    return;
+  }
+
+  const key=aktifDonemKey || document.getElementById("adminAy").value || donemKey();
+  const filtre=document.getElementById("adminFiltre").value;
+  const arama=normalizeTR(document.getElementById("personelArama")?.value||"");
+
+  let rows="";
+  let say={odendi:0,odeme_bekliyor:0,reddedildi:0,rapor_mazeret:0};
+  let toplamBeklenen=0,toplamOdenen=0,toplamGecmisNet=0,toplamBuDonemNet=0,toplamGenelNet=0;
+  sonRaporSatirlari=[];
+
+  for(const personel of aktifPersoneller){
+    const tel=getTelefonFromDoc(personel.id,personel);
+    const ad=getAd(personel);
+
+    const buDonemKayit=aktifOdemeler[tel]||null;
+    const durum=buDonemKayit?(buDonemKayit.durum||"odeme_bekliyor"):"odeme_bekliyor";
+    const gDurum=gorunenDurum(durum,buDonemKayit);
+    const tutar=buDonemKayit&&buDonemKayit.tutar!==undefined?Number(buDonemKayit.tutar):aktifDonemTutari;
+    const hesap=odemeHesabiYap(personel,tel,durum,tutar,aktifDonemTutari,buDonemKayit);
+    const buDonemOdenen=hesap.buDonemOdenen;
+    const buDonemNet=hesap.buDonemNet;
+    const gecmisNet=hesap.oncekiDevirNet;
+    const genelNet=hesap.genelNet;
+
+    const listeDurumu=kayitMazeretMi(buDonemKayit)?"rapor_mazeret":(genelNet<0?"odeme_bekliyor":gDurum);
+    say[listeDurumu]=(say[listeDurumu]||0)+1;
+    toplamBeklenen+=aktifDonemTutari;
+    toplamOdenen+=buDonemOdenen;
+    toplamGecmisNet+=gecmisNet;
+    toplamBuDonemNet+=buDonemNet;
+    toplamGenelNet+=genelNet;
+
+    sonRaporSatirlari.push({
+      ad,tel,donem:donemLabel(key),donemKey:key,donemAidati:aktifDonemTutari,
+      odenenTutar:buDonemOdenen,gecmisBakiye:bakiyeText(gecmisNet),
+      buDonemBakiye:bakiyeText(buDonemNet),genelBakiye:bakiyeText(genelNet),
+      durum:durumText(durum,key,buDonemKayit)
+    });
+
+    const aramaUygun=!arama||normalizeTR(ad).includes(arama)||normalizeTR(tel).includes(arama);
+    if(filtre!=="hepsi"&&filtre!==listeDurumu)continue;
+    if(!aramaUygun)continue;
+
+    const inputId="tutar_"+tel;
+    const safeAd=String(ad).replaceAll("'","\\'");
+    rows+=`<tr>
+      <td data-label="Personel">${ad}</td>
+      <td data-label="Dönem">${donemLabel(key)}</td>
+      <td data-label="Ödenen Tutar"><input id="${inputId}" class="tutarInput" type="number" min="0" value="${tutar}" placeholder="${aktifDonemTutari}"> TL</td>
+      <td data-label="Durum">
+        <span class="status ${durumClass(durum,key,buDonemKayit)}">${durumText(durum,key,buDonemKayit)}</span>
+        <br>
+        <span class="${genelNet<0?'borc':genelNet>0?'fazla':'tamam'}" style="margin-top:6px">${bakiyeText(genelNet)}</span>
+      </td>
+      <td data-label="İşlem">
+        <button class="small green" onclick="durumDegistir('${tel}','${safeAd}','odendi','${inputId}')">Ödendi</button>
+        <button class="small gray" onclick="durumDegistir('${tel}','${safeAd}','odeme_bekliyor','${inputId}')">Bekliyor</button>
+        <button class="small red" onclick="reddet('${tel}','${safeAd}','${inputId}')">Reddet</button>
+        <button class="small" style="background:#0284c7" onclick="raporMazeret('${tel}','${safeAd}','${inputId}')">Rapor/Mazeret</button>
+      </td>
+    </tr>`;
+  }
+
+  sonRaporOzet={
+    donem:donemLabel(key),donemAidati:aktifDonemTutari,toplamBeklenen,toplamOdenen,
+    gecmisBakiye:bakiyeText(toplamGecmisNet),buDonemBakiye:bakiyeText(toplamBuDonemNet),
+    genelBakiye:bakiyeText(toplamGenelNet),odendi:say.odendi,
+    bekliyor:say.odeme_bekliyor,reddedildi:say.reddedildi,raporMazeret:say.rapor_mazeret
+  };
+
+  document.getElementById("adminTable").innerHTML=rows||`<tr><td colspan="5">Kayıt yok.</td></tr>`;
+
+  document.getElementById("adminOzet").innerHTML=`
+    <div class="card"><h3>Bu Dönem Aidatı</h3><h1>${aktifDonemTutari} TL</h1></div>
+    <div class="card"><h3>Ödendi</h3><h1>${say.odendi}</h1></div>
+    <div class="card"><h3>Ödeme Bekliyor</h3><h1>${say.odeme_bekliyor}</h1></div>
+    <div class="card"><h3>Reddedildi</h3><h1>${say.reddedildi}</h1></div>
+    <div class="card"><h3>Rapor/Mazeret</h3><h1>${say.rapor_mazeret}</h1></div>
+    <div class="card"><h3>Beklenen Toplam</h3><h1>${toplamBeklenen} TL</h1></div>
+    <div class="card"><h3>Bu Dönem Ödenen</h3><h1>${toplamOdenen} TL</h1></div>
+    <div class="card"><h3>Geçmiş Bakiye</h3><h1>${bakiyeText(toplamGecmisNet)}</h1></div>
+    <div class="card"><h3>Genel Bakiye</h3><h1>${bakiyeText(toplamGenelNet)}</h1></div>`;
+};
+
+
+function whatsappDurumCiz(){
+  const box=document.getElementById("waQueueBox");
+  const progress=document.getElementById("waProgress");
+  const current=document.getElementById("waCurrent");
+
+  if(!box||!progress||!current)return;
+
+  if(!whatsappKuyruk.length){
+    box.classList.remove("show");
+    progress.textContent="Hazır değil";
+    current.textContent="Sıradaki kişi yok.";
+    return;
+  }
+
+  box.classList.add("show");
+
+  const toplam=whatsappKuyruk.length;
+  const gosterilen=Math.min(whatsappIndex+1,toplam);
+  progress.textContent=`${gosterilen} / ${toplam} kişi`;
+
+  if(whatsappIndex>=toplam){
+    current.textContent="Tüm borçlu personeller için WhatsApp sohbeti açıldı.";
+  }else{
+    const kisi=whatsappKuyruk[whatsappIndex];
+    current.textContent=`Sıradaki: ${kisi.ad}`;
+  }
+}
+
+function whatsappLinkOlustur(kisi){
+  const mesaj=whatsappMesajSablon
+    .replaceAll("{AD}",kisi.ad)
+    .replaceAll("{DONEM}",donemLabel(whatsappAktifDonem));
+
+  return "https://wa.me/"+kisi.tel+"?text="+encodeURIComponent(mesaj);
+}
+
+window.whatsappSiradakiAc=function(hazirPencere=null){
+  const smsMsg=document.getElementById("smsMsg");
+
+  if(!whatsappKuyruk.length){
+    smsMsg.style.color="#991b1b";
+    smsMsg.textContent="Önce borçlu listesini hazırla.";
+    return;
+  }
+
+  if(whatsappIndex>=whatsappKuyruk.length){
+    smsMsg.style.color="#166534";
+    smsMsg.textContent="Tüm kişiler açıldı. İstersen sırayı sıfırlayıp tekrar başlatabilirsin.";
+    whatsappDurumCiz();
+    return;
+  }
+
+  const kisi=whatsappKuyruk[whatsappIndex];
+  const url=whatsappLinkOlustur(kisi);
+
+  let acilan=hazirPencere;
+  if(acilan && !acilan.closed){
+    acilan.location.href=url;
+  }else{
+    acilan=window.open(url,"_blank");
+  }
+
+  if(!acilan){
+    smsMsg.style.color="#991b1b";
+    smsMsg.textContent="WhatsApp penceresi açılamadı. Tarayıcı pop-up iznini kontrol et veya Sonraki Kişiye Geç butonuna bas.";
+    return;
+  }
+
+  whatsappIndex++;
+  whatsappDurumCiz();
+
+  if(whatsappIndex>=whatsappKuyruk.length){
+    smsMsg.style.color="#166534";
+    smsMsg.textContent="Son kişi açıldı. Açılan WhatsApp pencerelerinde Gönder tuşuna bas.";
+  }else{
+    smsMsg.style.color="#166534";
+    smsMsg.textContent=`${kisi.ad} için WhatsApp açıldı. Mesajı gönderdikten sonra Sonraki Kişiye Geç butonuna bas.`;
+  }
+};
+
+window.whatsappSirayiSifirla=function(){
+  whatsappIndex=0;
+  whatsappDurumCiz();
+  const smsMsg=document.getElementById("smsMsg");
+  smsMsg.style.color="#166534";
+  smsMsg.textContent="WhatsApp sırası başa alındı.";
+};
+
+window.borclularaWhatsAppGonder=async function(){
+  const smsMsg=document.getElementById("smsMsg");
+  const mesajSablon=(document.getElementById("smsMesaj").value||"").trim();
+  if(!mesajSablon){alert("WhatsApp mesajı boş olamaz.");return;}
+
+  const emin=confirm("Seçili dönemde ödeme bekleyen personeller hazırlanacak. İlk kişinin WhatsApp sohbeti açılacak. Devam edilsin mi?");
+  if(!emin)return;
+
+  const ilkWhatsappPenceresi=window.open("about:blank","_blank");
+  if(ilkWhatsappPenceresi){
+    ilkWhatsappPenceresi.document.write("<p style='font-family:Arial;padding:20px'>WhatsApp mesajı hazırlanıyor...</p>");
+  }
+
+  smsMsg.style.color="#166534";
+  smsMsg.textContent="Borçlu personeller hazırlanıyor...";
+
+  whatsappKuyruk=[];
+  whatsappIndex=0;
+  whatsappAktifDonem=document.getElementById("adminAy").value||donemKey();
+  whatsappMesajSablon=mesajSablon;
+  whatsappDurumCiz();
+
+  try{
+    const key=whatsappAktifDonem;
+    const personelSnap=await getDocs(collection(db,PERSONEL_COLLECTION));
+    const buDonemOdemeler=await donemOdemeleriGetir(key);
+
+    const kisiler=[];
+    personelSnap.forEach(pdoc=>{
+      const p={id:pdoc.id,...pdoc.data()};
+      if(!getAktif(p))return;
+
+      const tel=getTelefonFromDoc(p.id,p);
+      if(!tel)return;
+
+      const buDonemKayit=buDonemOdemeler[tel]||null;
+      const durum=buDonemKayit?(buDonemKayit.durum||"odeme_bekliyor"):"odeme_bekliyor";
+
+      if(durum==="odeme_bekliyor"){
+        const waNo=smsTelefonFormatla(tel);
+        if(waNo.length===12&&waNo.startsWith("90")){
+          kisiler.push({ad:getAd(p),tel:waNo});
+        }
+      }
+    });
+
+    kisiler.sort((a,b)=>a.ad.localeCompare(b.ad,"tr",{sensitivity:"base"}));
+
+    if(!kisiler.length){
+      if(ilkWhatsappPenceresi && !ilkWhatsappPenceresi.closed) ilkWhatsappPenceresi.close();
+      whatsappKuyruk=[];
+      whatsappIndex=0;
+      whatsappDurumCiz();
+      smsMsg.style.color="#991b1b";
+      smsMsg.textContent="WhatsApp gönderilecek borçlu personel bulunamadı.";
+      alert("Borçlu personel bulunamadı.");
+      return;
+    }
+
+    whatsappKuyruk=kisiler;
+    whatsappIndex=0;
+    whatsappDurumCiz();
+
+    smsMsg.style.color="#166534";
+    smsMsg.textContent=`${kisiler.length} borçlu personel hazırlandı. İlk kişi açılıyor...`;
+
+    window.whatsappSiradakiAc(ilkWhatsappPenceresi);
+
+  }catch(err){
+    if(typeof ilkWhatsappPenceresi!=="undefined" && ilkWhatsappPenceresi && !ilkWhatsappPenceresi.closed) ilkWhatsappPenceresi.close();
+    console.error(err);
+    whatsappKuyruk=[];
+    whatsappIndex=0;
+    whatsappDurumCiz();
+    smsMsg.style.color="#991b1b";
+    smsMsg.textContent="WhatsApp hazırlamada hata oluştu: "+err.message;
+    alert("WhatsApp mesajı hazırlanamadı: "+err.message);
+  }
+};
+
+window.csvIndir=function(){
+  if(!sonRaporSatirlari.length){alert("Önce listeyi yenile.");return;}
+  const key=document.getElementById("adminAy").value||donemKey();
+  const rows=[["Personel Adı","Dönem","Dönem Anahtarı","Dönem Aidatı","Ödenen Tutar","Geçmiş Bakiye","Bu Dönem Bakiye","Genel Bakiye","Durum"]];
+  sonRaporSatirlari.forEach(r=>rows.push([r.ad,r.donem,r.donemKey,r.donemAidati,r.odenenTutar,r.gecmisBakiye,r.buDonemBakiye,r.genelBakiye,r.durum]));
+  rows.push([],["ÖZET"],["Dönem",sonRaporOzet.donem],["Dönem Aidatı",sonRaporOzet.donemAidati],["Toplam Beklenen",sonRaporOzet.toplamBeklenen],["Toplam Ödenen",sonRaporOzet.toplamOdenen],["Geçmiş Bakiye",sonRaporOzet.gecmisBakiye],["Bu Dönem Bakiye",sonRaporOzet.buDonemBakiye],["Genel Bakiye",sonRaporOzet.genelBakiye],["Ödendi",sonRaporOzet.odendi],["Ödeme Bekliyor",sonRaporOzet.bekliyor],["Reddedildi",sonRaporOzet.reddedildi],["Rapor/Mazeret",sonRaporOzet.raporMazeret]);
+  const csv="\uFEFF"+rows.map(csvSatir).join("\n");
+  const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+  const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="cay-odeme-raporu-"+key+".csv";document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+};
+
+window.durumDegistir=async function(telefon,adSoyad,yeniDurum,inputId){
+  const key=document.getElementById("adminAy").value||aktifDonemKey||donemKey();
+  const tel=temizTelefon(telefon);
+  const inputEl=document.getElementById(inputId);
+  const rawTutar=inputEl?inputEl.value:"";
+  let girilenTutar=rawTutar===""?(aktifDonemTutari||VARSAYILAN_AIDAT):Number(rawTutar);
+
+  if(!Number.isFinite(girilenTutar)||girilenTutar<0)return alert("Tutar 0 veya daha büyük olmalı.");
+
+  const ref=doc(db,ODEME_COLLECTION,odemeDocId(key,tel));
+  const personel=aktifPersoneller.find(p=>getTelefonFromDoc(p.id,p)===tel)||{};
+  const hesap=odemeHesabiYap(personel,tel,yeniDurum,girilenTutar,aktifDonemTutari,null);
+  const yeniKayit={
+    personelId:tel,
+    telefon:tel,
+    adSoyad,
+    ay:key,
+    donemEtiketi:donemLabel(key),
+    tutar:girilenTutar,
+    durum:yeniDurum,
+    odemeTuru:deleteField(),
+    muaf:deleteField(),
+    raporMazeret:deleteField(),
+    adminNot:"",
+    ...bakiyeAlanlari(hesap),
+    updatedAt:serverTimestamp()
+  };
+
+  await setDoc(ref,yeniKayit,{merge:true});
+  await personelBakiyeGuncelle(tel,hesap.genelNet,key);
+
+  aktifOdemeler[tel]={...yeniKayit,updatedAt:new Date()};
+  listeYuklendi=true;
+  adminEkraniCiz();
+};
+
+window.reddet=async function(telefon,adSoyad,inputId){
+  const sebep=prompt("Reddetme sebebi:","Ödeme görünmedi");
+  const key=document.getElementById("adminAy").value||aktifDonemKey||donemKey();
+  const tel=temizTelefon(telefon);
+  const inputEl=document.getElementById(inputId);
+  const rawTutar=inputEl?inputEl.value:"";
+  let girilenTutar=rawTutar===""?(aktifDonemTutari||VARSAYILAN_AIDAT):Number(rawTutar);
+
+  if(!Number.isFinite(girilenTutar)||girilenTutar<0)return alert("Tutar 0 veya daha büyük olmalı.");
+
+  const ref=doc(db,ODEME_COLLECTION,odemeDocId(key,tel));
+  const personel=aktifPersoneller.find(p=>getTelefonFromDoc(p.id,p)===tel)||{};
+  const hesap=odemeHesabiYap(personel,tel,"reddedildi",girilenTutar,aktifDonemTutari,null);
+  const yeniKayit={
+    personelId:tel,
+    telefon:tel,
+    adSoyad,
+    ay:key,
+    donemEtiketi:donemLabel(key),
+    tutar:girilenTutar,
+    durum:"reddedildi",
+    odemeTuru:deleteField(),
+    muaf:deleteField(),
+    raporMazeret:deleteField(),
+    adminNot:sebep||"Reddedildi",
+    ...bakiyeAlanlari(hesap),
+    updatedAt:serverTimestamp()
+  };
+
+  await setDoc(ref,yeniKayit,{merge:true});
+  await personelBakiyeGuncelle(tel,hesap.genelNet,key);
+
+  aktifOdemeler[tel]={...yeniKayit,updatedAt:new Date()};
+  listeYuklendi=true;
+  adminEkraniCiz();
+};
+
+window.raporMazeret=async function(telefon,adSoyad,inputId){
+  const not=prompt("Rapor/Mazeret notu:","Rapor/Mazeret nedeniyle aidat alınmayacak");
+  if(not===null)return;
+
+  const key=document.getElementById("adminAy").value||aktifDonemKey||donemKey();
+  const tel=temizTelefon(telefon);
+  const muafTutar=Number(aktifDonemTutari||VARSAYILAN_AIDAT);
+
+  const ref=doc(db,ODEME_COLLECTION,odemeDocId(key,tel));
+  const personel=aktifPersoneller.find(p=>getTelefonFromDoc(p.id,p)===tel)||{};
+  const hesap=odemeHesabiYap(personel,tel,"odendi",muafTutar,aktifDonemTutari,{odemeTuru:"rapor_mazeret",muaf:true,raporMazeret:true});
+  const yeniKayit={
+    personelId:tel,
+    telefon:tel,
+    adSoyad,
+    ay:key,
+    donemEtiketi:donemLabel(key),
+    tutar:muafTutar,
+    durum:"odendi",
+    odemeTuru:"rapor_mazeret",
+    muaf:true,
+    raporMazeret:true,
+    adminNot:not||"Rapor/Mazeret nedeniyle borç yok",
+    ...bakiyeAlanlari(hesap),
+    updatedAt:serverTimestamp()
+  };
+
+  await setDoc(ref,yeniKayit,{merge:true});
+  await personelBakiyeGuncelle(tel,hesap.genelNet,key);
+
+  aktifOdemeler[tel]={...yeniKayit,updatedAt:new Date()};
+  listeYuklendi=true;
+  adminEkraniCiz();
+};
+
+window.ornekDekontCsvIndir=function(){const rows=[["Personel","Tutar"],["MUHAMMET SAÇAL","300"],["SERHAT AKGÜL","2700"],["BÜNYAMİN KAPLAN","300"]];const ws=XLSX.utils.aoa_to_sheet(rows);ws["!cols"]=[{wch:32},{wch:12}];const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Ödeme Şablonu");XLSX.writeFile(wb,"cay-odeme-isim-tutar-sablonu.xlsx");};
+
+window.dekontIceriAktar=async function(){
+  const file=document.getElementById("dekontExcel")?.files?.[0];
+  const msg=document.getElementById("importMsg");
+  if(!file)return alert("Önce Excel veya CSV dosyası seç.");
+  const key=document.getElementById("adminAy").value||donemKey();
+  msg.textContent="Dosya okunuyor...";
+  try{
+    const data=await file.arrayBuffer();const wb=XLSX.read(data,{type:"array"});const ws=wb.Sheets[wb.SheetNames[0]];const hamSatirlar=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});
+    let baslikIndex=-1;
+    for(let i=0;i<hamSatirlar.length;i++){const satirText=hamSatirlar[i].map(x=>normalizeTR(x)).join(" ");const isimBasligiVar=satirText.includes("personel")||satirText.includes("ad soyad")||satirText.includes("adi soyadi")||satirText.includes("isim")||satirText.includes("aciklama");const tutarBasligiVar=satirText.includes("tutar")||satirText.includes("miktar")||satirText.includes("islem tutari")||satirText.includes("odenen tutar");if(isimBasligiVar&&tutarBasligiVar){baslikIndex=i;break;}}
+    if(baslikIndex===-1){msg.textContent="Başlık bulunamadı. Dosyada Personel ve Tutar sütunları olmalı.";alert("Excel içinde Personel / Tutar başlığı bulunamadı.");return;}
+    const basliklar=hamSatirlar[baslikIndex].map(x=>String(x||"").trim());
+    const veriSatirlari=hamSatirlar.slice(baslikIndex+1);
+    const rows=veriSatirlari.filter(satir=>satir.some(x=>String(x||"").trim()!=="")).map(satir=>{const obj={};basliklar.forEach((b,i)=>obj[b]=satir[i]??"");return obj;});
+    if(!rows.length){msg.textContent="İşlenecek ödeme satırı bulunamadı.";return;}
+    aktifDonemKey=key;
+    aktifDonemTutari=await donemTutariGetir(db,key,VARSAYILAN_AIDAT);
+    aktifOncekiDonemKey=addMonthsKey(key,-1);
+    aktifOncekiDonemTutari=await donemTutariGetir(db,aktifOncekiDonemKey,VARSAYILAN_AIDAT);
+    aktifOncekiOdemeler=await donemOdemeleriGetir(aktifOncekiDonemKey);
+    const personelSnap=await getDocs(collection(db,PERSONEL_COLLECTION));const personeller=[];
+    personelSnap.forEach(pdoc=>{const p={id:pdoc.id,...pdoc.data()};if(getAktif(p)){const tel=getTelefonFromDoc(p.id,p);const ad=getAd(p);if(tel&&ad)personeller.push({id:p.id,tel,ad,norm:normalizeTR(ad),raw:p});}});
+    aktifPersoneller=personeller.map(x=>x.raw);
+    let basarili=0,eslesmeyen=0,tutarsiz=0;const eslesmeyenler=[];
+    for(const r of rows){const adRaw=String(getAlan(r,["Personel","Ad Soyad","Adı Soyadı","Adi Soyadi","İsim","Isim","Açıklama","Aciklama","Gönderen","Gonderen","Alıcı","Alici"])||"").trim();const tutarRaw=getAlan(r,["Tutar","Miktar","Ödenen Tutar","Odenen Tutar","İşlem Tutarı","Islem Tutari","İşlem Tutarı (TL)","Islem Tutari (TL)","Amount"]);const tutar=parseMoney(tutarRaw);if(!adRaw){eslesmeyen++;eslesmeyenler.push("İsim boş satır");continue;}if(tutar===null||tutar<0){tutarsiz++;continue;}if(tutar===0)continue;const kisi=eslesenKisiyiBul(adRaw,personeller);if(!kisi){eslesmeyen++;eslesmeyenler.push(adRaw);continue;}const hesap=odemeHesabiYap(kisi.raw,kisi.tel,"odendi",tutar,aktifDonemTutari,null);const yeniKayit={personelId:kisi.tel,telefon:kisi.tel,adSoyad:kisi.ad,ay:key,donemEtiketi:donemLabel(key),tutar:tutar,durum:"odendi",odemeTuru:deleteField(),muaf:deleteField(),raporMazeret:deleteField(),adminNot:"İsim ve tutar tablosundan içe aktarıldı",yuklenenIsim:adRaw,...bakiyeAlanlari(hesap),updatedAt:serverTimestamp()};await setDoc(doc(db,ODEME_COLLECTION,odemeDocId(key,kisi.tel)),yeniKayit,{merge:true});await setDoc(doc(db,PERSONEL_COLLECTION,kisi.id),{bakiye:hesap.genelNet,bakiyeNet:hesap.genelNet,sonOdemeDonemi:key,bakiyeGuncellendi:serverTimestamp()},{merge:true});basarili++;}
+    msg.textContent=`İçe aktarma tamam: ${basarili} ödeme işlendi. Eşleşmeyen: ${eslesmeyen}. Hatalı tutar: ${tutarsiz}.`;
+    if(eslesmeyenler.length)console.warn("Eşleşmeyen ödeme satırları:",eslesmeyenler);
+    await adminListele(false);
+  }catch(e){console.error(e);msg.textContent="İçe aktarma sırasında hata oluştu. Excel/CSV dosyasını kontrol et.";alert("Dosya okunamadı. Personel / Tutar başlıklarını kontrol et.");}
+};
+
+onAuthStateChanged(auth,async(user)=>{
+  if(!user){localStorage.removeItem("adminLogin");localStorage.removeItem("adminGiris");location.replace("adminpanel.html");return;}
+  const ok=await adminMi(user);
+  if(!ok){localStorage.removeItem("adminLogin");localStorage.removeItem("adminGiris");await signOut(auth);location.replace("adminpanel.html");return;}
+  localStorage.setItem("adminLogin","true");localStorage.setItem("adminGiris","true");adminAc();
+});
+</script>
+</body>
+</html>
