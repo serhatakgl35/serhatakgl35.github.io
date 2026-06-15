@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anket Yönetimi</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#f5f5f7;
+  --text:#111827;
+  --muted:#6b7280;
+  --line:#e5e7eb;
+  --shadow:0 18px 60px rgba(0,0,0,.10);
+  --shadow2:0 10px 35px rgba(0,0,0,.08);
+}
+body{
+  margin:0;
+  min-height:100vh;
+  background:
+    radial-gradient(circle at top left, rgba(255,255,255,.95), transparent 28%),
+    radial-gradient(circle at top right, rgba(220,224,235,.9), transparent 30%),
+    #f5f5f7;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif;
+  color:var(--text);
+}
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:20;
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  flex-wrap:wrap;
+  padding:12px;
+  background:rgba(17,17,17,.92);
+  backdrop-filter:blur(18px);
+  box-shadow:0 8px 30px rgba(0,0,0,.18);
+}
+.topbar a,.topbar button{
+  border:0;
+  text-decoration:none;
+  background:#fff;
+  color:#111;
+  border-radius:999px;
+  padding:11px 16px;
+  font-weight:950;
+  font-size:14px;
+  cursor:pointer;
+}
+.wrap{width:min(1250px,100%);margin:24px auto;padding:0 16px 40px}
+.hero{
+  background:rgba(255,255,255,.86);
+  backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,.78);
+  border-radius:34px;
+  padding:30px;
+  box-shadow:var(--shadow);
+  margin-bottom:18px;
+}
+.hero h1{margin:0;font-size:48px;letter-spacing:-1.5px;font-weight:1000}
+.hero p{margin:10px 0 0;color:var(--muted);font-weight:750;line-height:1.5}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+.box{
+  background:rgba(255,255,255,.88);
+  border:1px solid rgba(255,255,255,.78);
+  border-radius:30px;
+  padding:22px;
+  box-shadow:var(--shadow2);
+  overflow:hidden;
+}
+.box h2{margin:0 0 16px;font-size:25px;letter-spacing:-.7px}
+.formGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{display:flex;flex-direction:column;gap:7px;margin-bottom:12px}
+.field.full{grid-column:1/-1}
+label{font-size:13px;font-weight:950;color:#374151}
+input,textarea,select{
+  width:100%;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:13px 14px;
+  font-size:15px;
+  font-weight:750;
+  outline:none;
+  background:#fff;
+  color:#111827;
+}
+textarea{min-height:82px;resize:vertical;line-height:1.45}
+input:focus,textarea:focus{border-color:#111;box-shadow:0 0 0 4px rgba(17,17,17,.08)}
+.switchLine{display:flex;align-items:center;gap:10px;margin:8px 0 14px;font-weight:950}
+.switchLine input{width:22px;height:22px;accent-color:#111}
+.optionRow{
+  display:grid;
+  grid-template-columns:72px 1fr;
+  gap:10px;
+  padding:12px;
+  border:1px solid var(--line);
+  border-radius:20px;
+  margin-bottom:10px;
+  background:#fafafa;
+}
+.optionRow .wide{grid-column:1/-1}
+.btnRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.btn{
+  border:0;
+  border-radius:17px;
+  padding:13px 16px;
+  font-weight:1000;
+  cursor:pointer;
+  font-size:14px;
+}
+.btn.dark{background:#111;color:#fff}
+.btn.gray{background:#e5e7eb;color:#111827}
+.btn.red{background:#dc2626;color:#fff}
+.btn.green{background:#16a34a;color:#fff}
+.status{
+  margin-top:13px;
+  padding:12px 14px;
+  border-radius:16px;
+  background:#f3f4f6;
+  color:#374151;
+  font-weight:850;
+  min-height:45px;
+  line-height:1.45;
+}
+.summaryTop{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.statCard{background:#111827;color:#fff;border-radius:22px;padding:16px;min-height:96px}
+.statCard small{display:block;opacity:.78;font-weight:850;margin-bottom:8px}
+.statCard b{font-size:32px;letter-spacing:-1px}
+.resultItem{margin-bottom:14px}
+.resultTitle{display:flex;justify-content:space-between;gap:10px;font-weight:1000;margin-bottom:7px}
+.barShell{height:13px;background:#e5e7eb;border-radius:999px;overflow:hidden}
+.bar{height:100%;width:0;background:#111827;border-radius:999px;transition:.25s ease}
+.tableWrap{overflow:auto;border:1px solid var(--line);border-radius:20px;margin-top:16px;background:#fff}
+table{width:100%;border-collapse:collapse;min-width:680px}
+th,td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;font-size:14px;vertical-align:top}
+th{background:#f9fafb;font-weight:1000;color:#374151;position:sticky;top:0}
+tr:last-child td{border-bottom:0}
+.empty{padding:18px;border-radius:18px;background:#f9fafb;color:#6b7280;font-weight:850;text-align:center}
+.preview{
+  border-radius:28px;
+  padding:20px;
+  background:linear-gradient(135deg,#fff,#f8fafc);
+  border:1px solid var(--line);
+  margin-top:18px;
+}
+.previewHead{display:flex;gap:12px;align-items:center;margin-bottom:13px}
+.previewLogo{width:52px;height:52px;border-radius:20px;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px}
+.previewTitle{font-size:22px;font-weight:1000;letter-spacing:-.5px}
+.previewDesc{color:#6b7280;font-weight:750;margin-top:4px}
+.previewOptions{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.previewOption{border:1px solid var(--line);border-radius:18px;padding:12px;background:#fff}
+.previewOption .emoji{font-size:26px;margin-bottom:6px}.previewOption b{display:block}.previewOption small{color:#6b7280;font-weight:750}
+@media(max-width:900px){.grid{grid-template-columns:1fr}.hero h1{font-size:36px}.formGrid,.summaryTop{grid-template-columns:1fr}.previewOptions{grid-template-columns:1fr}.wrap{margin-top:14px}.box,.hero{border-radius:24px;padding:18px}.optionRow{grid-template-columns:1fr}.optionRow .wide{grid-column:auto}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="adminpanel.html">Admin Panel</a>
+  <a href="panel.html">Personel Paneli</a>
+  <button id="yenileBtn" type="button">Sonuçları Yenile</button>
+</div>
+
+<div class="wrap">
+  <section class="hero">
+    <h1>Anket Yönetimi</h1>
+    <p>Personel panelinde görünen anketi buradan açıp kapatabilir, soru/seçenekleri değiştirebilir ve gelen cevapları görebilirsiniz.</p>
+  </section>
+
+  <section class="grid">
+    <div class="box">
+      <h2>Anket Ayarları</h2>
+      <div class="switchLine">
+        <input id="aktif" type="checkbox">
+        <span>Anket personel panelinde görünsün</span>
+      </div>
+
+      <div class="formGrid">
+        <div class="field">
+          <label for="anketId">Anket ID</label>
+          <input id="anketId" placeholder="kantin10_panel_anket_v1">
+        </div>
+        <div class="field">
+          <label for="logo">Üst ikon</label>
+          <input id="logo" placeholder="📊" maxlength="4">
+        </div>
+        <div class="field full">
+          <label for="baslik">Başlık</label>
+          <input id="baslik" placeholder="Kantin10 anketi">
+        </div>
+        <div class="field full">
+          <label for="aciklama">Açıklama</label>
+          <textarea id="aciklama" placeholder="Sistemi nasıl buldunuz?"></textarea>
+        </div>
+      </div>
+
+      <h2 style="font-size:21px;margin-top:18px">Seçenekler</h2>
+      <div id="secenekAlanlari"></div>
+
+      <div class="btnRow">
+        <button class="btn dark" id="kaydetBtn" type="button">Anketi Kaydet</button>
+        <button class="btn gray" id="varsayilanBtn" type="button">Varsayılanı Yükle</button>
+        <button class="btn green" id="yeniAnketBtn" type="button">Yeni Anket Başlat</button>
+      </div>
+
+      <div class="status" id="ayarStatus">Ayarlar yükleniyor...</div>
+
+      <div class="preview" id="onizleme"></div>
+    </div>
+
+    <div class="box">
+      <h2>Anket Sonuçları</h2>
+      <div class="summaryTop">
+        <div class="statCard"><small>Toplam oy</small><b id="toplamOy">0</b></div>
+        <div class="statCard"><small>En çok seçilen</small><b id="liderSecenek" style="font-size:22px">-</b></div>
+        <div class="statCard"><small>Anket durumu</small><b id="anketDurum" style="font-size:22px">-</b></div>
+      </div>
+
+      <div id="sonucAlanlari"></div>
+
+      <div class="btnRow">
+        <button class="btn gray" id="csvBtn" type="button">CSV İndir</button>
+        <button class="btn red" id="oylariSifirlaBtn" type="button">Bu Anketin Oylarını Sıfırla</button>
+      </div>
+
+      <div class="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Personel</th>
+              <th>Telefon</th>
+              <th>Cevap</th>
+              <th>Tarih</th>
+            </tr>
+          </thead>
+          <tbody id="cevapTablo"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp, collection, getDocs, query, where, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",
+  authDomain:"berber-randevu-14f7f.firebaseapp.com",
+  projectId:"berber-randevu-14f7f",
+  storageBucket:"berber-randevu-14f7f.firebasestorage.app",
+  messagingSenderId:"280530860977",
+  appId:"1:280530860977:web:52c0df04c228896f211b90"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const AYAR_REF = doc(db, "panel_anket_ayarlar", "personel_panel");
+const CEVAP_COL = collection(db, "panel_anket_cevaplari");
+
+const VARSAYILAN = {
+  aktif:true,
+  anketId:"kantin10_panel_anket_v1",
+  logo:"📊",
+  baslik:"Kantin10 anketi",
+  aciklama:"Sistemi nasıl buldunuz? Seçiminiz yönetime iletilecektir.",
+  secenekler:[
+    {value:"cok_faydali", emoji:"🌟", metin:"Çok faydalı", alt:"Kullanımı kolay, işlemleri hızlandırıyor."},
+    {value:"iyi", emoji:"👍", metin:"İyi", alt:"Genel olarak güzel, küçük eksikler var."},
+    {value:"gelistirilmeli", emoji:"🛠️", metin:"Geliştirilmeli", alt:"Bazı alanların daha pratik olması lazım."},
+    {value:"fikrim_var", emoji:"💬", metin:"Fikrim var", alt:"Önerimi ayrıca yönetime ileteceğim."}
+  ]
+};
+
+const el = id => document.getElementById(id);
+const aktif = el("aktif");
+const anketId = el("anketId");
+const logo = el("logo");
+const baslik = el("baslik");
+const aciklama = el("aciklama");
+const secenekAlanlari = el("secenekAlanlari");
+const ayarStatus = el("ayarStatus");
+const sonucAlanlari = el("sonucAlanlari");
+const cevapTablo = el("cevapTablo");
+const toplamOy = el("toplamOy");
+const liderSecenek = el("liderSecenek");
+const anketDurum = el("anketDurum");
+const onizleme = el("onizleme");
+
+let sonCevaplar = [];
+let aktifAyar = {...VARSAYILAN};
+
+function temiz(v, fallback=""){
+  const t = String(v || "").trim();
+  return t || fallback;
+}
+
+function degerOlustur(v){
+  return temiz(v,"secenek")
+    .toLocaleLowerCase("tr-TR")
+    .replace(/ğ/g,"g").replace(/ü/g,"u").replace(/ş/g,"s").replace(/ı/g,"i").replace(/ö/g,"o").replace(/ç/g,"c")
+    .replace(/[^a-z0-9]+/g,"_")
+    .replace(/^_+|_+$/g,"") || "secenek";
+}
+
+function tarihYaz(ts){
+  try{
+    if(!ts) return "-";
+    const d = ts.toDate ? ts.toDate() : new Date(ts);
+    return d.toLocaleString("tr-TR");
+  }catch(e){return "-"}
+}
+
+function secenekFormlariniCiz(secenekler){
+  secenekAlanlari.innerHTML = "";
+  const liste = Array.isArray(secenekler) && secenekler.length ? secenekler : VARSAYILAN.secenekler;
+
+  liste.slice(0,6).forEach((sec, i) => {
+    const row = document.createElement("div");
+    row.className = "optionRow";
+    row.innerHTML = `
+      <div class="field">
+        <label>İkon ${i+1}</label>
+        <input class="secEmoji" value="${temiz(sec.emoji,"🔘")}" maxlength="4">
+      </div>
+      <div class="field">
+        <label>Seçenek adı ${i+1}</label>
+        <input class="secMetin" value="${temiz(sec.metin,"Seçenek")}">
+      </div>
+      <div class="field wide">
+        <label>Açıklama ${i+1}</label>
+        <input class="secAlt" value="${temiz(sec.alt,"Seçmek için dokunun.")}">
+      </div>
+      <input class="secValue" type="hidden" value="${temiz(sec.value, degerOlustur(sec.metin))}">
+    `;
+    secenekAlanlari.appendChild(row);
+  });
+}
+
+function formdanAyarAl(){
+  const secenekler = Array.from(document.querySelectorAll(".optionRow")).map((row, i) => {
+    const metin = temiz(row.querySelector(".secMetin").value, "Seçenek " + (i+1));
+    const value = temiz(row.querySelector(".secValue").value, degerOlustur(metin));
+    return {
+      value,
+      emoji:temiz(row.querySelector(".secEmoji").value, "🔘"),
+      metin,
+      alt:temiz(row.querySelector(".secAlt").value, "Seçmek için dokunun.")
+    };
+  });
+
+  return {
+    aktif:aktif.checked,
+    anketId:temiz(anketId.value, VARSAYILAN.anketId),
+    logo:temiz(logo.value, VARSAYILAN.logo),
+    baslik:temiz(baslik.value, VARSAYILAN.baslik),
+    aciklama:temiz(aciklama.value, VARSAYILAN.aciklama),
+    secenekler
+  };
+}
+
+function formaYaz(ayar){
+  aktif.checked = ayar.aktif !== false;
+  anketId.value = temiz(ayar.anketId, VARSAYILAN.anketId);
+  logo.value = temiz(ayar.logo, VARSAYILAN.logo);
+  baslik.value = temiz(ayar.baslik, VARSAYILAN.baslik);
+  aciklama.value = temiz(ayar.aciklama, VARSAYILAN.aciklama);
+  secenekFormlariniCiz(ayar.secenekler);
+  aktifAyar = formdanAyarAl();
+  onizlemeCiz();
+}
+
+function onizlemeCiz(){
+  const a = formdanAyarAl();
+  onizleme.innerHTML = `
+    <div class="previewHead">
+      <div class="previewLogo">${a.logo}</div>
+      <div>
+        <div class="previewTitle">${a.baslik}</div>
+        <div class="previewDesc">${a.aciklama}</div>
+      </div>
+    </div>
+    <div class="previewOptions">
+      ${a.secenekler.map(s => `
+        <div class="previewOption">
+          <div class="emoji">${s.emoji}</div>
+          <b>${s.metin}</b>
+          <small>${s.alt}</small>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+async function ayarlariYukle(){
+  ayarStatus.textContent = "Ayarlar yükleniyor...";
+  try{
+    const snap = await getDoc(AYAR_REF);
+    const ayar = snap.exists() ? {...VARSAYILAN, ...(snap.data() || {})} : VARSAYILAN;
+    formaYaz(ayar);
+    ayarStatus.textContent = snap.exists() ? "Mevcut anket ayarları yüklendi." : "Henüz kayıtlı ayar yok. Varsayılan anket hazırlandı.";
+    await sonuclariYukle();
+  }catch(e){
+    console.error(e);
+    formaYaz(VARSAYILAN);
+    ayarStatus.textContent = "Ayarlar okunamadı. Firebase izinlerini kontrol edin.";
+  }
+}
+
+async function ayarlariKaydet(){
+  const ayar = formdanAyarAl();
+  ayarStatus.textContent = "Anket kaydediliyor...";
+  try{
+    await setDoc(AYAR_REF, {
+      ...ayar,
+      guncellemeTarihi:serverTimestamp()
+    }, {merge:true});
+    aktifAyar = ayar;
+    ayarStatus.textContent = "Anket kaydedildi. Personel paneli bu ayarları okuyacak.";
+    await sonuclariYukle();
+  }catch(e){
+    console.error(e);
+    ayarStatus.textContent = "Anket kaydedilemedi. Firebase yazma iznini kontrol edin.";
+  }
+}
+
+async function sonuclariYukle(){
+  const ayar = formdanAyarAl();
+  aktifAyar = ayar;
+  toplamOy.textContent = "0";
+  liderSecenek.textContent = "-";
+  anketDurum.textContent = ayar.aktif ? "Açık" : "Kapalı";
+  sonucAlanlari.innerHTML = `<div class="empty">Sonuçlar yükleniyor...</div>`;
+  cevapTablo.innerHTML = "";
+
+  try{
+    const q = query(CEVAP_COL, where("anketId", "==", ayar.anketId));
+    const snap = await getDocs(q);
+    sonCevaplar = snap.docs.map(d => ({id:d.id, ...d.data()}));
+
+    const sayim = {};
+    ayar.secenekler.forEach(s => sayim[s.value] = 0);
+    sonCevaplar.forEach(c => {
+      const v = c.cevap || "";
+      sayim[v] = (sayim[v] || 0) + 1;
+    });
+
+    const total = sonCevaplar.length;
+    toplamOy.textContent = total;
+
+    let lider = "-";
+    let liderAdet = -1;
+    ayar.secenekler.forEach(s => {
+      if((sayim[s.value] || 0) > liderAdet){
+        liderAdet = sayim[s.value] || 0;
+        lider = s.metin;
+      }
+    });
+    liderSecenek.textContent = total ? lider : "-";
+
+    if(!total){
+      sonucAlanlari.innerHTML = `<div class="empty">Bu anket için henüz oy yok.</div>`;
+      cevapTablo.innerHTML = `<tr><td colspan="4">Henüz cevap bulunmuyor.</td></tr>`;
+      return;
+    }
+
+    sonucAlanlari.innerHTML = ayar.secenekler.map(s => {
+      const adet = sayim[s.value] || 0;
+      const oran = total ? Math.round((adet / total) * 100) : 0;
+      return `
+        <div class="resultItem">
+          <div class="resultTitle"><span>${s.emoji} ${s.metin}</span><span>${adet} oy / %${oran}</span></div>
+          <div class="barShell"><div class="bar" style="width:${oran}%"></div></div>
+        </div>
+      `;
+    }).join("");
+
+    sonCevaplar.sort((a,b) => {
+      const at = a.guncellemeTarihi?.seconds || 0;
+      const bt = b.guncellemeTarihi?.seconds || 0;
+      return bt - at;
+    });
+
+    cevapTablo.innerHTML = sonCevaplar.map(c => `
+      <tr>
+        <td><b>${temiz(c.ad,"Personel")}</b></td>
+        <td>${temiz(c.telefon,"-")}</td>
+        <td>${temiz(c.cevapMetni, c.cevap || "-")}</td>
+        <td>${tarihYaz(c.guncellemeTarihi)}</td>
+      </tr>
+    `).join("");
+  }catch(e){
+    console.error(e);
+    sonucAlanlari.innerHTML = `<div class="empty">Sonuçlar okunamadı. Firebase okuma iznini kontrol edin.</div>`;
+  }
+}
+
+function csvIndir(){
+  const rows = [["Ad", "Telefon", "Cevap", "Tarih"]];
+  sonCevaplar.forEach(c => rows.push([
+    temiz(c.ad,"Personel"),
+    temiz(c.telefon,""),
+    temiz(c.cevapMetni, c.cevap || ""),
+    tarihYaz(c.guncellemeTarihi)
+  ]));
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(";")).join("\n");
+  const blob = new Blob(["\ufeff" + csv], {type:"text/csv;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "anket-sonuclari.csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+async function oylariSifirla(){
+  const ayar = formdanAyarAl();
+  if(!confirm(`Bu işlem sadece '${ayar.anketId}' ID'li anketin oylarını silecek. Devam edilsin mi?`)) return;
+  ayarStatus.textContent = "Oylar siliniyor...";
+  try{
+    const q = query(CEVAP_COL, where("anketId", "==", ayar.anketId));
+    const snap = await getDocs(q);
+    await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+    ayarStatus.textContent = "Bu ankete ait oylar sıfırlandı.";
+    await sonuclariYukle();
+  }catch(e){
+    console.error(e);
+    ayarStatus.textContent = "Oylar silinemedi. Firebase silme iznini kontrol edin.";
+  }
+}
+
+function yeniAnketBaslat(){
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth()+1).padStart(2,"0");
+  const d = String(now.getDate()).padStart(2,"0");
+  const h = String(now.getHours()).padStart(2,"0");
+  const min = String(now.getMinutes()).padStart(2,"0");
+  anketId.value = `kantin10_panel_anket_${y}${m}${d}_${h}${min}`;
+  ayarStatus.textContent = "Yeni Anket ID oluşturuldu. Kaydettiğinizde personel tekrar oy kullanabilir.";
+  onizlemeCiz();
+}
+
+el("kaydetBtn").addEventListener("click", ayarlariKaydet);
+el("varsayilanBtn").addEventListener("click", () => formaYaz(VARSAYILAN));
+el("yeniAnketBtn").addEventListener("click", yeniAnketBaslat);
+el("yenileBtn").addEventListener("click", sonuclariYukle);
+el("csvBtn").addEventListener("click", csvIndir);
+el("oylariSifirlaBtn").addEventListener("click", oylariSifirla);
+
+document.addEventListener("input", function(e){
+  if(e.target.closest(".box")) onizlemeCiz();
+});
+
+ayarlariYukle();
+</script>
+</body>
+</html>
