@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Çay Ocağı Ödemeleri</title>
+
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#f5f5f7; --text:#111; --muted:#6b7280; --card:#fff; --line:#e5e7eb;
+  --dark:#111; --green:#16a34a; --red:#dc2626; --amber:#d97706; --blue:#0284c7;
+  --shadow:0 20px 60px rgba(0,0,0,.10); --soft:0 10px 30px rgba(0,0,0,.07);
+  --r:28px;
+}
+body{
+  margin:0; min-height:100vh; color:var(--text);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(17,17,17,.10), transparent 28%),
+    radial-gradient(circle at 90% 10%, rgba(2,132,199,.10), transparent 30%),
+    linear-gradient(180deg,#fbfbfd 0%,var(--bg) 44%,#fff 100%);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif;
+}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(135deg,rgba(255,255,255,.55),transparent 40%);z-index:-1}
+.topbar{position:sticky;top:0;z-index:30;background:rgba(17,17,17,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 10px 35px rgba(0,0,0,.20);padding:13px 14px;color:#fff}
+.topbarInner{max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-weight:950;letter-spacing:-.35px}.brand:before{content:"₺";width:36px;height:36px;border-radius:14px;background:#fff;color:#111;display:flex;align-items:center;justify-content:center;font-weight:950;box-shadow:0 8px 20px rgba(255,255,255,.12)}
+.navActions{display:flex;gap:8px;flex-wrap:wrap}.topbar a,.topbar button{background:rgba(255,255,255,.13);color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:9px 13px;font-weight:900;cursor:pointer}.topbar a:hover,.topbar button:hover{background:rgba(255,255,255,.20)}
+.wrap{width:min(1180px,100%);margin:0 auto;padding:18px 16px 44px}.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#111 0%,#252529 55%,#475569 100%);border-radius:34px;padding:26px;box-shadow:var(--shadow);color:white;margin:12px 0 18px}.hero:after{content:"";position:absolute;right:-55px;top:-70px;width:210px;height:210px;border-radius:50%;background:rgba(255,255,255,.10)}.hero:before{content:"";position:absolute;right:88px;bottom:-75px;width:160px;height:160px;border-radius:50%;background:rgba(34,197,94,.13)}
+.heroBadge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:8px 11px;font-size:12px;font-weight:950;margin-bottom:14px}.dot{width:8px;height:8px;border-radius:999px;background:#22c55e;box-shadow:0 0 0 5px rgba(34,197,94,.17)}
+h1{font-size:34px;margin:0 0 10px;font-weight:950;letter-spacing:-.9px}h2,h3{margin-top:0;letter-spacing:-.25px}p{color:var(--muted);line-height:1.45}.hero p{color:rgba(255,255,255,.74);max-width:690px;margin:0}.muted{color:var(--muted);font-size:14px}.msg{margin-top:12px;color:#c62828;font-weight:800;text-align:center;min-height:20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}.card{position:relative;background:rgba(255,255,255,.88);border:1px solid rgba(229,231,235,.9);border-radius:var(--r);padding:22px;box-shadow:var(--soft);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);margin-bottom:18px;overflow:hidden}.card:after{content:"";position:absolute;right:-36px;bottom:-36px;width:96px;height:96px;border-radius:50%;background:#f3f4f6;z-index:0}.card>*{position:relative;z-index:1}.premiumCard{min-height:170px}.premiumCard h3{font-size:14px;color:#374151;margin-bottom:10px}.premiumCard h1{font-size:36px}.aidatCard:after{background:#fef3c7}.ibanCard:after{background:#e0f2fe}.balanceCard:after{background:#f3f4f6}.balanceCard h3{font-size:14px;color:#374151;margin-bottom:8px}.balanceCard h1{margin-bottom:8px}
+.status{display:inline-flex;align-items:center;gap:6px;padding:8px 13px;border-radius:999px;font-weight:950;font-size:13px;white-space:nowrap}.odendi{background:#dcfce7;color:#166534}.bekliyor{background:#fef3c7;color:#92400e}.reddedildi,.gecikti{background:#fee2e2;color:#991b1b}.mazeret{background:#e0f2fe;color:#075985}.status.odendi:before{content:"✓"}.status.bekliyor:before{content:"⏳"}.status.gecikti:before,.status.reddedildi:before{content:"!"}.status.mazeret:before{content:"ℹ"}
+.status.kilitli{background:#f3f4f6;color:#374151}.status.kilitli:before{content:"🔒"}.lockedBox{background:#f8fafc;border:1px dashed #cbd5e1;color:#475569;border-radius:20px;padding:15px;font-weight:900;margin-top:12px}.lockedBox b{color:#111}
+.ibanBox{display:flex;align-items:center;gap:10px}.iban{flex:1;background:#f8fafc;border:1px solid var(--line);border-radius:20px;padding:15px;font-size:15px;letter-spacing:.35px;font-weight:950;word-break:break-word}.copyBtn{width:52px;height:52px;border:0;border-radius:18px;background:#111;color:white;font-size:21px;cursor:pointer;box-shadow:0 10px 22px rgba(0,0,0,.14)}.copyBtn:active{transform:scale(.98)}.copyMsg{margin-top:8px;font-weight:900;color:#166534;min-height:20px}
+.sectionTitle{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px}.pillSoft{display:inline-flex;align-items:center;gap:7px;background:#f3f4f6;color:#374151;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:950}.historyItem{background:#fff;border:1px solid var(--line);border-radius:24px;padding:18px;box-shadow:0 7px 22px rgba(0,0,0,.045);display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:12px;transition:.18s transform,.18s box-shadow}.historyItem:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(0,0,0,.08)}.historyLeft{display:flex;flex-direction:column;gap:7px}.historyTitle{font-weight:950;font-size:16px}.historyMoney{color:#4b5563;font-weight:800;line-height:1.65}.fazla,.tamam,.borc,.mahsup{display:inline-block;margin-top:7px;padding:7px 10px;border-radius:999px;font-weight:950;font-size:13px}.fazla,.tamam{color:#166534;background:#dcfce7}.borc{color:#991b1b;background:#fee2e2}.mahsup{color:#075985;background:#e0f2fe}.warningBox{background:#fee2e2;color:#991b1b;border-radius:20px;padding:15px;font-weight:950;margin-top:14px;border:1px solid #fecaca}.balanceGood{color:#166534}.balanceBad{color:#991b1b}.balanceNeutral{color:#111}.infoLine{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.infoMini{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.15);border-radius:18px;padding:10px 12px;color:rgba(255,255,255,.82);font-weight:800;font-size:13px}
+@media(max-width:720px){.wrap{padding:14px 10px 36px}.topbarInner{align-items:flex-start}.navActions{width:100%}.topbar a,.topbar button{font-size:12px;padding:8px 10px}.hero{padding:22px;border-radius:28px}.hero h1,h1{font-size:27px}.card{padding:18px;border-radius:24px}.premiumCard h1{font-size:31px}.historyItem{align-items:flex-start;flex-direction:column}.ibanBox{align-items:stretch}.copyBtn{height:auto;min-width:52px}.grid{gap:12px}}
+</style>
+</head>
+
+<body>
+
+<!-- KANTIN10 ORTAK ÜST MENÜ -->
+<div class="k10-globalbar">
+  <a class="k10-global-btn k10-home-btn" href="panel.html">⌂ Ana Sayfa</a>
+  <button class="k10-global-btn k10-exit-btn" type="button" onclick="k10GlobalLogout()">Çıkış Yap</button>
+</div>
+<style>
+  body{padding-top:76px !important;}
+  .k10-globalbar{
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    z-index:2147483000;
+    height:64px;
+    padding:10px 14px;
+    background:rgba(17,17,17,.94);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    box-shadow:0 10px 30px rgba(0,0,0,.20);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+  }
+  .k10-global-btn{
+    min-width:138px;
+    height:44px;
+    border:none;
+    border-radius:999px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    text-decoration:none;
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif;
+    font-size:14px;
+    font-weight:950;
+    cursor:pointer;
+    transition:.18s ease;
+    white-space:nowrap;
+  }
+  .k10-home-btn{
+    background:#fff;
+    color:#111;
+  }
+  .k10-exit-btn{
+    background:#ef4444;
+    color:#fff;
+  }
+  .k10-global-btn:active{
+    transform:scale(.97);
+  }
+
+  /* Eski farklı isimli üst menüleri gizler */
+  .topbar:not(.k10-globalbar),
+  .top:not(.k10-globalbar),
+  .topPanelBar,
+  #panelContainer{
+    display:none !important;
+  }
+
+  @media(max-width:700px){
+    body{padding-top:70px !important;}
+    .k10-globalbar{
+      height:62px;
+      padding:9px 10px;
+      gap:8px;
+    }
+    .k10-global-btn{
+      flex:1;
+      min-width:0;
+      height:44px;
+      font-size:14px;
+    }
+  }
+</style>
+<script>
+function k10GlobalLogout(){
+  try{
+    localStorage.removeItem("musteriGiris");
+    localStorage.removeItem("musteriTelefon");
+    localStorage.removeItem("musteriAd");
+    localStorage.removeItem("personelDocId");
+    localStorage.removeItem("personelId");
+    localStorage.removeItem("personelAd");
+    localStorage.removeItem("personelSoyad");
+    sessionStorage.clear();
+  }catch(e){}
+  window.location.href = "index.html";
+}
+</script>
+<!-- /KANTIN10 ORTAK ÜST MENÜ -->
+
+
+
+<div class="topbar">
+  <div class="topbarInner">
+    <div class="brand">Kantin10 Ödeme</div>
+    <div class="navActions">
+      <a href="panel.html">Panel</a>
+      <button onclick="logout()">Çıkış</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <section class="hero">
+    <div class="heroBadge"><span class="dot"></span> Kişisel ödeme ekranı</div>
+    <h1>Çay Ocağı Ödemeleri</h1>
+    <p>Güncel aidatı, geçmiş devir bakiyeyi ve ödeme durumunu tek ekrandan takip edebilirsiniz. Ödemeler onaylandıktan sonra borç yok yazar. Süreç uzayabilir.</p>
+    <div class="infoLine">
+      <span class="infoMini" id="personelInfo">Yükleniyor...</span>
+      <span class="infoMini" id="donemInfo">Aktif dönem hesaplanıyor...</span>
+    </div>
+  </section>
+
+  <div class="grid">
+    <div class="card premiumCard aidatCard">
+      <h3>Bu Dönemki Aidat</h3>
+      <h1 id="aidatTutar">300 TL</h1>
+      <p>Durum: <span id="personelDurum" class="status bekliyor">Ödeme Bekliyor</span></p>
+      <div id="uyariAlan"></div>
+    </div>
+
+    <div class="card premiumCard ibanCard">
+      <h3>Ödeme IBAN</h3>
+      <div class="ibanBox">
+        <div id="ibanText" class="iban">Yükleniyor...</div>
+        <button class="copyBtn" onclick="ibanKopyala()" title="IBAN Kopyala">📋</button>
+      </div>
+      <div id="copyMsg" class="copyMsg"></div>
+      <p class="muted">Serhat AKGÜL / EnPara Bank</p>
+    </div>
+  </div>
+
+  <div class="grid" id="bakiyeKartlari" style="margin-bottom:18px;">
+    <div class="card balanceCard">
+      <h3>Önceki Devir</h3>
+      <h1 id="gecmisBakiye">0 TL</h1>
+      <p id="gecmisBakiyeAciklama" class="muted">Hesaplanıyor...</p>
+    </div>
+
+    <div class="card balanceCard">
+      <h3>Bu Dönem Sonucu</h3>
+      <h1 id="buDonemKalan">0 TL</h1>
+      <p id="buDonemKalanAciklama" class="muted">Önceki devir + bu ay ödenen - dönem aidatı.</p>
+    </div>
+
+    <div class="card balanceCard">
+      <h3>Güncel Sonuç</h3>
+      <h1 id="genelBakiye">0 TL</h1>
+      <p id="genelBakiyeAciklama" class="muted">Fazla ödeme varsa borçtan düşülür.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sectionTitle">
+      <div>
+        <h3>Bakiye Hareketleri</h3>
+        <p class="muted" style="margin-top:-6px">Dönem dönem ödeme ve devir hareketlerin.</p>
+      </div>
+      <span class="pillSoft">📌 Güncel kayıtlar</span>
+    </div>
+    <div id="personelGecmis">Yükleniyor...</div>
+  </div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  query,
+  where,
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",
+  authDomain:"berber-randevu-14f7f.firebaseapp.com",
+  projectId:"berber-randevu-14f7f",
+  storageBucket: "berber-randevu-14f7f.firebasestorage.app",
+  messagingSenderId: "280530860977",
+  appId: "1:280530860977:web:52c0df04c228896f211b90",
+  measurementId: "G-NK6DBBQQNZ"};
+
+const app = initializeApp(firebaseConfig);
+getAnalytics(app);
+const db = getFirestore(app);
+
+const ODEME_COLLECTION = "cay_odemeler";
+const AYAR_COLLECTION = "cay_ayarlar";
+const PERSONEL_COLLECTION = "personeller";
+const VARSAYILAN_AIDAT = 300;
+const IBAN = "TR39 0015 7000 0000 0146 1905 41";
+const ODEME_DURUM_GOSTERIM_GUNU = 25;
+
+const tel = temizTelefon(localStorage.getItem("musteriTelefon"));
+const adLocal = localStorage.getItem("musteriAd") || "";
+
+if(!tel){
+  location.href = "index.html";
+}
+
+document.getElementById("ibanText").textContent = IBAN;
+
+function temizTelefon(tel){
+  tel = String(tel || "").replace(/\D/g,"");
+  if(tel.startsWith("90")) tel = "0" + tel.slice(2);
+  if(tel && !tel.startsWith("0")) tel = "0" + tel;
+  return tel.slice(0,11);
+}
+
+function aylarTR(){
+  return ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+}
+
+function ayAdi(key){
+  const m = Number(String(key || "").split("-")[1]);
+  return aylarTR()[m-1] || key;
+}
+
+function addMonthsKey(key, delta){
+  const [y,m] = String(key).split("-").map(Number);
+  const d = new Date(y, m - 1 + delta, 1);
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0");
+}
+
+function donemKey(date = new Date()){
+  const y = date.getFullYear();
+  const m = date.getMonth() + 1;
+
+  if(date.getDate() >= 15){
+    return y + "-" + String(m).padStart(2,"0");
+  }
+
+  const d = new Date(y, m - 2, 1);
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0");
+}
+
+function donemLabel(key){
+  const next = addMonthsKey(key, 1);
+  return `15 ${ayAdi(key)} - 14 ${ayAdi(next)}`;
+}
+
+function donemGectiMi(key){
+  return String(key) < donemKey(new Date());
+}
+
+function odemeBilgisiGosterilebilirMi(){
+  return true;
+}
+
+function odemeKilitMesaji(){
+  return `Ödeme durumu her ayın ${ODEME_DURUM_GOSTERIM_GUNU}'inden sonra görüntülenebilir.`;
+}
+
+function kayitMazeretMi(kayit){
+  return !!(kayit && (
+    kayit.odemeTuru === "rapor_mazeret" ||
+    kayit.muaf === true ||
+    kayit.raporMazeret === true
+  ));
+}
+
+function durumText(durum, key, kayit=null){
+  if(kayitMazeretMi(kayit) || durum === "rapor_mazeret") return "Rapor/Mazeret - Borç Yok";
+  if(durum === "odendi") return "Ödendi";
+  if(durum === "reddedildi") return "Reddedildi";
+  if(donemGectiMi(key)) return "ÖDEME GEÇTİ - Dönem: " + ayAdi(key);
+  return "Ödeme Bekliyor";
+}
+
+function durumClass(durum, key, kayit=null){
+  if(kayitMazeretMi(kayit) || durum === "rapor_mazeret") return "mazeret";
+  if(durum === "odendi") return "odendi";
+  if(durum === "reddedildi") return "reddedildi";
+  if(donemGectiMi(key)) return "gecikti";
+  return "bekliyor";
+}
+
+async function donemTutariGetir(key, fallback = VARSAYILAN_AIDAT){
+  try{
+    const snap = await getDoc(doc(db, AYAR_COLLECTION, key));
+    if(snap.exists()){
+      const t = Number(snap.data().aylikTutar || 0);
+      if(t > 0) return t;
+    }
+  }catch(e){
+    console.warn(e);
+  }
+
+  return fallback;
+}
+
+/*
+  Net devreden bakiye mantığı:
+  + bakiye = personelin fazla parası vardır, sonraki aylardan otomatik düşer.
+  - bakiye = personelin borcu vardır, sonraki aya devreder.
+  Reddedilen veya bekleyen kayıt ödeme sayılmaz.
+  Rapor/Mazeret, sadece o dönem aidatını kapatır; eski borcu otomatik silmez.
+*/
+function hesaplananOdenenTutar(kayitDurum, kayitTutar, donemTutar, kayit=null){
+  if(kayitMazeretMi(kayit) || kayitDurum === "rapor_mazeret") return Number(donemTutar || 0);
+  if(kayitDurum !== "odendi") return 0;
+  return Number(kayitTutar || 0);
+}
+
+function toplamKapatilacakTutar(oncekiBakiye, donemTutar){
+  return Math.max(0, -Number(oncekiBakiye || 0)) + Number(donemTutar || 0);
+}
+
+function aySonuSonucHtml(oncekiBakiye, donemTutar, odenenTutar, sonrakiBakiye, kayit=null){
+  if(kayitMazeretMi(kayit)){
+    if(sonrakiBakiye < 0) return `<span class="mahsup">Bu dönem rapor/mazeretli. Bu ay için borç yazılmadı. Eski borç devam ediyor: ${Math.abs(sonrakiBakiye)} TL</span>`;
+    if(sonrakiBakiye > 0) return `<span class="mahsup">Bu dönem rapor/mazeretli. Fazla bakiye devam ediyor: ${sonrakiBakiye} TL</span>`;
+    return `<span class="mahsup">Bu dönem rapor/mazeretli. Borç yok.</span>`;
+  }
+
+  if(odenenTutar > 0){
+    const kapatilacak = toplamKapatilacakTutar(oncekiBakiye, donemTutar);
+    const sonuc = Number(odenenTutar || 0) - kapatilacak;
+
+    if(oncekiBakiye < 0 && sonuc === 0){
+      return `<span class="tamam">Önceki devir kapandı. Bu ay ödendi. Borç yok.</span>`;
+    }
+
+    if(oncekiBakiye < 0 && sonuc > 0){
+      return `<span class="fazla">Önceki devir kapandı. Bu ay ödendi, ${sonuc} TL fazla bakiye oluştu.</span>`;
+    }
+
+    if(oncekiBakiye < 0 && sonuc < 0){
+      return `<span class="borc">Ödemeniz önce geçmiş borca sayıldı. Kalan borç: ${Math.abs(sonrakiBakiye)} TL</span>`;
+    }
+
+    if(sonrakiBakiye > 0){
+      return `<span class="fazla">Bu ay ödendi, ${sonrakiBakiye} TL fazla bakiye oluştu.</span>`;
+    }
+
+    if(sonrakiBakiye === 0){
+      return `<span class="tamam">Bu ay ödendi. Borç yok.</span>`;
+    }
+
+    return `<span class="borc">Bu ay ${Math.abs(sonrakiBakiye)} TL borç kaldı.</span>`;
+  }
+
+  if(oncekiBakiye >= donemTutar){
+    return `<span class="mahsup">Ödediğiniz fazla miktardan tahsil edilmiştir. Kalan fazla bakiye: ${sonrakiBakiye} TL</span>`;
+  }
+
+  if(oncekiBakiye > 0 && oncekiBakiye < donemTutar){
+    return `<span class="borc">Fazla bakiyeden ${oncekiBakiye} TL düşüldü. Kalan borç: ${Math.abs(sonrakiBakiye)} TL</span>`;
+  }
+
+  if(sonrakiBakiye < 0){
+    return `<span class="borc">Devreden toplam borç: ${Math.abs(sonrakiBakiye)} TL</span>`;
+  }
+
+  return `<span class="tamam">Borç yok.</span>`;
+}
+
+function hareketEtiketi(oncekiBakiye, donemTutar, odenenTutar, sonrakiBakiye, kayit=null){
+  if(kayitMazeretMi(kayit)) return {text:"Rapor/Mazeret", cls:"mazeret"};
+  if(sonrakiBakiye >= 0 && (odenenTutar > 0 || oncekiBakiye >= donemTutar)) return {text:"Ödendi", cls:"odendi"};
+  if(odenenTutar > 0 && sonrakiBakiye < 0) return {text:"Eksik Ödendi", cls:"gecikti"};
+  if(sonrakiBakiye < 0) return {text:"Borç Devretti", cls:"gecikti"};
+  return {text:"Borç Yok", cls:"odendi"};
+}
+
+function bakiyeKisa(net){
+  net = Number(net || 0);
+  if(net > 0) return `${net} TL Fazla`;
+  if(net < 0) return `${Math.abs(net)} TL Borç`;
+  return "0 TL";
+}
+
+function bakiyeYazi(net){
+  if(net > 0){
+    return {
+      text: `${net} TL Fazla`,
+      cls: "balanceGood",
+      desc: "Sonraki dönem aidatlarından otomatik düşülür."
+    };
+  }
+
+  if(net < 0){
+    return {
+      text: `${Math.abs(net)} TL Borç`,
+      cls: "balanceBad",
+      desc: "Ödenmeyen tutar sonraki aya devreder."
+    };
+  }
+
+  return {
+    text: "0 TL",
+    cls: "balanceNeutral",
+    desc: "Borç veya fazla ödeme yok."
+  };
+}
+
+function kartBakiyeYaz(id, aciklamaId, net, ozelAciklama=""){
+  const info = bakiyeYazi(net);
+  const el = document.getElementById(id);
+  el.textContent = info.text;
+  el.className = info.cls;
+  document.getElementById(aciklamaId).textContent = ozelAciklama || info.desc;
+}
+
+window.ibanKopyala = async function(){
+  try{
+    await navigator.clipboard.writeText(IBAN);
+  }catch(e){
+    const temp = document.createElement("input");
+    temp.value = IBAN;
+    document.body.appendChild(temp);
+    temp.select();
+    document.execCommand("copy");
+    document.body.removeChild(temp);
+  }
+
+  document.getElementById("copyMsg").textContent = "IBAN kopyalandı ✅";
+
+  setTimeout(()=>{
+    document.getElementById("copyMsg").textContent = "";
+  }, 2000);
+};
+
+window.logout = function(){
+  localStorage.removeItem("musteriGiris");
+  localStorage.removeItem("musteriTelefon");
+  localStorage.removeItem("musteriAd");
+  localStorage.removeItem("personelDocId");
+  location.href = "index.html";
+};
+
+async function personelAdiGetir(){
+  let ad = adLocal;
+
+  try{
+    const ps = await getDoc(doc(db, PERSONEL_COLLECTION, tel));
+    if(ps.exists()){
+      const p = ps.data();
+      ad = p.isim || p.adSoyad || p.ad || p.name || adLocal || "Personel";
+    }
+  }catch(e){
+    console.warn(e);
+  }
+
+  return ad || "Personel";
+}
+
+async function yukle(){
+  const aktifDonem = donemKey();
+  const aktifDonemTutar = await donemTutariGetir(aktifDonem);
+  const odemeDurumuAcik = odemeBilgisiGosterilebilirMi();
+  const ad = await personelAdiGetir();
+
+  document.getElementById("personelInfo").textContent = ad + " olarak giriş yapıldı.";
+  document.getElementById("donemInfo").textContent = odemeDurumuAcik
+    ? "Aktif dönem: " + donemLabel(aktifDonem)
+    : "Aktif dönem: " + donemLabel(aktifDonem) + " • Durumlar 25'inden sonra açılır";
+
+  const q1 = query(collection(db, ODEME_COLLECTION), where("telefon", "==", tel));
+  const q2 = query(collection(db, ODEME_COLLECTION), where("personelId", "==", tel));
+
+  const snap1 = await getDocs(q1);
+  const snap2 = await getDocs(q2);
+
+  const map = new Map();
+  snap1.forEach(d=> map.set(d.id, {id:d.id, ...d.data()}));
+  snap2.forEach(d=> map.set(d.id, {id:d.id, ...d.data()}));
+
+  const kayitlar = Array.from(map.values())
+    .filter(o=>String(o.ay || "").includes("-"));
+
+  const kayitByAy = new Map();
+  kayitlar.forEach(o=>{
+    const key = String(o.ay);
+    const mevcut = kayitByAy.get(key);
+    if(!mevcut){
+      kayitByAy.set(key,o);
+      return;
+    }
+    // Aynı ayda iki kayıt varsa, ödendi olanı veya rapor/mazeretli olanı öncelikli al.
+    if(kayitMazeretMi(o) || (o.durum || "") === "odendi") kayitByAy.set(key,o);
+  });
+
+  let ilkDonem = aktifDonem;
+  kayitlar.forEach(o=>{
+    if(String(o.ay) < ilkDonem) ilkDonem = String(o.ay);
+  });
+
+  const donemler = [];
+  let cursor = ilkDonem;
+  while(cursor <= aktifDonem){
+    donemler.push(cursor);
+    cursor = addMonthsKey(cursor, 1);
+  }
+
+  let bakiye = 0; // + fazla, - borç
+  let oncekiDevirAktif = 0;
+  let aktifDonemSonuc = -aktifDonemTutar;
+  let aktifEtiket = {text:"Ödeme Bekliyor", cls:"bekliyor"};
+  let html = "";
+
+  for(const key of donemler){
+    const o = kayitByAy.get(key);
+    const oncekiBakiye = bakiye;
+    const donemTutar = await donemTutariGetir(key, VARSAYILAN_AIDAT);
+    const kayitDurum = o ? (o.durum || "odeme_bekliyor") : "odeme_bekliyor";
+    const odenenTutar = hesaplananOdenenTutar(kayitDurum, o?.tutar, donemTutar, o);
+
+    // Doğru mahsup mantığı: önceki devir + bu ay ödenen - dönem aidatı.
+    // Örn: -300 TL eski borç + 700 TL ödeme - 400 TL aidat = 0 TL.
+    bakiye = Number(oncekiBakiye || 0) + Number(odenenTutar || 0) - Number(donemTutar || 0);
+    const sonrakiBakiye = bakiye;
+    const etiket = hareketEtiketi(oncekiBakiye, donemTutar, odenenTutar, sonrakiBakiye, o);
+
+    if(key === aktifDonem){
+      oncekiDevirAktif = oncekiBakiye;
+      aktifDonemSonuc = sonrakiBakiye;
+      aktifEtiket = bakiye >= 0
+        ? {text:"Borç Yok", cls:"odendi"}
+        : {text:"Borç Var", cls:"gecikti"};
+      if(kayitMazeretMi(o)) aktifEtiket = {text:"Rapor/Mazeret - Borç Yok", cls:"mazeret"};
+    }
+
+    const odenenSatir = kayitMazeretMi(o)
+      ? `Bu Ay Ödenen: Rapor/Mazeret nedeniyle borç yok<br>`
+      : (odenenTutar > 0 ? `Bu Ay Ödenen: ${odenenTutar} TL<br>` : `Bu Ay Ödenen: 0 TL<br>`);
+    const devirSatir = oncekiBakiye !== 0 ? `Önceki Devir: ${bakiyeKisa(oncekiBakiye)}<br>` : "";
+
+    if(key === aktifDonem && !odemeDurumuAcik){
+      html += `
+        <div class="historyItem">
+          <div class="historyLeft">
+            <div class="historyTitle">Dönem: ${donemLabel(key)}</div>
+            <div class="historyMoney">
+              Dönem Aidatı: ${donemTutar} TL<br>
+              <div class="lockedBox">
+                🔒 <b>Ödeme bilgisi gizli.</b><br>
+                ${odemeKilitMesaji()} Bu tarihe kadar ödeme yapıldı/yapılmadı bilgisi gösterilmez.
+              </div>
+            </div>
+          </div>
+
+          <span class="status kilitli">25'inden Sonra</span>
+        </div>
+      `;
+    }else{
+      html += `
+        <div class="historyItem">
+          <div class="historyLeft">
+            <div class="historyTitle">Dönem: ${donemLabel(key)}</div>
+            <div class="historyMoney">
+              ${devirSatir}
+              Dönem Aidatı: ${donemTutar} TL<br>
+              ${odenenSatir}
+              ${aySonuSonucHtml(oncekiBakiye, donemTutar, odenenTutar, sonrakiBakiye, o)}<br>
+              <span class="muted">Dönem Sonu Bakiye: ${bakiyeKisa(sonrakiBakiye)}</span>
+            </div>
+            ${o?.adminNot ? `<div class="muted">Admin Notu: ${o.adminNot}</div>` : ""}
+          </div>
+
+          <span class="status ${etiket.cls}">${etiket.text}</span>
+        </div>
+      `;
+    }
+  }
+
+  document.getElementById("aidatTutar").textContent = aktifDonemTutar + " TL";
+
+  const durumEl = document.getElementById("personelDurum");
+
+  if(!odemeDurumuAcik){
+    durumEl.textContent = "25'inden Sonra Görünür";
+    durumEl.className = "status kilitli";
+
+    const gizliText = "Gizli";
+    const gizliAciklama = odemeKilitMesaji();
+
+    document.getElementById("gecmisBakiye").textContent = gizliText;
+    document.getElementById("gecmisBakiye").className = "balanceNeutral";
+    document.getElementById("gecmisBakiyeAciklama").textContent = gizliAciklama;
+
+    document.getElementById("buDonemKalan").textContent = gizliText;
+    document.getElementById("buDonemKalan").className = "balanceNeutral";
+    document.getElementById("buDonemKalanAciklama").textContent = gizliAciklama;
+
+    document.getElementById("genelBakiye").textContent = gizliText;
+    document.getElementById("genelBakiye").className = "balanceNeutral";
+    document.getElementById("genelBakiyeAciklama").textContent = "Bu bilgi 25'inden sonra otomatik açılır.";
+
+    document.getElementById("uyariAlan").innerHTML = `
+      <div class="lockedBox">
+        🔒 ${odemeKilitMesaji()}
+      </div>
+    `;
+  }else{
+    durumEl.textContent = aktifEtiket.text;
+    durumEl.className = "status " + aktifEtiket.cls;
+
+    kartBakiyeYaz("gecmisBakiye", "gecmisBakiyeAciklama", oncekiDevirAktif);
+    kartBakiyeYaz("buDonemKalan", "buDonemKalanAciklama", aktifDonemSonuc, "Önceki devir + bu ay ödenen - dönem aidatı sonucudur.");
+    kartBakiyeYaz("genelBakiye", "genelBakiyeAciklama", bakiye);
+
+    document.getElementById("uyariAlan").innerHTML = "";
+    if(bakiye < 0){
+      document.getElementById("uyariAlan").innerHTML = `
+        <div class="warningBox">
+          Güncel borç: ${Math.abs(bakiye)} TL
+        </div>
+      `;
+    }
+  }
+
+  document.getElementById("personelGecmis").innerHTML = html || "<p class='muted'>Henüz ödeme kaydı yok.</p>";
+}
+
+yukle().catch(e=>{
+  console.error(e);
+  document.getElementById("personelGecmis").innerHTML =
+    "<p class='msg'>Ödeme bilgileri yüklenemedi.</p>";
+});
+</script>
+
+</body>
+</html>
