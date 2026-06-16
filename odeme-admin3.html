@@ -117,6 +117,7 @@ button.main,.btnMain{width:100%;display:block;text-align:center;background:#111;
           <div class="importActions">
             <button class="miniBtn green" onclick="dekontIceriAktar()">Excel / CSV Yükle ve İşle</button>
             <button class="miniBtn" onclick="ornekDekontCsvIndir()">Excel Şablonu İndir</button>
+            <button class="miniBtn" style="background:#b91c1c" onclick="seciliDonemOdemeleriniSil()">Seçili Dönem Ödemelerini Sil</button>
           </div>
           <div id="importMsg" class="miniMsg"></div>
           <p class="muted" style="margin:8px 0 0">
@@ -195,7 +196,7 @@ Anlayışınız ve katkılarınız için teşekkür ederiz.</textarea>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, getDoc, setDoc, serverTimestamp, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, getDoc, setDoc, serverTimestamp, query, where, deleteField, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import * as XLSX from "https://cdn.sheetjs.com/xlsx-0.20.2/package/xlsx.mjs";
 
 const firebaseConfig = {
@@ -578,6 +579,7 @@ window.adminEkraniCiz=function(){
         <button class="small gray" onclick="durumDegistir('${tel}','${safeAd}','odeme_bekliyor','${inputId}')">Bekliyor</button>
         <button class="small red" onclick="reddet('${tel}','${safeAd}','${inputId}')">Reddet</button>
         <button class="small" style="background:#0284c7" onclick="raporMazeret('${tel}','${safeAd}','${inputId}')">Rapor/Mazeret</button>
+        <button class="small" style="background:#7c2d12" onclick="sisenBorcSifirla('${tel}','${safeAd}')">Şişen Borcu Sıfırla</button>
       </td>
     </tr>`;
   }
@@ -803,6 +805,9 @@ window.durumDegistir=async function(telefon,adSoyad,yeniDurum,inputId){
     donemEtiketi:donemLabel(key),
     tutar:girilenTutar,
     durum:yeniDurum,
+    odemeTuru:deleteField(),
+    muaf:deleteField(),
+    raporMazeret:deleteField(),
     adminNot:"",
     ...bakiyeAlanlari(hesap),
     updatedAt:serverTimestamp()
@@ -837,6 +842,9 @@ window.reddet=async function(telefon,adSoyad,inputId){
     donemEtiketi:donemLabel(key),
     tutar:girilenTutar,
     durum:"reddedildi",
+    odemeTuru:deleteField(),
+    muaf:deleteField(),
+    raporMazeret:deleteField(),
     adminNot:sebep||"Reddedildi",
     ...bakiyeAlanlari(hesap),
     updatedAt:serverTimestamp()
@@ -885,7 +893,284 @@ window.raporMazeret=async function(telefon,adSoyad,inputId){
   adminEkraniCiz();
 };
 
+
+window.sisenBorcSifirla=async function(telefon,adSoyad){
+  const key=document.getElementById("adminAy").value||aktifDonemKey||donemKey();
+  const tel=temizTelefon(telefon);
+  const oncekiKey=addMonthsKey(key,-1);
+  const oncekiAidat=Number(aktifOncekiDonemTutari||VARSAYILAN_AIDAT);
+  const buAidat=Number(aktifDonemTutari||VARSAYILAN_AIDAT);
+
+  const onay=confirm(`${adSoyad} için yanlış içe aktarma sebebiyle şişen borç sıfırlanacak.\n\n${donemLabel(oncekiKey)}: ${oncekiAidat} TL ödendi yapılacak.\n${donemLabel(key)}: ${buAidat} TL ödendi yapılacak.\nGenel bakiye: 0 TL yapılacak.\n\nDevam edilsin mi?`);
+  if(!onay)return;
+
+  const oncekiHesap=odemeHesabiManuel(0,"odendi",oncekiAidat,oncekiAidat,null);
+  const oncekiKayit={
+    personelId:tel,
+    telefon:tel,
+    adSoyad,
+    ay:oncekiKey,
+    donemEtiketi:donemLabel(oncekiKey),
+    tutar:oncekiAidat,
+    durum:"odendi",
+    odemeTuru:deleteField(),
+    muaf:deleteField(),
+    raporMazeret:deleteField(),
+    adminNot:"Yanlış içe aktarma sonrası şişen bakiye düzeltildi",
+    ...bakiyeAlanlari(oncekiHesap),
+    updatedAt:serverTimestamp()
+  };
+
+  const buHesap=odemeHesabiManuel(0,"odendi",buAidat,buAidat,null);
+  const buKayit={
+    personelId:tel,
+    telefon:tel,
+    adSoyad,
+    ay:key,
+    donemEtiketi:donemLabel(key),
+    tutar:buAidat,
+    durum:"odendi",
+    odemeTuru:deleteField(),
+    muaf:deleteField(),
+    raporMazeret:deleteField(),
+    adminNot:"Yanlış içe aktarma sonrası şişen bakiye düzeltildi",
+    ...bakiyeAlanlari(buHesap),
+    updatedAt:serverTimestamp()
+  };
+
+  await setDoc(doc(db,ODEME_COLLECTION,odemeDocId(oncekiKey,tel)),oncekiKayit,{merge:true});
+  await setDoc(doc(db,ODEME_COLLECTION,odemeDocId(key,tel)),buKayit,{merge:true});
+
+  const p=aktifPersoneller.find(x=>getTelefonFromDoc(x.id,x)===tel);
+  if(p){
+    await setDoc(doc(db,PERSONEL_COLLECTION,p.id),{
+      bakiye:0,
+      bakiyeNet:0,
+      gecmisBorc:0,
+      devredenBorc:0,
+      fazlaBakiye:0,
+      sonOdemeDonemi:key,
+      bakiyeGuncellendi:serverTimestamp()
+    },{merge:true});
+    p.bakiye=0;
+    p.bakiyeNet=0;
+    p.gecmisBorc=0;
+    p.devredenBorc=0;
+    p.fazlaBakiye=0;
+  }
+
+  aktifOncekiOdemeler[tel]={...oncekiKayit,updatedAt:new Date()};
+  aktifOdemeler[tel]={...buKayit,updatedAt:new Date()};
+  listeYuklendi=true;
+  adminEkraniCiz();
+  alert(`${adSoyad} için şişen borç sıfırlandı. Genel bakiye 0 TL yapıldı.`);
+};
+
+
+window.seciliDonemOdemeleriniSil=async function(){
+  const key=document.getElementById("adminAy").value||aktifDonemKey||donemKey();
+  const msg=document.getElementById("importMsg");
+
+  const onay1=confirm(`${donemLabel(key)} dönemindeki ödeme kayıtları silinecek.\n\nBu işlem Haziran gibi seçili dönemde içe aktarılan/yazılan tutarları temizler.\nPersonellerin genel bakiyesi önceki dönemin son bakiyesine çekilir.\n\nDevam edilsin mi?`);
+  if(!onay1)return;
+
+  const onay2=prompt(`Güvenlik için silmek istediğin dönemi aynen yaz:\n${key}`);
+  if(String(onay2||"").trim()!==key){
+    alert("Dönem doğrulanmadı. Silme işlemi iptal edildi.");
+    return;
+  }
+
+  try{
+    msg.style.color="#111";
+    msg.textContent="Seçili dönem ödeme kayıtları siliniyor...";
+
+    if(!aktifPersoneller.length){
+      aktifPersoneller=await personelleriGetir(false);
+    }
+
+    const oncekiKey=addMonthsKey(key,-1);
+    aktifOncekiDonemKey=oncekiKey;
+    aktifOncekiDonemTutari=await donemTutariGetir(db,oncekiKey,VARSAYILAN_AIDAT);
+    aktifOncekiOdemeler=await donemOdemeleriGetir(oncekiKey);
+
+    const qSil=query(collection(db,ODEME_COLLECTION),where("ay","==",key));
+    const snap=await getDocs(qSil);
+
+    const etkilenenTelefonlar=new Set();
+    const silmeIsleri=[];
+    snap.forEach(d=>{
+      const kayit=d.data()||{};
+      const tel=temizTelefon(kayit.telefon||kayit.personelId||"");
+      if(tel)etkilenenTelefonlar.add(tel);
+      silmeIsleri.push(deleteDoc(doc(db,ODEME_COLLECTION,d.id)));
+    });
+
+    await Promise.all(silmeIsleri);
+
+    let bakiyeDuzeltilen=0;
+    for(const tel of etkilenenTelefonlar){
+      const p=aktifPersoneller.find(x=>getTelefonFromDoc(x.id,x)===tel);
+      if(!p)continue;
+
+      const oncekiKayit=aktifOncekiOdemeler[tel]||null;
+      const oncekiNetRaw=kayitNetDegeri(oncekiKayit);
+      const oncekiNet=oncekiNetRaw!==null?oncekiNetRaw:0;
+
+      await setDoc(doc(db,PERSONEL_COLLECTION,p.id),{
+        bakiye:oncekiNet,
+        bakiyeNet:oncekiNet,
+        devredenBorc:Math.max(0,-oncekiNet),
+        fazlaBakiye:Math.max(0,oncekiNet),
+        sonOdemeDonemi:oncekiKey,
+        bakiyeGuncellendi:serverTimestamp()
+      },{merge:true});
+
+      p.bakiye=oncekiNet;
+      p.bakiyeNet=oncekiNet;
+      p.devredenBorc=Math.max(0,-oncekiNet);
+      p.fazlaBakiye=Math.max(0,oncekiNet);
+      bakiyeDuzeltilen++;
+    }
+
+    aktifOdemeler={};
+    aktifDonemKey=key;
+    listeYuklendi=true;
+    adminEkraniCiz();
+
+    msg.style.color="#166534";
+    msg.textContent=`${donemLabel(key)} dönemi temizlendi. Silinen ödeme kaydı: ${snap.size}. Bakiye düzeltilen personel: ${bakiyeDuzeltilen}.`;
+    alert(`${donemLabel(key)} dönemi temizlendi.\n\nSilinen ödeme kaydı: ${snap.size}\nBakiye düzeltilen personel: ${bakiyeDuzeltilen}\n\nŞimdi dönem aidatını 400 TL kaydedip Excel'i tekrar içe aktarabilirsin.`);
+  }catch(e){
+    console.error(e);
+    msg.style.color="#991b1b";
+    msg.textContent="Silme işlemi sırasında hata oluştu: "+e.message;
+    alert("Silme işlemi başarısız: "+e.message);
+  }
+};
+
 window.ornekDekontCsvIndir=function(){const rows=[["Personel","Tutar"],["MUHAMMET SAÇAL","300"],["SERHAT AKGÜL","2700"],["BÜNYAMİN KAPLAN","300"]];const ws=XLSX.utils.aoa_to_sheet(rows);ws["!cols"]=[{wch:32},{wch:12}];const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Ödeme Şablonu");XLSX.writeFile(wb,"cay-odeme-isim-tutar-sablonu.xlsx");};
+
+function excelImportKaydiMi(kayit){
+  return !!(kayit && String(kayit.adminNot||"").toLocaleLowerCase("tr-TR").includes("içe aktarıldı"));
+}
+
+function oncekiDonemIcinBaslangicNet(kayit){
+  if(!kayit)return 0;
+  const onceki=ilkSayisalDeger(kayit.oncekiDevirNet,kayit.oncekiNet,kayit.baslangicNet);
+  if(onceki!==null)return onceki;
+  const net=kayitNetDegeri(kayit);
+  if(net!==null){
+    const durum=kayit.durum||"odeme_bekliyor";
+    const aidat=Number(aktifOncekiDonemTutari||VARSAYILAN_AIDAT);
+    const tutar=kayit.tutar!==undefined?Number(kayit.tutar||0):aidat;
+    const odenen=hesaplananOdenenTutar(durum,tutar,aidat,kayit);
+    return net-(odenen-aidat);
+  }
+  return 0;
+}
+
+function odemeHesabiManuel(oncekiDevirNet,durum,tutar,aidat,kayit=null){
+  const buDonemOdenen=hesaplananOdenenTutar(durum,tutar,aidat,kayit);
+  const buDonemNet=buDonemOdenen-Number(aidat||0);
+  const genelNet=Number(oncekiDevirNet||0)+buDonemNet;
+  const oncekiDevirBorc=Math.max(0,-Number(oncekiDevirNet||0));
+  const oncekiDevirFazla=Math.max(0,Number(oncekiDevirNet||0));
+  const toplamKapatilacak=Math.max(0,Number(aidat||0)+oncekiDevirBorc-oncekiDevirFazla);
+  return {oncekiDevirNet:Number(oncekiDevirNet||0),oncekiDevirBorc,oncekiDevirFazla,buDonemOdenen,buDonemNet,genelNet,toplamKapatilacak};
+}
+
+async function iceAktarilanOdemeyiDagit(kisi,toplamTutar,key){
+  const tel=kisi.tel;
+  const ad=kisi.ad;
+  const oncekiKey=addMonthsKey(key,-1);
+  const oncekiAidat=Number(aktifOncekiDonemTutari||VARSAYILAN_AIDAT);
+  const buAidat=Number(aktifDonemTutari||VARSAYILAN_AIDAT);
+  const oncekiKayit=aktifOncekiOdemeler[tel]||null;
+
+  let kalan=Number(toplamTutar||0);
+  let oncekiPay=0;
+  let oncekiSonNet=null;
+
+  if(kalan>0 && oncekiKey){
+    const oncekiMevcutNet=kayitNetDegeri(oncekiKayit);
+    let oncekiEksik=0;
+
+    if(!oncekiKayit){
+      // Önceki ayda kayıt yoksa otomatik olarak "önceki ay borcu var" varsayma.
+      // Bu yüzden Haziran için yüklenen 400 TL artık Mayıs 300 + Haziran 100 diye bölünmez.
+      // Sadece personelin kayıtlı devreden bakiyesi gerçekten borç gösteriyorsa geçmiş borca pay ayır.
+      const mevcutPersonelNet=getBakiye(kisi.raw);
+      oncekiEksik=Math.max(0,-mevcutPersonelNet);
+    }else if(excelImportKaydiMi(oncekiKayit)){
+      const oncekiBaslangicNet=oncekiDonemIcinBaslangicNet(oncekiKayit);
+      oncekiEksik=Math.max(0,oncekiAidat-oncekiBaslangicNet);
+    }else if(oncekiMevcutNet!==null){
+      oncekiEksik=Math.max(0,-oncekiMevcutNet);
+    }else{
+      oncekiEksik=0;
+    }
+
+    oncekiPay=Math.min(kalan,oncekiEksik);
+
+    if(oncekiPay>0){
+      const oncekiBaslangicNet=oncekiDonemIcinBaslangicNet(oncekiKayit);
+      const oncekiDurum=oncekiPay>=oncekiEksik?"odendi":"odeme_bekliyor";
+      const oncekiHesap=odemeHesabiManuel(oncekiBaslangicNet,oncekiDurum,oncekiPay,oncekiAidat,null);
+      const oncekiYeniKayit={
+        personelId:tel,
+        telefon:tel,
+        adSoyad:ad,
+        ay:oncekiKey,
+        donemEtiketi:donemLabel(oncekiKey),
+        tutar:oncekiPay,
+        durum:oncekiDurum,
+        odemeTuru:deleteField(),
+        muaf:deleteField(),
+        raporMazeret:deleteField(),
+        adminNot:"İçe aktarılan toplam ödemenin geçmiş borç payı",
+        yuklenenIsim:kisi.yuklenenIsim||ad,
+        ...bakiyeAlanlari(oncekiHesap),
+        updatedAt:serverTimestamp()
+      };
+      await setDoc(doc(db,ODEME_COLLECTION,odemeDocId(oncekiKey,tel)),oncekiYeniKayit,{merge:true});
+      aktifOncekiOdemeler[tel]={...oncekiYeniKayit,updatedAt:new Date()};
+      oncekiSonNet=oncekiHesap.genelNet;
+      kalan-=oncekiPay;
+    }
+  }
+
+  if(oncekiSonNet===null){
+    const oncekiKayitGuncel=aktifOncekiOdemeler[tel]||null;
+    const net=kayitNetDegeri(oncekiKayitGuncel);
+    oncekiSonNet=net!==null?net:oncekiDevirNetHesapla(kisi.raw,tel);
+  }
+
+  const buDurum=kalan>0?"odendi":"odeme_bekliyor";
+  const buHesap=odemeHesabiManuel(oncekiSonNet,buDurum,kalan,buAidat,null);
+  const buYeniKayit={
+    personelId:tel,
+    telefon:tel,
+    adSoyad:ad,
+    ay:key,
+    donemEtiketi:donemLabel(key),
+    tutar:kalan,
+    durum:buDurum,
+    odemeTuru:deleteField(),
+    muaf:deleteField(),
+    raporMazeret:deleteField(),
+    adminNot:oncekiPay>0?"İçe aktarılan toplam ödemenin bu dönem payı":"İsim ve tutar tablosundan içe aktarıldı",
+    yuklenenIsim:kisi.yuklenenIsim||ad,
+    toplamYuklenenTutar:toplamTutar,
+    gecmisBorcaAyrilan:oncekiPay,
+    ...bakiyeAlanlari(buHesap),
+    updatedAt:serverTimestamp()
+  };
+
+  await setDoc(doc(db,ODEME_COLLECTION,odemeDocId(key,tel)),buYeniKayit,{merge:true});
+  await setDoc(doc(db,PERSONEL_COLLECTION,kisi.id),{bakiye:buHesap.genelNet,bakiyeNet:buHesap.genelNet,sonOdemeDonemi:key,bakiyeGuncellendi:serverTimestamp()},{merge:true});
+  aktifOdemeler[tel]={...buYeniKayit,updatedAt:new Date()};
+  return {oncekiPay,buPay:kalan,genelNet:buHesap.genelNet};
+}
 
 window.dekontIceriAktar=async function(){
   const file=document.getElementById("dekontExcel")?.files?.[0];
@@ -894,28 +1179,88 @@ window.dekontIceriAktar=async function(){
   const key=document.getElementById("adminAy").value||donemKey();
   msg.textContent="Dosya okunuyor...";
   try{
-    const data=await file.arrayBuffer();const wb=XLSX.read(data,{type:"array"});const ws=wb.Sheets[wb.SheetNames[0]];const hamSatirlar=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});
+    const data=await file.arrayBuffer();
+    const wb=XLSX.read(data,{type:"array"});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const hamSatirlar=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});
+
     let baslikIndex=-1;
-    for(let i=0;i<hamSatirlar.length;i++){const satirText=hamSatirlar[i].map(x=>normalizeTR(x)).join(" ");const isimBasligiVar=satirText.includes("personel")||satirText.includes("ad soyad")||satirText.includes("adi soyadi")||satirText.includes("isim")||satirText.includes("aciklama");const tutarBasligiVar=satirText.includes("tutar")||satirText.includes("miktar")||satirText.includes("islem tutari")||satirText.includes("odenen tutar");if(isimBasligiVar&&tutarBasligiVar){baslikIndex=i;break;}}
-    if(baslikIndex===-1){msg.textContent="Başlık bulunamadı. Dosyada Personel ve Tutar sütunları olmalı.";alert("Excel içinde Personel / Tutar başlığı bulunamadı.");return;}
+    for(let i=0;i<hamSatirlar.length;i++){
+      const satirText=hamSatirlar[i].map(x=>normalizeTR(x)).join(" ");
+      const isimBasligiVar=satirText.includes("personel")||satirText.includes("ad soyad")||satirText.includes("adi soyadi")||satirText.includes("isim")||satirText.includes("aciklama");
+      const tutarBasligiVar=satirText.includes("tutar")||satirText.includes("miktar")||satirText.includes("islem tutari")||satirText.includes("odenen tutar");
+      if(isimBasligiVar&&tutarBasligiVar){baslikIndex=i;break;}
+    }
+
+    if(baslikIndex===-1){
+      msg.textContent="Başlık bulunamadı. Dosyada Personel ve Tutar sütunları olmalı.";
+      alert("Excel içinde Personel / Tutar başlığı bulunamadı.");
+      return;
+    }
+
     const basliklar=hamSatirlar[baslikIndex].map(x=>String(x||"").trim());
     const veriSatirlari=hamSatirlar.slice(baslikIndex+1);
-    const rows=veriSatirlari.filter(satir=>satir.some(x=>String(x||"").trim()!=="")).map(satir=>{const obj={};basliklar.forEach((b,i)=>obj[b]=satir[i]??"");return obj;});
+    const rows=veriSatirlari.filter(satir=>satir.some(x=>String(x||"").trim()!=="")).map(satir=>{
+      const obj={};
+      basliklar.forEach((b,i)=>obj[b]=satir[i]??"");
+      return obj;
+    });
+
     if(!rows.length){msg.textContent="İşlenecek ödeme satırı bulunamadı.";return;}
+
     aktifDonemKey=key;
     aktifDonemTutari=await donemTutariGetir(db,key,VARSAYILAN_AIDAT);
     aktifOncekiDonemKey=addMonthsKey(key,-1);
     aktifOncekiDonemTutari=await donemTutariGetir(db,aktifOncekiDonemKey,VARSAYILAN_AIDAT);
     aktifOncekiOdemeler=await donemOdemeleriGetir(aktifOncekiDonemKey);
-    const personelSnap=await getDocs(collection(db,PERSONEL_COLLECTION));const personeller=[];
-    personelSnap.forEach(pdoc=>{const p={id:pdoc.id,...pdoc.data()};if(getAktif(p)){const tel=getTelefonFromDoc(p.id,p);const ad=getAd(p);if(tel&&ad)personeller.push({id:p.id,tel,ad,norm:normalizeTR(ad),raw:p});}});
+    aktifOdemeler=await donemOdemeleriGetir(key);
+
+    const personelSnap=await getDocs(collection(db,PERSONEL_COLLECTION));
+    const personeller=[];
+    personelSnap.forEach(pdoc=>{
+      const p={id:pdoc.id,...pdoc.data()};
+      if(getAktif(p)){
+        const tel=getTelefonFromDoc(p.id,p);
+        const ad=getAd(p);
+        if(tel&&ad)personeller.push({id:p.id,tel,ad,norm:normalizeTR(ad),raw:p});
+      }
+    });
     aktifPersoneller=personeller.map(x=>x.raw);
-    let basarili=0,eslesmeyen=0,tutarsiz=0;const eslesmeyenler=[];
-    for(const r of rows){const adRaw=String(getAlan(r,["Personel","Ad Soyad","Adı Soyadı","Adi Soyadi","İsim","Isim","Açıklama","Aciklama","Gönderen","Gonderen","Alıcı","Alici"])||"").trim();const tutarRaw=getAlan(r,["Tutar","Miktar","Ödenen Tutar","Odenen Tutar","İşlem Tutarı","Islem Tutari","İşlem Tutarı (TL)","Islem Tutari (TL)","Amount"]);const tutar=parseMoney(tutarRaw);if(!adRaw){eslesmeyen++;eslesmeyenler.push("İsim boş satır");continue;}if(tutar===null||tutar<0){tutarsiz++;continue;}if(tutar===0)continue;const kisi=eslesenKisiyiBul(adRaw,personeller);if(!kisi){eslesmeyen++;eslesmeyenler.push(adRaw);continue;}const hesap=odemeHesabiYap(kisi.raw,kisi.tel,"odendi",tutar,aktifDonemTutari,null);const yeniKayit={personelId:kisi.tel,telefon:kisi.tel,adSoyad:kisi.ad,ay:key,donemEtiketi:donemLabel(key),tutar:tutar,durum:"odendi",adminNot:"İsim ve tutar tablosundan içe aktarıldı",yuklenenIsim:adRaw,...bakiyeAlanlari(hesap),updatedAt:serverTimestamp()};await setDoc(doc(db,ODEME_COLLECTION,odemeDocId(key,kisi.tel)),yeniKayit,{merge:true});await setDoc(doc(db,PERSONEL_COLLECTION,kisi.id),{bakiye:hesap.genelNet,bakiyeNet:hesap.genelNet,sonOdemeDonemi:key,bakiyeGuncellendi:serverTimestamp()},{merge:true});basarili++;}
-    msg.textContent=`İçe aktarma tamam: ${basarili} ödeme işlendi. Eşleşmeyen: ${eslesmeyen}. Hatalı tutar: ${tutarsiz}.`;
+
+    let eslesmeyen=0,tutarsiz=0,satirSayisi=0;
+    const eslesmeyenler=[];
+    const topluOdemeler={};
+
+    for(const r of rows){
+      const adRaw=String(getAlan(r,["Personel","Ad Soyad","Adı Soyadı","Adi Soyadi","İsim","Isim","Açıklama","Aciklama","Gönderen","Gonderen","Alıcı","Alici"])||"").trim();
+      const tutarRaw=getAlan(r,["Tutar","Miktar","Ödenen Tutar","Odenen Tutar","İşlem Tutarı","Islem Tutari","İşlem Tutarı (TL)","Islem Tutari (TL)","Amount"]);
+      const tutar=parseMoney(tutarRaw);
+      if(!adRaw){eslesmeyen++;eslesmeyenler.push("İsim boş satır");continue;}
+      if(tutar===null||tutar<0){tutarsiz++;continue;}
+      if(tutar===0)continue;
+      const kisi=eslesenKisiyiBul(adRaw,personeller);
+      if(!kisi){eslesmeyen++;eslesmeyenler.push(adRaw);continue;}
+      if(!topluOdemeler[kisi.tel])topluOdemeler[kisi.tel]={...kisi,toplam:0,satir:0,yuklenenIsim:adRaw};
+      topluOdemeler[kisi.tel].toplam+=tutar;
+      topluOdemeler[kisi.tel].satir++;
+      satirSayisi++;
+    }
+
+    let basarili=0,gecmiseDagitilan=0;
+    for(const kisi of Object.values(topluOdemeler)){
+      const sonuc=await iceAktarilanOdemeyiDagit(kisi,kisi.toplam,key);
+      if(sonuc.oncekiPay>0)gecmiseDagitilan++;
+      basarili++;
+    }
+
+    msg.textContent=`İçe aktarma tamam: ${basarili} personel / ${satirSayisi} satır işlendi. Aynı isimler toplandı. Geçmiş borca dağıtılan: ${gecmiseDagitilan}. Eşleşmeyen: ${eslesmeyen}. Hatalı tutar: ${tutarsiz}.`;
     if(eslesmeyenler.length)console.warn("Eşleşmeyen ödeme satırları:",eslesmeyenler);
     await adminListele(false);
-  }catch(e){console.error(e);msg.textContent="İçe aktarma sırasında hata oluştu. Excel/CSV dosyasını kontrol et.";alert("Dosya okunamadı. Personel / Tutar başlıklarını kontrol et.");}
+  }catch(e){
+    console.error(e);
+    msg.textContent="İçe aktarma sırasında hata oluştu. Excel/CSV dosyasını kontrol et.";
+    alert("Dosya okunamadı. Personel / Tutar başlıklarını kontrol et.");
+  }
 };
 
 onAuthStateChanged(auth,async(user)=>{
