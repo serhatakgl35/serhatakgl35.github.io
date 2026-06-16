@@ -987,6 +987,9 @@ const DUYURU_DOC_ID = "berber_randevu";
 // Döküman ID yapısı: 2026-06_05391234567
 const ODEME_KOLEKSIYON = "cay_odemeler";
 const ODEME_ENGELI_AKTIF = true;
+const ODEME_AYAR_KOLEKSIYON = "cay_ayarlar";
+const ODEME_ESKI_AYAR_KOLEKSIYON = "cay_ayarlari";
+const VARSAYILAN_AIDAT = 300;
 
 const TELEGRAM_BOT_TOKEN = "8635739693:AAFYGCIgGW7WTwvMIhh5Yvy_wXttPR2kC28";
 const TELEGRAM_CHAT_ID = "-1003670319520";
@@ -1292,6 +1295,38 @@ function odemeSayiAl(v){
   return isFinite(n) ? n : 0;
 }
 
+function odemeDurumNormalize(durum){
+  return String(durum || "")
+    .trim()
+    .toLowerCase()
+    .replaceAll("ı","i")
+    .replaceAll("ğ","g")
+    .replaceAll("ü","u")
+    .replaceAll("ş","s")
+    .replaceAll("ö","o")
+    .replaceAll("ç","c")
+    .replace(/[\s\/\-]+/g,"_");
+}
+
+function odemeDurumOdenmisMi(durum){
+  const d = odemeDurumNormalize(durum);
+  return d === "odendi" || d === "odendi_";
+}
+
+function odemeDurumBorcYokMu(durum){
+  const d = odemeDurumNormalize(durum);
+  return [
+    "rapor_mazeret",
+    "raporlu",
+    "mazeret",
+    "mazeretli",
+    "borc_yok",
+    "borc_yoktur",
+    "muaf",
+    "muafiyet"
+  ].includes(d);
+}
+
 function ilkDoluDeger(data, alanlar){
   for(const alan of alanlar){
     if(data && data[alan] !== undefined && data[alan] !== null && data[alan] !== ""){
@@ -1301,72 +1336,182 @@ function ilkDoluDeger(data, alanlar){
   return undefined;
 }
 
-function odemeBorcTutariBul(data){
-  const direktBorc = ilkDoluDeger(data, [
-    "guncelBorc",
-    "guncel_borc",
-    "kalanBorc",
-    "kalan_borc",
-    "netBorc",
-    "net_borc",
-    "toplamBorc",
-    "toplam_borc",
-    "borc",
-    "borcTutari",
-    "borc_tutari",
-    "sonucBorc",
-    "sonuc_borc",
-    "odenecekTutar",
-    "odenecek_tutar"
-  ]);
+function odemeAyBul(id,data){
+  const ay = data?.ay || data?.donem || data?.donemKey || data?.period || "";
+  if(/^\d{4}-\d{2}$/.test(String(ay))) return String(ay);
 
-  if(direktBorc !== undefined){
-    return Math.max(0, odemeSayiAl(direktBorc));
+  const idMatch = String(id || "").match(/^(\d{4}-\d{2})_/);
+  if(idMatch) return idMatch[1];
+
+  const etiket = String(data?.donemEtiketi || data?.donemLabel || "");
+  const y = etiket.match(/20\d{2}/);
+  if(y){
+    const aylar = {
+      "ocak":"01","subat":"02","şubat":"02","mart":"03","nisan":"04","mayis":"05","mayıs":"05","haziran":"06",
+      "temmuz":"07","agustos":"08","ağustos":"08","eylul":"09","eylül":"09","ekim":"10","kasim":"11","kasım":"11","aralik":"12","aralık":"12"
+    };
+    const low = etiket.toLowerCase();
+    for(const [ad,no] of Object.entries(aylar)){
+      if(low.includes(ad)) return y[0] + "-" + no;
+    }
   }
 
-  const aidat = odemeSayiAl(ilkDoluDeger(data, [
-    "aidat",
-    "aidatTutari",
-    "aidat_tutari",
-    "donemAidati",
-    "donem_aidati",
-    "donemBorcu",
-    "donem_borcu",
-    "tutar"
-  ]));
+  return "";
+}
 
-  const oncekiDevir = odemeSayiAl(ilkDoluDeger(data, [
-    "oncekiDevir",
-    "onceki_devir",
-    "devir",
-    "gecmisDevir",
-    "gecmis_devir"
-  ]));
+async function odemeDonemTutariGetir(key){
+  const adaylar = [
+    { col: ODEME_AYAR_KOLEKSIYON, id: key },
+    { col: ODEME_ESKI_AYAR_KOLEKSIYON, id: key },
+    { col: ODEME_ESKI_AYAR_KOLEKSIYON, id: "aidat_" + key }
+  ];
 
-  const odenen = odemeSayiAl(ilkDoluDeger(data, [
-    "odenen",
-    "odenenTutar",
-    "odenen_tutar",
-    "odeme",
-    "odemeTutari",
-    "odeme_tutari",
-    "alinanOdeme",
-    "alinan_odeme",
-    "toplamOdeme",
-    "toplam_odeme"
-  ]));
+  for(const a of adaylar){
+    try{
+      const snap = await getDoc(doc(db, a.col, a.id));
+      if(!snap.exists()) continue;
 
-  const fazla = odemeSayiAl(ilkDoluDeger(data, [
-    "fazlaOdeme",
-    "fazla_odeme",
-    "fazla",
-    "alacak",
-    "devredenAlacak",
-    "devreden_alacak"
-  ]));
+      const d = snap.data() || {};
+      const tutar = odemeSayiAl(ilkDoluDeger(d, [
+        "aylikTutar",
+        "aylik_tutar",
+        "tutar",
+        "aidat",
+        "aidatTutari",
+        "donemAidati",
+        "donem_aidati"
+      ]));
 
-  const hesaplanan = (aidat + oncekiDevir) - odenen - fazla;
-  return Math.max(0, Math.round(hesaplanan * 100) / 100);
+      if(tutar > 0) return tutar;
+    }catch(e){
+      console.warn("Dönem aidatı okunamadı:", a, e);
+    }
+  }
+
+  return VARSAYILAN_AIDAT;
+}
+
+async function odemeKaydiBul(tel,key){
+  const temizTel = telefonuDuzenle(tel);
+  const direktRef = doc(db, ODEME_KOLEKSIYON, odemeDocId(key, temizTel));
+  const direktSnap = await getDoc(direktRef);
+
+  if(direktSnap.exists()){
+    return { id: direktSnap.id, ...direktSnap.data() };
+  }
+
+  const sorgular = [
+    query(collection(db, ODEME_KOLEKSIYON), where("telefon", "==", temizTel), where("ay", "==", key)),
+    query(collection(db, ODEME_KOLEKSIYON), where("personelId", "==", temizTel), where("ay", "==", key))
+  ];
+
+  for(const qx of sorgular){
+    try{
+      const snap = await getDocs(qx);
+      if(!snap.empty){
+        const d = snap.docs[0];
+        return { id: d.id, ...d.data() };
+      }
+    }catch(e){
+      console.warn("Ödeme kaydı sorgusu okunamadı:", e);
+    }
+  }
+
+  return null;
+}
+
+async function personelOdemeKayitlariGetir(tel,aktifKey,aktifKayit){
+  const temizTel = telefonuDuzenle(tel);
+  const map = new Map();
+
+  function ekle(id,data){
+    const d = data || {};
+    const ay = odemeAyBul(id,d);
+    if(!ay || ay > aktifKey) return;
+
+    const kayitTel = telefonuDuzenle(d.telefon || d.personelId || temizTel);
+    if(kayitTel && kayitTel !== temizTel) return;
+
+    map.set(id, { id, ...d, ay });
+  }
+
+  if(aktifKayit){
+    ekle(aktifKayit.id || odemeDocId(aktifKey, temizTel), aktifKayit);
+  }
+
+  const sorgular = [
+    query(collection(db, ODEME_KOLEKSIYON), where("telefon", "==", temizTel)),
+    query(collection(db, ODEME_KOLEKSIYON), where("personelId", "==", temizTel))
+  ];
+
+  for(const qx of sorgular){
+    try{
+      const snap = await getDocs(qx);
+      snap.forEach(d=>ekle(d.id, d.data()));
+    }catch(e){
+      console.warn("Personel ödeme geçmişi okunamadı:", e);
+    }
+  }
+
+  const ayMap = new Map();
+  Array.from(map.values())
+    .sort((a,b)=>String(a.ay || "").localeCompare(String(b.ay || "")))
+    .forEach(k=>{
+      // Aynı ay için birden fazla kayıt varsa doğrudan ay_telefon ID'li kayıt önceliklidir.
+      const idealId = odemeDocId(k.ay, temizTel);
+      const onceki = ayMap.get(k.ay);
+      if(!onceki || k.id === idealId) ayMap.set(k.ay, k);
+    });
+
+  return Array.from(ayMap.values()).sort((a,b)=>String(a.ay).localeCompare(String(b.ay)));
+}
+
+async function personelGenelBakiyeHesapla(tel,aktifKey,aktifKayit){
+  const kayitlar = await personelOdemeKayitlariGetir(tel, aktifKey, aktifKayit);
+  let genelNet = 0;
+  const aidatCache = new Map();
+
+  for(const k of kayitlar){
+    const ay = k.ay;
+    if(!aidatCache.has(ay)){
+      aidatCache.set(ay, await odemeDonemTutariGetir(ay));
+    }
+
+    const aidat = Number(aidatCache.get(ay) || VARSAYILAN_AIDAT);
+    const durum = odemeDurumNormalize(k.durum || "odeme_bekliyor");
+    const girilenTutar = odemeSayiAl(ilkDoluDeger(k, [
+      "tutar",
+      "odenen",
+      "odenenTutar",
+      "odenen_tutar",
+      "odemeTutari",
+      "odeme_tutari",
+      "alinanOdeme",
+      "toplamOdeme"
+    ]));
+
+    let odenen = 0;
+
+    if(odemeDurumBorcYokMu(durum)){
+      odenen = aidat;
+    }else if(odemeDurumOdenmisMi(durum)){
+      odenen = girilenTutar > 0 ? girilenTutar : aidat;
+    }else{
+      odenen = 0;
+    }
+
+    genelNet += (odenen - aidat);
+  }
+
+  return Math.round(genelNet * 100) / 100;
+}
+
+function odemeDurumText(durum){
+  const d = odemeDurumNormalize(durum);
+  if(odemeDurumOdenmisMi(d)) return "Ödendi";
+  if(odemeDurumBorcYokMu(d)) return "Borç Yok";
+  if(d === "reddedildi" || d.includes("redded")) return "Reddedildi";
+  return "Ödeme Bekliyor";
 }
 
 async function berberRandevuOdemeKontrol(telefon){
@@ -1386,36 +1531,32 @@ async function berberRandevuOdemeKontrol(telefon){
   }
 
   try{
-    const ref = doc(db, ODEME_KOLEKSIYON, odemeDocId(key,tel));
-    const snap = await getDoc(ref);
+    const aktifKayit = await odemeKaydiBul(tel, key);
 
-    // Ödeme admin sayfasında kayıt yoksa durum otomatik olarak ödeme_bekliyor kabul ediliyor.
-    if(!snap.exists()){
+    if(!aktifKayit){
       return {
         engelVar:true,
         mesaj:`${label} dönemi çay ocağı / aidat ödemeniz sistemde görünmediği için berber randevusu alamazsınız.\n\nÖdeme yaptıktan sonra yönetime bildiriniz.`
       };
     }
 
-    const data = snap.data() || {};
-    const durum = String(data.durum || "odeme_bekliyor").trim();
-    const borcTutari = odemeBorcTutariBul(data);
+    const durum = odemeDurumNormalize(aktifKayit.durum || "odeme_bekliyor");
 
-    if(durum !== "odendi"){
-      let durumText = "Ödeme Bekliyor";
-      if(durum === "reddedildi") durumText = "Reddedildi";
-      if(durum === "rapor_mazeret" || durum === "mazeret" || durum === "borc_yok") durumText = "Borç Yok";
+    // Rapor/Mazeret veya Borç Yok işaretlenen personel borçlu sayılmaz.
+    if(odemeDurumBorcYokMu(durum)){
+      return { engelVar:false };
+    }
 
+    if(!odemeDurumOdenmisMi(durum)){
       return {
         engelVar:true,
-        mesaj:`${label} dönemi ödeme durumunuz: ${durumText}.\n\nÖdenmemiş çay ocağı / aidat borcunuz bulunduğu için berber randevusu alamazsınız.\n\nÖdeme yaptıktan sonra yönetime bildiriniz.`
+        mesaj:`${label} dönemi ödeme durumunuz: ${odemeDurumText(durum)}.\n\nBorcu bulunan personel berber randevusu alamaz. Güncel borcunuzu Çay Ocağı Ödemeleri sayfasından görebilirsiniz.`
       };
     }
 
-    // Eskiden sadece durum alanı "odendi" ise randevuya izin veriliyordu.
-    // Kişinin 400 TL aidata karşılık 300 TL ödeme yapması gibi durumlarda durum "odendi" kalıp
-    // güncel borç 100 TL görünebildiği için, artık borç tutarı da ayrıca kontrol edilir.
-    if(borcTutari > 0){
+    const genelBakiye = await personelGenelBakiyeHesapla(tel, key, aktifKayit);
+
+    if(genelBakiye < -0.01){
       return {
         engelVar:true,
         mesaj:`${label} dönemi borcunuz görünüyor.\n\nBorcu bulunan personel berber randevusu alamaz. Güncel borcunuzu Çay Ocağı Ödemeleri sayfasından görebilirsiniz.`
