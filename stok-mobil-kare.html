@@ -1,0 +1,803 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Kantin Stok Listesi</title>
+
+<style>
+:root{--bg:#f5f5f7;--card:#fff;--text:#111;--muted:#6b7280;--line:#e5e7eb;--shadow:0 18px 55px rgba(0,0,0,.08)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Arial,sans-serif}
+.top{position:sticky;top:0;z-index:5;background:rgba(245,245,247,.84);backdrop-filter:blur(18px);border-bottom:1px solid rgba(0,0,0,.06)}
+.topin{max-width:1180px;margin:auto;padding:18px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand b{font-size:22px}.brand span{display:block;color:var(--muted);font-size:13px;margin-top:3px}
+.wrap{max-width:1180px;margin:22px auto;padding:0 18px 45px}
+.hero{background:linear-gradient(135deg,#111,#2a2a2a);color:#fff;border-radius:28px;padding:26px;box-shadow:var(--shadow);display:flex;justify-content:space-between;gap:20px;align-items:center}
+.hero h1{margin:0;font-size:30px}.hero p{margin:8px 0 0;color:#d1d5db}
+.badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:10px 13px;font-weight:900;white-space:nowrap}
+.top .badge{background:#fff;border:1px solid var(--line)}
+.btn{border:0;border-radius:14px;background:#111;color:#fff;padding:10px 14px;font-weight:900;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.btnLight{background:#fff;color:#111;border:1px solid var(--line)}
+.filters{margin:18px 0;display:flex;gap:10px;flex-wrap:wrap}
+.input,select{border:1px solid var(--line);background:#fff;border-radius:16px;padding:13px 14px;font:inherit;outline:none}
+.input{min-width:240px;flex:1}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}
+.card{background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:22px;box-shadow:0 12px 35px rgba(0,0,0,.06);overflow:hidden}
+.img{height:170px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:36px;padding:18px}
+.img img{max-width:100%;max-height:100%;object-fit:contain}
+.body{padding:15px}.name{font-weight:950;line-height:1.18;min-height:38px}.meta{margin-top:8px;color:var(--muted);font-size:12px}
+.foot{margin-top:13px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pill{display:inline-flex;align-items:center;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:950}
+.ok{background:#dcfce7;color:#166534}.az{background:#fef3c7;color:#92400e}.yok{background:#fee2e2;color:#991b1b}
+.qty{font-size:12px;color:var(--muted);font-weight:800}
+.empty{background:#fff;border:1px solid var(--line);border-radius:22px;padding:24px;text-align:center;color:var(--muted);line-height:1.5}
+.hiddenPrice{display:none}.price{margin-top:10px;font-weight:950}.loading{padding:26px;text-align:center;color:var(--muted);grid-column:1/-1}
+.gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.gateCard{max-width:430px;width:100%;background:#fff;border-radius:26px;border:1px solid var(--line);box-shadow:var(--shadow);padding:26px;text-align:center}
+.gateCard h1{margin:10px 0;font-size:24px}.gateCard p{color:var(--muted);line-height:1.5;margin-bottom:18px}
+.startBox{background:#fff;border:1px solid var(--line);border-radius:26px;box-shadow:var(--shadow);padding:28px;text-align:center;margin-top:18px}
+.startBox h2{margin:0 0 10px;font-size:26px}
+.startBox p{margin:0 0 18px;color:var(--muted);line-height:1.5}
+.cacheNote{font-size:13px;color:var(--muted);margin-top:10px}
+@media(max-width:1050px){.grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:760px){.topin,.hero{align-items:flex-start;flex-direction:column}.grid{grid-template-columns:repeat(2,1fr);gap:12px}.hero h1{font-size:24px}.img{height:140px}.body{padding:12px}.name{font-size:14px}.input,select{width:100%;min-width:0}}
+@media(max-width:420px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+
+<body>
+
+<!-- KANTIN10 ORTAK ÜST MENÜ -->
+<div class="k10-globalbar">
+  <a class="k10-global-btn k10-home-btn" href="panel.html">⌂ Ana Sayfa</a>
+  <button class="k10-global-btn k10-exit-btn" type="button" onclick="k10GlobalLogout()">Çıkış Yap</button>
+</div>
+<style>
+  body{padding-top:76px !important;}
+  .k10-globalbar{
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    z-index:2147483000;
+    height:64px;
+    padding:10px 14px;
+    background:rgba(17,17,17,.94);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    box-shadow:0 10px 30px rgba(0,0,0,.20);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+  }
+  .k10-global-btn{
+    min-width:138px;
+    height:44px;
+    border:none;
+    border-radius:999px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    text-decoration:none;
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif;
+    font-size:14px;
+    font-weight:950;
+    cursor:pointer;
+    transition:.18s ease;
+    white-space:nowrap;
+  }
+  .k10-home-btn{
+    background:#fff;
+    color:#111;
+  }
+  .k10-exit-btn{
+    background:#ef4444;
+    color:#fff;
+  }
+  .k10-global-btn:active{
+    transform:scale(.97);
+  }
+
+  /* Eski farklı isimli üst menüleri gizler */
+  .topbar:not(.k10-globalbar),
+  .top:not(.k10-globalbar),
+  .topPanelBar,
+  #panelContainer{
+    display:none !important;
+  }
+
+  @media(max-width:700px){
+    body{padding-top:70px !important;}
+    .k10-globalbar{
+      height:62px;
+      padding:9px 10px;
+      gap:8px;
+    }
+    .k10-global-btn{
+      flex:1;
+      min-width:0;
+      height:44px;
+      font-size:14px;
+    }
+  }
+</style>
+
+<style>
+/* MOBİL STOK TASARIMI - 2 sütun kare kart düzeni */
+:root{
+  --mobile-gap:10px;
+}
+
+/* Güncelleme rozeti ve hero taşmasını engeller */
+.hero{
+  min-width:0;
+  overflow:hidden;
+}
+.hero .badge,
+#updateBadge{
+  max-width:100%;
+  min-width:0;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  line-height:1.25;
+  text-align:center;
+}
+
+/* Ürün görsellerinde kırık oranları azaltır */
+.card,
+.img,
+.body,
+.name,
+.meta,
+.price,
+.foot{
+  min-width:0;
+}
+
+@media(max-width:760px){
+  body{
+    padding-top:70px !important;
+    overflow-x:hidden;
+  }
+
+  .wrap{
+    margin:12px auto;
+    padding:0 14px 34px;
+    max-width:100%;
+    overflow:hidden;
+  }
+
+  .hero{
+    position:relative;
+    display:block;
+    border-radius:24px;
+    padding:22px 18px 18px 74px;
+    box-shadow:0 14px 38px rgba(0,0,0,.12);
+  }
+
+  .hero::before{
+    content:"📦";
+    position:absolute;
+    left:18px;
+    top:22px;
+    width:42px;
+    height:42px;
+    border-radius:999px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(255,255,255,.12);
+    border:1px solid rgba(255,255,255,.12);
+    font-size:22px;
+  }
+
+  .hero h1{
+    font-size:21px;
+    line-height:1.15;
+    margin:0;
+  }
+
+  .hero p{
+    margin-top:8px;
+    font-size:15px;
+    line-height:1.45;
+  }
+
+  #updateBadge{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-top:14px;
+    width:100%;
+    padding:9px 10px;
+    border-radius:14px;
+    font-size:13px;
+    font-weight:850;
+  }
+
+  .filters{
+    display:grid !important;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin:14px 0 14px;
+    width:100%;
+  }
+
+  .filters .input{
+    grid-column:1 / -1;
+  }
+
+  .input,
+  select{
+    width:100% !important;
+    min-width:0 !important;
+    height:52px;
+    border-radius:18px;
+    padding:0 14px;
+    font-size:15px;
+  }
+
+  .grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:10px;
+    width:100%;
+  }
+
+  .card{
+    border-radius:20px;
+    overflow:hidden;
+    box-shadow:0 10px 28px rgba(0,0,0,.06);
+    border:1px solid rgba(0,0,0,.055);
+  }
+
+  .img{
+    height:116px;
+    margin:10px 10px 0;
+    padding:10px;
+    border-radius:16px;
+    background:#fff;
+    border:1px solid #eef0f3;
+    color:#c2c7d0;
+    font-size:28px;
+  }
+
+  .img img{
+    max-width:100%;
+    max-height:92px;
+    object-fit:contain;
+  }
+
+  .body{
+    padding:10px 10px 12px;
+  }
+
+  .name{
+    min-height:38px;
+    font-size:13.5px;
+    line-height:1.15;
+    letter-spacing:-.2px;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+
+  .meta{
+    margin-top:7px;
+    font-size:11px;
+    line-height:1.25;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .price{
+    margin-top:9px;
+    font-size:15px;
+    line-height:1;
+    font-weight:950;
+  }
+
+  .foot{
+    margin-top:10px;
+    gap:6px;
+    align-items:center;
+  }
+
+  .pill{
+    padding:6px 8px;
+    font-size:10.5px;
+    line-height:1;
+    white-space:nowrap;
+  }
+
+  .qty{
+    font-size:11px;
+    white-space:nowrap;
+  }
+
+  .startBox{
+    margin-top:14px;
+    padding:20px 16px;
+    border-radius:22px;
+  }
+
+  .startBox h2{
+    font-size:22px;
+  }
+}
+
+/* 420px altında da tek sütuna düşmesin; küçük kare düzen korunsun */
+@media(max-width:420px){
+  .grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+
+  .wrap{
+    padding-left:12px;
+    padding-right:12px;
+  }
+
+  .img{
+    height:106px;
+    margin:9px 9px 0;
+  }
+
+  .img img{
+    max-height:84px;
+  }
+
+  .body{
+    padding:9px;
+  }
+
+  .name{
+    font-size:12.8px;
+    min-height:34px;
+  }
+
+  .meta{
+    font-size:10.5px;
+  }
+
+  .price{
+    font-size:14px;
+  }
+
+  .pill{
+    font-size:10px;
+    padding:6px 7px;
+  }
+
+  .qty{
+    font-size:10.5px;
+  }
+}
+</style>
+
+<script>
+function k10GlobalLogout(){
+  try{
+    localStorage.removeItem("musteriGiris");
+    localStorage.removeItem("musteriTelefon");
+    localStorage.removeItem("musteriAd");
+    localStorage.removeItem("personelDocId");
+    localStorage.removeItem("personelId");
+    localStorage.removeItem("personelAd");
+    localStorage.removeItem("personelSoyad");
+    sessionStorage.clear();
+  }catch(e){}
+  window.location.href = "index.html";
+}
+</script>
+<!-- /KANTIN10 ORTAK ÜST MENÜ -->
+
+
+<div id="app"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+import {
+  getFirestore,
+  collection,
+  doc,
+  getDoc,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig={
+  apiKey:"AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",
+  authDomain:"berber-randevu-14f7f.firebaseapp.com",
+  projectId:"berber-randevu-14f7f",
+  storageBucket:"berber-randevu-14f7f.firebasestorage.app",
+  messagingSenderId:"280530860977",
+  appId:"1:280530860977:web:52c0df04c228896f211b90",
+  measurementId:"G-NK6DBBQQNZ"
+};
+
+const GIRIS_SAYFASI="index.html";
+const PANEL_SAYFASI="panel.html";
+const FIYAT_GOSTER=true;
+const STOK_ADEDI_GOSTER=true;
+
+const CACHE_KEY="kantin_stok_cache_v5";
+const CACHE_TIME_KEY="kantin_stok_cache_time_v5";
+const CACHE_SURESI=0;
+
+// Admin panelden yapılan değişiklikler hemen görünsün diye eski cihaz önbelleklerini temizler.
+try{
+  [
+    "kantin_stok_cache_v1",
+    "kantin_stok_cache_time_v1",
+    "kantin_stok_cache_v2",
+    "kantin_stok_cache_time_v2",
+    "kantin_stok_cache_v3",
+    "kantin_stok_cache_time_v3"
+  ].forEach(k=>localStorage.removeItem(k));
+}catch(e){}
+
+const app=initializeApp(firebaseConfig);
+getAnalytics(app);
+const db=getFirestore(app);
+
+try{
+  Object.keys(localStorage).forEach(k=>{
+    if(k.startsWith("kantin_stok_cache")) localStorage.removeItem(k);
+  });
+}catch(e){}
+
+let products=[];
+let yuklendi=false;
+
+function storageBulunduMu(){
+  const arr=[];
+
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    arr.push({key:k,value:localStorage.getItem(k)});
+  }
+
+  for(let i=0;i<sessionStorage.length;i++){
+    const k=sessionStorage.key(i);
+    arr.push({key:k,value:sessionStorage.getItem(k)});
+  }
+
+  const keys=["personel","giris","login","uye","user","kullanici","telefon","ad","soyad"];
+
+  return arr.some(item=>{
+    const s=String(item.key+" "+item.value).toLowerCase();
+    const giris=s.includes("true")||s.includes("aktif")||s.includes("personel")||s.includes("telefon")||s.includes("uid")||s.includes("ad")||s.includes("soyad");
+    return keys.some(k=>s.includes(k))&&giris;
+  });
+}
+
+function personelGirisKontrol(){
+  if(!storageBulunduMu()){
+    document.getElementById("app").innerHTML=`
+      <div class="gate">
+        <div class="gateCard">
+          <div style="font-size:44px">🔒</div>
+          <h1>Personel Girişi Gerekli</h1>
+          <p>Bu stok listesi sadece giriş yapmış personeller tarafından görüntülenebilir.</p>
+          <a class="btn" href="${GIRIS_SAYFASI}">Giriş Sayfasına Git</a>
+        </div>
+      </div>
+    `;
+
+    setTimeout(()=>{
+      window.location.href=GIRIS_SAYFASI;
+    },1600);
+
+    return false;
+  }
+
+  return true;
+}
+
+function sayfayiKur(){
+  document.getElementById("app").innerHTML=`
+    <div class="top">
+      <div class="topin">
+        <div class="brand">
+          <b>Kantin Stok Listesi</b>
+          <span>Güncel ürün durumu</span>
+        </div>
+
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <a class="btn" href="${PANEL_SAYFASI}">Panele Dön</a>
+          <div class="badge" id="countBadge">Hazır</div>
+        </div>
+      </div>
+    </div>
+
+    <main class="wrap">
+      <section class="hero">
+        <div>
+          <h1>Stok sayfası</h1>
+          <p>Read azaltmak için ürünler sayfa açılır açılmaz yüklenmez.</p>
+        </div>
+
+        <div class="badge" id="updateBadge">Beklemede</div>
+      </section>
+
+      <div id="startBox" class="startBox">
+        <h2>Stok listesi hazır</h2>
+        <p>
+          Ürünleri görmek için aşağıdaki butona basınız.
+          Ürünler gün sonunda güncellenir. Anlık güncellenmez. 
+        </p>
+
+        <button class="btn" onclick="stoklariGoster(true)">Stokları Göster</button>
+        <button class="btn btnLight" onclick="stoklariGoster(true)">Firebase’den Yenile</button>
+
+        <div class="cacheNote" id="cacheNote"></div>
+      </div>
+
+      <div class="filters" id="filters" style="display:none">
+        <input id="search" class="input" placeholder="Ürün adı veya barkod ara...">
+
+        <select id="cat">
+          <option value="">Tüm kategoriler</option>
+        </select>
+
+        <select id="stock">
+          <option value="mevcut" selected>Stokta olanlar</option>
+          <option value="">Tüm stoklar</option>
+          <option value="ok">Stokta var</option>
+          <option value="az">Az kaldı</option>
+          <option value="yok">Tükendi</option>
+        </select>
+      </div>
+
+      <section id="list" class="grid"></section>
+    </main>
+  `;
+
+  cacheBilgisiYaz();
+}
+
+const $=id=>document.getElementById(id);
+
+function key(s){
+  return String(s??"").trim().toLowerCase()
+    .replaceAll("ı","i").replaceAll("ğ","g").replaceAll("ü","u")
+    .replaceAll("ş","s").replaceAll("ö","o").replaceAll("ç","c");
+}
+
+function esc(s){
+  return String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+}
+
+function st(q){
+  const miktar=Number(q||0);
+
+  if(miktar<=0)return["yok","TÜKENDİ"];
+  if(miktar<=5)return["az","AZ KALDI"];
+
+  return["ok","STOKTA VAR"];
+}
+
+function fmtDateFromMs(ms){
+  try{
+    return new Date(ms).toLocaleString("tr-TR",{
+      dateStyle:"short",
+      timeStyle:"short"
+    });
+  }catch{
+    return "Güncel";
+  }
+}
+
+function otomatikGorsel(p){
+  if(p.gorselUrl && String(p.gorselUrl).trim()){
+    return p.gorselUrl;
+  }
+
+  return "";
+}
+
+function cacheVarMi(){
+  const raw=localStorage.getItem(CACHE_KEY);
+  const time=Number(localStorage.getItem(CACHE_TIME_KEY)||0);
+
+  if(!raw || !time)return false;
+
+  return Date.now()-time<CACHE_SURESI;
+}
+
+function cacheBilgisiYaz(){
+  const el=document.getElementById("cacheNote");
+  if(!el)return;
+
+  const time=Number(localStorage.getItem(CACHE_TIME_KEY)||0);
+
+  if(!time){
+    el.textContent="Bu cihazda kayıtlı stok listesi yok.";
+    return;
+  }
+
+  const dakika=Math.max(0,Math.ceil((CACHE_SURESI-(Date.now()-time))/60000));
+
+  if(cacheVarMi()){
+    el.textContent="Kayıtlı liste var. Yaklaşık "+dakika+" dakika Firestore okumadan açılabilir.";
+  }else{
+    el.textContent="Kayıtlı liste süresi dolmuş. Yenileme gerekebilir.";
+  }
+}
+
+function cacheOku(){
+  try{
+    if(!cacheVarMi())return null;
+
+    const raw=localStorage.getItem(CACHE_KEY);
+    return JSON.parse(raw);
+  }catch{
+    return null;
+  }
+}
+
+function cacheYaz(data){
+  try{
+    localStorage.setItem(CACHE_KEY,JSON.stringify(data));
+    localStorage.setItem(CACHE_TIME_KEY,String(Date.now()));
+  }catch(e){
+    console.log("Cache yazılamadı",e);
+  }
+}
+
+function filtreleriAktifEt(){
+  $("filters").style.display="flex";
+
+  $("search").oninput=render;
+  $("cat").onchange=render;
+  $("stock").onchange=render;
+}
+
+function render(){
+  if(!yuklendi)return;
+
+  const q=key($("search").value);
+  const c=$("cat").value;
+  const sf=$("stock").value;
+
+  const cats=[...new Set(products.map(p=>p.kategori||"Genel"))].sort((a,b)=>a.localeCompare(b,"tr"));
+  const keep=$("cat").value;
+
+  $("cat").innerHTML='<option value="">Tüm kategoriler</option>'+
+    cats.map(x=>`<option ${x===keep?"selected":""}>${esc(x)}</option>`).join("");
+
+  const filtered=products.filter(p=>{
+    const ss=st(p.miktar)[0];
+
+    return(
+      (!q||key(p.ad).includes(q)||key(p.barkod).includes(q)) &&
+      (!c||(p.kategori||"Genel")===c) &&
+      (!sf||(sf==="mevcut"?ss!=="yok":ss===sf))
+    );
+  });
+
+  $("countBadge").textContent=filtered.length+" ürün";
+
+  if(!filtered.length){
+    $("list").className="";
+    $("list").innerHTML='<div class="empty">Ürün bulunamadı.</div>';
+    return;
+  }
+
+  $("list").className="grid";
+
+  $("list").innerHTML=filtered.map(p=>{
+    const s=st(p.miktar);
+    const img=otomatikGorsel(p);
+
+    return`
+      <article class="card">
+        <div class="img">
+          ${
+            img
+              ? `<img src="${esc(img)}" alt="${esc(p.ad)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove();this.parentElement.textContent='📦'">`
+              : "📦"
+          }
+        </div>
+
+        <div class="body">
+          <div class="name">${esc(p.ad)}</div>
+          <div class="meta">${esc(p.kategori||"Genel")}${p.barkod?" · "+esc(p.barkod):""}</div>
+          <div class="price ${FIYAT_GOSTER?"":"hiddenPrice"}">${Number(p.satisFiyat||0).toLocaleString("tr-TR")} TL</div>
+
+          <div class="foot">
+            <span class="pill ${s[0]}">${s[1]}</span>
+            <span class="qty">${STOK_ADEDI_GOSTER?Number(p.miktar||0)+" adet":""}</span>
+          </div>
+        </div>
+      </article>
+    `;
+  }).join("");
+}
+
+window.stoklariGoster=async function(forceRefresh=true){
+  try{
+    $("startBox").style.display="none";
+    $("filters").style.display="none";
+    $("list").className="grid";
+    $("list").innerHTML='<div class="loading">Ürünler yükleniyor...</div>';
+    $("countBadge").textContent="Yükleniyor...";
+    $("updateBadge").textContent="Kontrol ediliyor";
+
+    const cached=null; // Her açılışta Firebase okunur; eski liste gösterilmez.
+
+    if(cached && Array.isArray(cached.products)){
+      products=cached.products;
+      yuklendi=true;
+
+      $("updateBadge").textContent="Kayıtlı liste: "+fmtDateFromMs(cached.time || Number(localStorage.getItem(CACHE_TIME_KEY)||Date.now()));
+
+      filtreleriAktifEt();
+      render();
+      return;
+    }
+
+    $("updateBadge").textContent="Firestore okunuyor";
+
+    let aktifListeId="";
+    try{
+      const metaSnap=await getDoc(doc(db,"stok_meta","aktif_liste"));
+      if(metaSnap.exists()){
+        aktifListeId=String(metaSnap.data().listeId||"").trim();
+      }
+    }catch(metaErr){
+      console.warn("Aktif liste bilgisi okunamadı",metaErr);
+    }
+
+    const snap=await getDocs(collection(db,"stok_urunleri"));
+
+    products=snap.docs
+      .map(d=>({id:d.id,...d.data()}))
+      .filter(p=>{
+        if(aktifListeId){
+          return p.aktif===true && String(p.listeId||"")===aktifListeId;
+        }
+        return p.aktif===true;
+      })
+      .sort((a,b)=>String(a.ad||"").localeCompare(String(b.ad||""),"tr"));
+
+    const cacheData={
+      time:Date.now(),
+      products:products
+    };
+
+    cacheYaz(cacheData);
+
+    yuklendi=true;
+
+    $("updateBadge").textContent="Firebase’den güncellendi: "+fmtDateFromMs(cacheData.time);
+
+    filtreleriAktifEt();
+    render();
+
+  }catch(e){
+    console.error(e);
+
+    $("list").className="";
+    $("list").innerHTML=`
+      <div class="empty">
+        Stok listesi yüklenemedi.
+        <br><br>
+        Firestore Rules içinde <b>stok_urunleri</b> için okuma izni olmalı.
+      </div>
+    `;
+
+    $("countBadge").textContent="Hata";
+    $("updateBadge").textContent="Bağlantı hatası";
+  }
+}
+
+if(personelGirisKontrol()){
+  sayfayiKur();
+}
+</script>
+</body>
+</html>
