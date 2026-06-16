@@ -1270,6 +1270,105 @@ function odemeDocId(key,tel){
   return key + "_" + telefonuDuzenle(tel);
 }
 
+function odemeSayiAl(v){
+  if(v === undefined || v === null || v === "") return 0;
+  if(typeof v === "number") return isFinite(v) ? v : 0;
+
+  let s = String(v)
+    .replace(/TL/gi, "")
+    .replace(/₺/g, "")
+    .replace(/\s/g, "")
+    .trim();
+
+  if(!s) return 0;
+
+  if(s.includes(",")){
+    s = s.replace(/\./g, "").replace(",", ".");
+  }else{
+    s = s.replace(/\./g, "");
+  }
+
+  const n = Number(s);
+  return isFinite(n) ? n : 0;
+}
+
+function ilkDoluDeger(data, alanlar){
+  for(const alan of alanlar){
+    if(data && data[alan] !== undefined && data[alan] !== null && data[alan] !== ""){
+      return data[alan];
+    }
+  }
+  return undefined;
+}
+
+function odemeBorcTutariBul(data){
+  const direktBorc = ilkDoluDeger(data, [
+    "guncelBorc",
+    "guncel_borc",
+    "kalanBorc",
+    "kalan_borc",
+    "netBorc",
+    "net_borc",
+    "toplamBorc",
+    "toplam_borc",
+    "borc",
+    "borcTutari",
+    "borc_tutari",
+    "sonucBorc",
+    "sonuc_borc",
+    "odenecekTutar",
+    "odenecek_tutar"
+  ]);
+
+  if(direktBorc !== undefined){
+    return Math.max(0, odemeSayiAl(direktBorc));
+  }
+
+  const aidat = odemeSayiAl(ilkDoluDeger(data, [
+    "aidat",
+    "aidatTutari",
+    "aidat_tutari",
+    "donemAidati",
+    "donem_aidati",
+    "donemBorcu",
+    "donem_borcu",
+    "tutar"
+  ]));
+
+  const oncekiDevir = odemeSayiAl(ilkDoluDeger(data, [
+    "oncekiDevir",
+    "onceki_devir",
+    "devir",
+    "gecmisDevir",
+    "gecmis_devir"
+  ]));
+
+  const odenen = odemeSayiAl(ilkDoluDeger(data, [
+    "odenen",
+    "odenenTutar",
+    "odenen_tutar",
+    "odeme",
+    "odemeTutari",
+    "odeme_tutari",
+    "alinanOdeme",
+    "alinan_odeme",
+    "toplamOdeme",
+    "toplam_odeme"
+  ]));
+
+  const fazla = odemeSayiAl(ilkDoluDeger(data, [
+    "fazlaOdeme",
+    "fazla_odeme",
+    "fazla",
+    "alacak",
+    "devredenAlacak",
+    "devreden_alacak"
+  ]));
+
+  const hesaplanan = (aidat + oncekiDevir) - odenen - fazla;
+  return Math.max(0, Math.round(hesaplanan * 100) / 100);
+}
+
 async function berberRandevuOdemeKontrol(telefon){
   if(!ODEME_ENGELI_AKTIF){
     return { engelVar:false };
@@ -1300,14 +1399,26 @@ async function berberRandevuOdemeKontrol(telefon){
 
     const data = snap.data() || {};
     const durum = String(data.durum || "odeme_bekliyor").trim();
+    const borcTutari = odemeBorcTutariBul(data);
 
     if(durum !== "odendi"){
       let durumText = "Ödeme Bekliyor";
       if(durum === "reddedildi") durumText = "Reddedildi";
+      if(durum === "rapor_mazeret" || durum === "mazeret" || durum === "borc_yok") durumText = "Borç Yok";
 
       return {
         engelVar:true,
         mesaj:`${label} dönemi ödeme durumunuz: ${durumText}.\n\nÖdenmemiş çay ocağı / aidat borcunuz bulunduğu için berber randevusu alamazsınız.\n\nÖdeme yaptıktan sonra yönetime bildiriniz.`
+      };
+    }
+
+    // Eskiden sadece durum alanı "odendi" ise randevuya izin veriliyordu.
+    // Kişinin 400 TL aidata karşılık 300 TL ödeme yapması gibi durumlarda durum "odendi" kalıp
+    // güncel borç 100 TL görünebildiği için, artık borç tutarı da ayrıca kontrol edilir.
+    if(borcTutari > 0){
+      return {
+        engelVar:true,
+        mesaj:`${label} dönemi güncel borcunuz ${borcTutari.toLocaleString("tr-TR")} TL görünüyor.\n\nBorcu bulunan personel berber randevusu alamaz. Ödeme tamamlandıktan sonra yönetime bildiriniz.`
       };
     }
 
