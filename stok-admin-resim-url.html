@@ -1,0 +1,903 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Stok Admin Paneli</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root{--bg:#f5f5f7;--card:#fff;--text:#111;--muted:#6b7280;--line:#e5e7eb;--black:#111;--green:#16a34a;--red:#dc2626;--yellow:#ca8a04;--blue:#2563eb;--shadow:0 18px 55px rgba(0,0,0,.08);--radius:22px}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Arial,sans-serif}
+    a{text-decoration:none;color:inherit}
+    .topbar{position:sticky;top:0;z-index:5;background:rgba(245,245,247,.82);backdrop-filter:blur(18px);border-bottom:1px solid rgba(0,0,0,.06)}
+    .topin{max-width:1180px;margin:auto;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .brand{display:flex;flex-direction:column}
+    .brand b{font-size:20px}
+    .brand span{font-size:12px;color:var(--muted)}
+    .btn{border:0;border-radius:14px;background:#111;color:#fff;padding:11px 15px;font-weight:800;cursor:pointer;box-shadow:0 10px 25px rgba(0,0,0,.12)}
+    .btn:disabled{opacity:.45;cursor:not-allowed}
+    .btn.secondary{background:#fff;color:#111;border:1px solid var(--line);box-shadow:none}
+    .btn.blue{background:var(--blue)}
+    .btn.red{background:var(--red)}
+    .wrap{max-width:1180px;margin:22px auto;padding:0 18px 45px}
+    .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
+    .card{background:var(--card);border:1px solid rgba(0,0,0,.06);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
+    .card h2{margin:0 0 8px;font-size:22px}
+    .muted{color:var(--muted);font-size:14px;line-height:1.45}
+    .drop{margin-top:14px;border:2px dashed #d1d5db;border-radius:22px;padding:24px;text-align:center;background:#fafafa}
+    .drop input{display:none}
+    .fileLabel{display:inline-block;margin-top:12px;background:#111;color:#fff;border-radius:14px;padding:12px 16px;font-weight:900;cursor:pointer}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}
+    .stat{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px}
+    .stat b{display:block;font-size:22px}
+    .stat span{font-size:12px;color:var(--muted)}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .input,select{border:1px solid var(--line);background:#fff;border-radius:14px;padding:12px 13px;font:inherit;outline:none}
+    .input{min-width:230px;flex:1}
+    .tableWrap{overflow:auto;border:1px solid var(--line);border-radius:18px;background:#fff}
+    .table{width:100%;border-collapse:collapse;min-width:900px}
+    .table th,.table td{padding:12px;border-bottom:1px solid #f0f0f0;text-align:left;font-size:13px;vertical-align:middle}
+    .table th{position:sticky;top:0;background:#fafafa;font-size:12px;color:#374151}
+    .pill{display:inline-flex;align-items:center;border-radius:999px;padding:6px 9px;font-size:12px;font-weight:900}
+    .ok{background:#dcfce7;color:#166534}
+    .az{background:#fef3c7;color:#92400e}
+    .yok{background:#fee2e2;color:#991b1b}
+    .log{white-space:pre-wrap;background:#0b1220;color:#d1fae5;border-radius:18px;padding:14px;min-height:120px;font-size:12px;overflow:auto}
+    .small{font-size:12px;color:var(--muted)}
+
+    .imageUrlInput{min-width:360px;width:100%}
+    .previewImg{width:58px;height:58px;object-fit:contain;background:#f9fafb;border:1px solid var(--line);border-radius:14px;display:block}
+    .imgPlaceholder{width:58px;height:58px;border:1px dashed #d1d5db;border-radius:14px;display:flex;align-items:center;justify-content:center;background:#fafafa;color:#9ca3af;font-size:24px}
+    .urlActions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .urlActions .btn{padding:9px 11px;border-radius:12px;font-size:12px;box-shadow:none}
+    .productName{min-width:210px}
+    .nowrap{white-space:nowrap}
+    @media(max-width:850px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.topin{align-items:flex-start}.topin .row{justify-content:flex-end}.btn{padding:10px 12px}.card{padding:16px}}
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topin">
+      <div class="brand">
+        <b>Stok Admin Paneli</b>
+        <span>CSV / Excel yükle, kontrol et, Firebase’e aktar</span>
+      </div>
+      <div class="row">
+        <a class="btn secondary" href="stok.html">Müşteri Sayfası</a>
+        <button class="btn red" id="logoutBtn">Çıkış</button>
+      </div>
+    </div>
+  </div>
+
+  <main class="wrap">
+    <section class="grid">
+      <div class="card">
+        <h2>Dosya Yükle</h2>
+        <p class="muted">Depo programından aldığın <b>CSV, XLS veya XLSX</b> dosyasını buraya yükle. Excel’de <b>Görsel</b> veya <b>Görsel URL</b> sütunu varsa Drive linki otomatik dönüştürülür.</p>
+
+        <div class="drop" id="drop">
+          <div style="font-size:42px">📦</div>
+          <b>Dosyayı buraya sürükle veya seç</b><br>
+          <label class="fileLabel">
+            <input id="fileInput" type="file" accept=".csv,.xls,.xlsx"/>
+            Dosya Seç
+          </label>
+          <p class="small" id="fileName">Henüz dosya seçilmedi.</p>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><b id="sTotal">0</b><span>Ürün</span></div>
+          <div class="stat"><b id="sOk">0</b><span>Stokta</span></div>
+          <div class="stat"><b id="sLow">0</b><span>Az Stok</span></div>
+          <div class="stat"><b id="sOut">0</b><span>Tükendi</span></div>
+        </div>
+
+        <div class="row">
+          <input id="search" class="input" placeholder="Ürün ara..."/>
+          <select id="catFilter"><option value="">Tüm kategoriler</option></select>
+          <button id="uploadBtn" class="btn blue" disabled>Firebase’e Aktar</button>
+          <button id="clearBtn" class="btn secondary">Temizle</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Admin Girişi</h2>
+        <p class="muted">Bu sayfa müşteriye açık olmamalı. Giriş yapan kullanıcının UID bilgisi Firestore <b>admins</b> koleksiyonunda varsa aktarım aktif olur.</p>
+
+        <div id="loginBox">
+          <input id="email" class="input" placeholder="E-posta" style="width:100%;margin-bottom:10px">
+          <input id="pass" class="input" type="password" placeholder="Şifre" style="width:100%;margin-bottom:10px">
+          <button id="loginBtn" class="btn" style="width:100%">Giriş Yap</button>
+        </div>
+
+        <div id="userBox" style="display:none">
+          <p class="muted">Giriş yapıldı: <b id="userMail"></b></p>
+          <p class="muted">Yetki durumu: <b id="adminStatus">Kontrol ediliyor...</b></p>
+        </div>
+
+        <h2 style="margin-top:22px">İşlem Kaydı</h2>
+        <div class="log" id="log">Hazır.</div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:18px">
+      <h2>Önizleme</h2>
+      <div class="tableWrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Ürün</th>
+              <th>Kategori</th>
+              <th>Barkod</th>
+              <th>Miktar</th>
+              <th>Alış</th>
+              <th>Satış</th>
+              <th>Durum</th>
+              <th>Görsel URL</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr><td colspan="8" class="muted">Dosya yükleyince ürünler burada görünecek.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+
+    <section class="card" style="margin-top:18px">
+      <h2>Ürün Resim URL Yönetimi</h2>
+      <p class="muted">Excel’e resim URL yazmadan, Firestore’daki mevcut ürünlere buradan tek tek görsel linki ekleyebilirsin. Google Drive linki yapıştırırsan sistem otomatik görüntülenebilir hale çevirmeye çalışır.</p>
+
+      <div class="row" style="margin-top:14px;margin-bottom:14px">
+        <input id="imgSearch" class="input" placeholder="Ürün adı veya barkod ara..."/>
+        <button id="loadImgProductsBtn" class="btn blue">Ürünleri Getir</button>
+        <button id="onlyMissingImagesBtn" class="btn secondary">Sadece Resimsiz</button>
+        <span id="imageUrlInfo" class="small">Henüz ürün listesi alınmadı.</span>
+      </div>
+
+      <div class="tableWrap">
+        <table class="table" style="min-width:1120px">
+          <thead>
+            <tr>
+              <th>Önizleme</th>
+              <th>Ürün</th>
+              <th>Kategori</th>
+              <th>Barkod</th>
+              <th>Resim URL</th>
+              <th>İşlem</th>
+            </tr>
+          </thead>
+          <tbody id="imageUrlTbody">
+            <tr><td colspan="6" class="muted">Admin girişi yaptıktan sonra “Ürünleri Getir” butonuna bas.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      doc,
+      getDoc,
+      getDocs,
+      updateDoc,
+      writeBatch,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",
+      authDomain: "berber-randevu-14f7f.firebaseapp.com",
+      projectId: "berber-randevu-14f7f",
+      storageBucket: "berber-randevu-14f7f.firebasestorage.app",
+      messagingSenderId: "280530860977",
+      appId: "1:280530860977:web:52c0df04c228896f211b90"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let products = [];
+    let stockImageItems = [];
+    let onlyMissingImages = false;
+    let currentUser = null;
+    let isAdmin = false;
+
+    /*
+      GÖRSEL KORUMA AYARI
+      false = Excel yüklerken mevcut Firestore görsellerini ezmez.
+      Böylece tabloya yeni satır/ürün eklenince görsel sırası kaysa bile eski ürünlerin görselleri bozulmaz.
+      Yeni ürünlerde mevcut görsel olmadığı için Excel'deki Görsel URL yine yazılır.
+      Bir ürünün görselini özellikle değiştirmek istersen bu değeri geçici olarak true yapıp tekrar aktarabilirsin.
+    */
+    const EXCEL_GORSEL_URL_MEVCUT_GORSELI_EZSIN = false;
+
+    const $ = id => document.getElementById(id);
+
+    function log(m) {
+      $("log").textContent += "\n" + m;
+      $("log").scrollTop = $("log").scrollHeight;
+    }
+
+    function norm(s) {
+      return String(s ?? "").trim();
+    }
+
+    function key(s) {
+      return norm(s)
+        .toLowerCase()
+        .replaceAll("ı", "i")
+        .replaceAll("ğ", "g")
+        .replaceAll("ü", "u")
+        .replaceAll("ş", "s")
+        .replaceAll("ö", "o")
+        .replaceAll("ç", "c");
+    }
+
+
+    function esc(s) {
+      return String(s ?? "").replace(/[&<>\"']/g, ch => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&#39;"
+      }[ch]));
+    }
+
+    function escAttr(s) {
+      return esc(s).replace(/`/g, "&#96;");
+    }
+
+    function nval(v) {
+      const x = String(v ?? "").replace(",", ".").replace(/[^0-9.-]/g, "");
+      const n = Number(x);
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function findVal(row, names) {
+      const ks = Object.keys(row);
+      for (const name of names) {
+        const f = ks.find(k => key(k).includes(key(name)));
+        if (f) return row[f];
+      }
+      return "";
+    }
+
+    function fixDriveUrl(url) {
+      url = String(url || "").trim();
+      if (!url) return "";
+
+      let match = url.match(/\/file\/d\/([^/]+)/);
+      if (match && match[1]) {
+        return "https://drive.google.com/thumbnail?id=" + match[1] + "&sz=w800";
+      }
+
+      match = url.match(/[?&]id=([^&]+)/);
+      if (match && match[1] && url.includes("drive.google.com")) {
+        return "https://drive.google.com/thumbnail?id=" + match[1] + "&sz=w800";
+      }
+
+      return url;
+    }
+
+    function slugify(s) {
+      return key(s)
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "")
+        .slice(0, 120) || crypto.randomUUID();
+    }
+
+    function status(q) {
+      if (q <= 0) return ["yok", "TÜKENDİ"];
+      if (q <= 5) return ["az", "AZ KALDI"];
+      return ["ok", "STOKTA VAR"];
+    }
+
+    async function mevcutGorselHaritasiGetir() {
+      const map = new Map();
+
+      try {
+        const snap = await getDocs(collection(db, "stok_urunleri"));
+
+        snap.docs.forEach(d => {
+          const data = d.data() || {};
+          const img = String(data.gorselUrl || "").trim();
+
+          if (!img) return;
+
+          map.set("id:" + d.id, img);
+
+          if (data.barkod) {
+            map.set("barkod:" + key(data.barkod), img);
+          }
+
+          if (data.ad) {
+            map.set("ad:" + key(data.ad), img);
+          }
+        });
+
+        log("Mevcut görseller korumaya alındı: " + map.size + " eşleşme");
+      } catch (e) {
+        log("Mevcut görseller okunamadı. Aktarım yine devam eder: " + e.message);
+      }
+
+      return map;
+    }
+
+    function guvenliGorselUrl(p, mevcutMap) {
+      const excelImg = String(p.gorselUrl || "").trim();
+
+      if (EXCEL_GORSEL_URL_MEVCUT_GORSELI_EZSIN && excelImg) {
+        return excelImg;
+      }
+
+      const onceki =
+        mevcutMap.get("id:" + p.id) ||
+        (p.barkod ? mevcutMap.get("barkod:" + key(p.barkod)) : "") ||
+        mevcutMap.get("ad:" + key(p.ad)) ||
+        "";
+
+      return onceki || excelImg || "";
+    }
+
+    async function checkAdminByUid(user) {
+      isAdmin = false;
+
+      if (!user) {
+        $("adminStatus").textContent = "";
+        render();
+        return;
+      }
+
+      try {
+        const adminRef = doc(db, "admins", user.uid);
+        const adminSnap = await getDoc(adminRef);
+
+        const adminData = adminSnap.exists() ? (adminSnap.data() || {}) : {};
+        const aktifDeger = adminData.aktif;
+        const adminAktif = aktifDeger === true || aktifDeger === "true" || aktifDeger === "evet" || aktifDeger === 1 || aktifDeger === "1";
+
+        if (adminSnap.exists() && adminAktif) {
+          isAdmin = true;
+          $("adminStatus").textContent = "Yetkili admin";
+          log("Admin yetkisi onaylandı: admins/" + user.uid);
+        } else {
+          isAdmin = false;
+          $("adminStatus").textContent = "Yetki yok";
+          log("Admin yetkisi bulunamadı veya aktif değil: admins/" + user.uid);
+          log("Çözüm: Firestore > admins koleksiyonunda belge ID şu UID olmalı: " + user.uid);
+          log("Bu belgenin içinde aktif alanı boolean true olmalı. String yazdıysan bu dosya onu da kabul eder ama Firestore Rules yine boolean true isteyebilir.");
+          alert("Bu kullanıcı Firestore admins koleksiyonunda aktif admin değil. UID işlem kaydına yazıldı.");
+        }
+      } catch (e) {
+        isAdmin = false;
+        $("adminStatus").textContent = "Yetki kontrol hatası";
+        log("Admin kontrol hatası: " + e.message);
+        alert("Admin yetkisi kontrol edilemedi: " + e.message);
+      }
+
+      render();
+    }
+
+    function mapRows(rows) {
+      return rows.map(r => {
+        const name = norm(findVal(r, [
+          "Ürün Adı",
+          "Urun Adi",
+          "Malzeme",
+          "Stok Adı",
+          "Adı",
+          "Adi",
+          "Ürün",
+          "Urun",
+          "Tovar"
+        ]));
+
+        if (!name) return null;
+
+        const qty = nval(findVal(r, [
+          "Miktar",
+          "Adet",
+          "Stok",
+          "Kalan",
+          "Qty",
+          "Sayı"
+        ]));
+
+        const cat = norm(findVal(r, [
+          "Grup",
+          "Kategori",
+          "Category",
+          "Malzeme Grubu"
+        ])) || "Genel";
+
+        const barkod = norm(findVal(r, [
+          "Barkod",
+          "Barcode",
+          "Kod"
+        ]));
+
+        const rawImage = norm(findVal(r, [
+          "Görsel",
+          "Gorsel",
+          "Görsel URL",
+          "Gorsel URL",
+          "Görsel Link",
+          "Gorsel Link",
+          "Resim",
+          "Resim URL",
+          "Resim Link",
+          "Image",
+          "Image URL",
+          "Foto",
+          "Foto URL",
+          "Fotoğraf",
+          "Fotograf",
+          "Fotoğraf URL",
+          "Fotograf URL"
+        ]));
+
+        return {
+          id: slugify(name + "-" + barkod),
+          ad: name,
+          kategori: cat,
+          barkod: barkod,
+          miktar: qty,
+          alisFiyat: nval(findVal(r, [
+            "Alış",
+            "Alis",
+            "Alış Fiyatı",
+            "Maya",
+            "Maliyet"
+          ])),
+          satisFiyat: nval(findVal(r, [
+            "Satış",
+            "Satis",
+            "Satış Fiyatı",
+            "Qiymet"
+          ])),
+          gorselUrl: fixDriveUrl(rawImage),
+          aktif: true,
+          updatedAt: null
+        };
+      }).filter(Boolean);
+    }
+
+    function render() {
+      const q = key($("search").value);
+      const c = $("catFilter").value;
+
+      const cats = [...new Set(products.map(p => p.kategori).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, "tr"));
+
+      $("catFilter").innerHTML =
+        '<option value="">Tüm kategoriler</option>' +
+        cats.map(x => `<option ${x === c ? "selected" : ""}>${x}</option>`).join("");
+
+      const filtered = products.filter(p =>
+        (!q || key(p.ad).includes(q) || key(p.barkod).includes(q)) &&
+        (!c || p.kategori === c)
+      );
+
+      let ok = 0, low = 0, out = 0;
+
+      products.forEach(p => {
+        if (p.miktar <= 0) out++;
+        else if (p.miktar <= 5) low++;
+        else ok++;
+      });
+
+      $("sTotal").textContent = products.length;
+      $("sOk").textContent = ok;
+      $("sLow").textContent = low;
+      $("sOut").textContent = out;
+
+      $("uploadBtn").disabled = !products.length || !currentUser || !isAdmin;
+
+      $("tbody").innerHTML = filtered.length
+        ? filtered.slice(0, 500).map(p => {
+            const st = status(p.miktar);
+            return `
+              <tr>
+                <td><b>${p.ad}</b></td>
+                <td>${p.kategori}</td>
+                <td>${p.barkod || "-"}</td>
+                <td>${p.miktar}</td>
+                <td>${p.alisFiyat || "-"}</td>
+                <td>${p.satisFiyat || "-"}</td>
+                <td><span class="pill ${st[0]}">${st[1]}</span></td>
+                <td>${p.gorselUrl ? '<span class="small">Var</span>' : "-"}</td>
+              </tr>
+            `;
+          }).join("")
+        : `<tr><td colspan="8" class="muted">Sonuç bulunamadı.</td></tr>`;
+    }
+
+
+    function renderImageUrlTable() {
+      const tbody = $("imageUrlTbody");
+      if (!tbody) return;
+
+      const q = key($("imgSearch")?.value || "");
+      let list = stockImageItems.filter(p => {
+        const hasImage = String(p.gorselUrl || "").trim();
+        const matches = !q || key(p.ad).includes(q) || key(p.barkod).includes(q) || key(p.kategori).includes(q);
+        return matches && (!onlyMissingImages || !hasImage);
+      });
+
+      const missing = stockImageItems.filter(p => !String(p.gorselUrl || "").trim()).length;
+      $("imageUrlInfo").textContent = stockImageItems.length
+        ? `Toplam ${stockImageItems.length} aktif ürün / Resimsiz ${missing} ürün`
+        : "Henüz ürün listesi alınmadı.";
+
+      if (!list.length) {
+        tbody.innerHTML = `<tr><td colspan="6" class="muted">Sonuç bulunamadı.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.slice(0, 700).map(p => {
+        const url = String(p.gorselUrl || "").trim();
+        const preview = url
+          ? `<img class="previewImg" src="${escAttr(url)}" alt="Ürün görseli" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+             <div class="imgPlaceholder" style="display:none">🖼️</div>`
+          : `<img class="previewImg" alt="Ürün görseli" style="display:none">
+             <div class="imgPlaceholder">🖼️</div>`;
+
+        const openBtn = url
+          ? `<a class="btn secondary" href="${escAttr(url)}" target="_blank" rel="noopener">Aç</a>`
+          : `<button class="btn secondary" disabled>Aç</button>`;
+
+        return `
+          <tr data-doc-id="${escAttr(p.docId)}">
+            <td>${preview}</td>
+            <td class="productName"><b>${esc(p.ad || "-")}</b></td>
+            <td>${esc(p.kategori || "-")}</td>
+            <td class="nowrap">${esc(p.barkod || "-")}</td>
+            <td>
+              <input class="input imageUrlInput" value="${escAttr(url)}" placeholder="https://... ürün fotoğraf linki">
+            </td>
+            <td>
+              <div class="urlActions">
+                <button class="btn blue previewImageUrlBtn" type="button">Önizle</button>
+                <button class="btn saveImageUrlBtn" type="button">Kaydet</button>
+                ${openBtn}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    async function gorselUrunleriniYukle() {
+      if (!currentUser || !isAdmin) {
+        alert("Ürün resim URL yönetimi için admin girişi gerekli.");
+        return;
+      }
+
+      $("imageUrlTbody").innerHTML = `<tr><td colspan="6" class="muted">Ürünler yükleniyor...</td></tr>`;
+
+      try {
+        const snap = await getDocs(collection(db, "stok_urunleri"));
+        stockImageItems = snap.docs.map(d => {
+          const data = d.data() || {};
+          return {
+            docId: d.id,
+            ad: data.ad || "",
+            kategori: data.kategori || "Genel",
+            barkod: data.barkod || "",
+            miktar: data.miktar ?? 0,
+            aktif: data.aktif,
+            gorselUrl: String(data.gorselUrl || "").trim()
+          };
+        })
+        .filter(p => p.aktif !== false)
+        .sort((a, b) => String(a.ad || "").localeCompare(String(b.ad || ""), "tr"));
+
+        log("Resim URL yönetimi için aktif ürün alındı: " + stockImageItems.length);
+        renderImageUrlTable();
+      } catch (e) {
+        console.error(e);
+        $("imageUrlTbody").innerHTML = `<tr><td colspan="6" class="muted">Ürünler alınamadı: ${esc(e.message)}</td></tr>`;
+        log("Resim URL ürün listesi alınamadı: " + e.message);
+      }
+    }
+
+    function onizleGorselUrl(btn) {
+      const tr = btn.closest("tr");
+      const input = tr.querySelector(".imageUrlInput");
+      const img = tr.querySelector(".previewImg");
+      const placeholder = tr.querySelector(".imgPlaceholder");
+      const url = fixDriveUrl(input.value);
+
+      input.value = url;
+
+      if (!url) {
+        img.removeAttribute("src");
+        img.style.display = "none";
+        placeholder.style.display = "flex";
+        return;
+      }
+
+      img.src = url;
+      img.style.display = "block";
+      placeholder.style.display = "none";
+    }
+
+    async function kaydetGorselUrl(btn) {
+      if (!currentUser || !isAdmin) {
+        alert("Kaydetmek için admin girişi gerekli.");
+        return;
+      }
+
+      const tr = btn.closest("tr");
+      const docId = tr.dataset.docId;
+      const input = tr.querySelector(".imageUrlInput");
+      const url = fixDriveUrl(input.value);
+
+      btn.disabled = true;
+      btn.textContent = "Kaydediliyor...";
+
+      try {
+        await updateDoc(doc(db, "stok_urunleri", docId), {
+          gorselUrl: url,
+          updatedAt: serverTimestamp(),
+          updatedByUid: currentUser.uid,
+          updatedByEmail: currentUser.email || ""
+        });
+
+        const item = stockImageItems.find(x => x.docId === docId);
+        if (item) item.gorselUrl = url;
+
+        input.value = url;
+        onizleGorselUrl(btn);
+        log("Görsel URL kaydedildi: " + (item?.ad || docId));
+        renderImageUrlTable();
+      } catch (e) {
+        console.error(e);
+        alert("Görsel URL kaydedilemedi: " + e.message);
+        log("Görsel URL kayıt hatası: " + e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Kaydet";
+      }
+    }
+
+    async function readFile(file) {
+      $("fileName").textContent = file.name;
+
+      const data = await file.arrayBuffer();
+      const wb = XLSX.read(data, { type: "array" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { defval: "" });
+
+      products = mapRows(rows);
+
+      const imageCount = products.filter(p => p.gorselUrl).length;
+
+      log(`Dosya okundu: ${file.name} / ${products.length} ürün`);
+      log(`Görsel URL bulunan ürün: ${imageCount}`);
+
+      render();
+    }
+
+    $("fileInput").addEventListener("change", e => {
+      if (e.target.files[0]) readFile(e.target.files[0]);
+    });
+
+    ["dragover", "drop"].forEach(ev => {
+      $("drop").addEventListener(ev, e => {
+        e.preventDefault();
+        if (ev === "drop" && e.dataTransfer.files[0]) {
+          readFile(e.dataTransfer.files[0]);
+        }
+      });
+    });
+
+    $("search").oninput = render;
+    $("catFilter").onchange = render;
+
+    $("imgSearch").oninput = renderImageUrlTable;
+    $("loadImgProductsBtn").onclick = gorselUrunleriniYukle;
+    $("onlyMissingImagesBtn").onclick = () => {
+      onlyMissingImages = !onlyMissingImages;
+      $("onlyMissingImagesBtn").textContent = onlyMissingImages ? "Tümünü Göster" : "Sadece Resimsiz";
+      renderImageUrlTable();
+    };
+
+    $("imageUrlTbody").addEventListener("click", e => {
+      const previewBtn = e.target.closest(".previewImageUrlBtn");
+      if (previewBtn) {
+        onizleGorselUrl(previewBtn);
+        return;
+      }
+
+      const saveBtn = e.target.closest(".saveImageUrlBtn");
+      if (saveBtn) {
+        kaydetGorselUrl(saveBtn);
+      }
+    });
+
+    $("clearBtn").onclick = () => {
+      products = [];
+      render();
+      log("Liste temizlendi.");
+    };
+
+    $("loginBtn").onclick = async () => {
+      try {
+        await signInWithEmailAndPassword(
+          auth,
+          $("email").value.trim(),
+          $("pass").value
+        );
+        log("Giriş başarılı.");
+      } catch (e) {
+        alert("Giriş başarısız: " + e.message);
+      }
+    };
+
+    $("logoutBtn").onclick = () => signOut(auth);
+
+    onAuthStateChanged(auth, async user => {
+      currentUser = user;
+      isAdmin = false;
+
+      $("loginBox").style.display = user ? "none" : "block";
+      $("userBox").style.display = user ? "block" : "none";
+      $("userMail").textContent = user?.email || "";
+
+      if (user) {
+        $("adminStatus").textContent = "Kontrol ediliyor...";
+        render();
+        await checkAdminByUid(user);
+      } else {
+        $("adminStatus").textContent = "";
+        stockImageItems = [];
+        $("imageUrlInfo").textContent = "Henüz ürün listesi alınmadı.";
+        $("imageUrlTbody").innerHTML = `<tr><td colspan="6" class="muted">Admin girişi yaptıktan sonra “Ürünleri Getir” butonuna bas.</td></tr>`;
+        render();
+      }
+    });
+
+    function yeniYuklemeId(){
+      return "stok_" + Date.now() + "_" + Math.random().toString(36).slice(2,8);
+    }
+
+    $("uploadBtn").onclick = async () => {
+      if (!currentUser || !isAdmin) {
+        alert("Admin girişi gerekli.");
+        return;
+      }
+
+      if (!products.length) return;
+
+      if (!confirm(products.length + " ürün Firebase stok_urunleri koleksiyonuna aktarılacak. Devam?")) {
+        return;
+      }
+
+      try {
+        const yuklemeId = yeniYuklemeId();
+        log("Yeni aktif liste ID: " + yuklemeId);
+
+        const mevcutGorseller = await mevcutGorselHaritasiGetir();
+
+        // ÖNEMLİ: Excel dosyasında olmayan eski ürünler Firestore'da kalmasın diye
+        // önce stok_urunleri koleksiyonundaki tüm ürünleri pasif yapıyoruz.
+        // Sonra yüklenen Excel ürünlerini aktif:true olarak tekrar yazıyoruz.
+        // stok.html aktif:false olan ürünleri göstermez.
+        log("Mevcut stok kayıtları pasife alınıyor...");
+        const eskiSnap = await getDocs(collection(db, "stok_urunleri"));
+        let pasifBatch = writeBatch(db);
+        let pasifCount = 0;
+        let pasifTotal = 0;
+
+        for (const eskiDoc of eskiSnap.docs) {
+          pasifBatch.set(
+            doc(db, "stok_urunleri", eskiDoc.id),
+            {
+              aktif: false,
+              pasifAt: serverTimestamp(),
+              pasifByUid: currentUser.uid,
+              pasifByEmail: currentUser.email || ""
+            },
+            { merge: true }
+          );
+
+          pasifCount++;
+          pasifTotal++;
+
+          if (pasifCount === 450) {
+            await pasifBatch.commit();
+            pasifBatch = writeBatch(db);
+            pasifCount = 0;
+            log(pasifTotal + " eski kayıt pasife alındı...");
+          }
+        }
+
+        if (pasifCount) await pasifBatch.commit();
+        log("Pasife alınan eski kayıt: " + pasifTotal);
+
+        let batch = writeBatch(db);
+        let count = 0;
+        let total = 0;
+
+        for (const p of products) {
+          const korunmusGorselUrl = guvenliGorselUrl(p, mevcutGorseller);
+
+          batch.set(
+            doc(collection(db, "stok_urunleri"), p.id),
+            {
+              ...p,
+              aktif: true,
+              listeId: yuklemeId,
+              gorselUrl: korunmusGorselUrl,
+              updatedAt: serverTimestamp(),
+              updatedByUid: currentUser.uid,
+              updatedByEmail: currentUser.email || ""
+            },
+            { merge: true }
+          );
+
+          count++;
+          total++;
+
+          if (count === 450) {
+            await batch.commit();
+            batch = writeBatch(db);
+            count = 0;
+            log(total + " ürün aktif olarak aktarıldı...");
+          }
+        }
+
+        if (count) await batch.commit();
+
+        try {
+          const metaBatch = writeBatch(db);
+          metaBatch.set(
+            doc(db, "stok_meta", "aktif_liste"),
+            {
+              listeId: yuklemeId,
+              aktifUrunSayisi: total,
+              updatedAt: serverTimestamp(),
+              updatedByUid: currentUser.uid,
+              updatedByEmail: currentUser.email || ""
+            },
+            { merge: true }
+          );
+          await metaBatch.commit();
+          log("Aktif liste bilgisi yazıldı: stok_meta/aktif_liste");
+        } catch(metaErr) {
+          log("UYARI: stok_meta/aktif_liste yazılamadı. Aktif:false sistemi yine çalışır. Hata: " + metaErr.message);
+        }
+
+        log("Tamamlandı. Excel'den aktif aktarılan ürün: " + total);
+        log("Firestore koleksiyonu: stok_urunleri");
+        log("Not: Excel'de olmayan eski ürünler pasif yapıldı. stok.html onları göstermez.");
+        if (stockImageItems.length) {
+          await gorselUrunleriniYukle();
+        }
+        alert("Stok aktarımı tamamlandı. Aktif ürün: " + total + " / Pasife alınan eski kayıt: " + pasifTotal);
+      } catch (e) {
+        console.error(e);
+        alert("Aktarım hatası: " + e.message);
+        log("HATA: " + e.message);
+      }
+    };
+
+    render();
+  </script>
+</body>
+</html>
