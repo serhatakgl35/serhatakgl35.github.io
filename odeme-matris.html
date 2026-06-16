@@ -111,7 +111,7 @@ td:first-child{position:sticky;left:0;z-index:3;background:#fff!important;text-a
   <div class="card">
     <h1>Çay Ocağı Ödeme Matrisi</h1>
     <p>
-      Masaüstünde tablo, mobilde kart görünümü kullanılır. Karttaki aya veya tablodaki hücreye basınca düzenleme penceresi açılır.
+      Masaüstünde tablo, mobilde kart görünümü kullanılır. Hesaplama ödeme kayıtlarına göre yapılır; personel kartında şişmiş eski bakiye varsa tekrar borca eklenmez.
     </p>
 
     <div class="grid">
@@ -412,7 +412,14 @@ function baslangicNeti(p){
   const oncekiAy=aylar.length?addMonthsKey(aylar[0],-1):"";
   const oncekiKayit=oncekiAy?odemeMap[odemeDocKey(p.tel,oncekiAy)]:null;
   const oncekiNet=kayitNetDegeri(oncekiKayit);
-  return oncekiNet!==null?oncekiNet:getBakiye(p);
+
+  // ÖNEMLİ DÜZELTME:
+  // Matris sayfasında personel belgesindeki genel bakiye başlangıç deviri olarak kullanılmıyor.
+  // Çünkü yanlış içe aktarma/silme sonrası personel.bakiye alanı şişmişse, seçili dönemler
+  // tekrar hesaplanırken aynı borç ikinci kez ekleniyordu. Bu yüzden admin sayfası 400 TL borç
+  // gösterirken matris 1.200 TL borç gösterebiliyordu.
+  // Önceki dönem ödeme kaydı varsa onun dönem sonu neti alınır; yoksa başlangıç 0 kabul edilir.
+  return oncekiNet!==null?oncekiNet:0;
 }
 
 function satirVerisiOlustur(p){
