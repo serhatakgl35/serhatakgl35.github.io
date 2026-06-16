@@ -40,6 +40,16 @@ td:first-child{position:sticky;left:0;z-index:3;background:#fff!important;text-a
 .small{display:block;font-size:11px;opacity:.85;margin-top:3px}
 .loading{padding:30px;text-align:center;color:var(--muted);font-weight:900}
 .msg{margin-top:10px;font-weight:900;color:#166534}
+.aidatPanel{display:none;margin-top:14px;background:#f8fafc;border:1px solid var(--line);border-radius:20px;padding:14px}
+.aidatPanel.show{display:block}
+.aidatTitle{font-weight:1000;margin-bottom:10px}
+.aidatGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.aidatItem{background:white;border:1px solid var(--line);border-radius:16px;padding:12px}
+.aidatItem .ay{font-weight:1000;margin-bottom:7px}
+.aidatRow{display:flex;gap:8px;align-items:center}
+.aidatRow input{margin:0;padding:10px;border-radius:12px}
+.aidatRow button{border:0;border-radius:12px;padding:10px 12px;background:#2563eb;color:white;font-weight:950;cursor:pointer;white-space:nowrap}
+.aidatHelp{font-size:12px;color:var(--muted);font-weight:800;margin-top:8px;line-height:1.35}
 
 /* MOBİL KART GÖRÜNÜMÜ */
 .mobileList{display:none}
@@ -119,6 +129,12 @@ td:first-child{position:sticky;left:0;z-index:3;background:#fff!important;text-a
       </div>
       <div><button class="main" onclick="verileriYukle()">Listeyi Yükle</button></div>
       <div><button class="main green" onclick="csvIndir()">CSV İndir</button></div>
+    </div>
+
+    <div id="aidatPanel" class="aidatPanel">
+      <div class="aidatTitle">Dönem Aidat Bilgisi</div>
+      <div id="aidatGrid" class="aidatGrid"></div>
+      <div class="aidatHelp">Bu sayfa aidat bilgisini <b>cay_ayarlar</b> kaydından okur. Bu ay 400 TL ise buradan da kaydedebilirsin; kaydedince tablo yeniden hesaplanır.</div>
     </div>
 
     <div id="msg" class="msg"></div>
@@ -328,6 +344,55 @@ async function ayarlariYukle(){
   }
 }
 
+
+function aidatPanelCiz(){
+  const panel=$("aidatPanel");
+  const grid=$("aidatGrid");
+  if(!panel||!grid)return;
+  if(!aylar.length){panel.classList.remove("show");grid.innerHTML="";return;}
+
+  grid.innerHTML=aylar.map(ay=>`
+    <div class="aidatItem">
+      <div class="ay">${ayAdi(ay)} ${ay}</div>
+      <div class="aidatRow">
+        <input id="aidat_${ay}" type="number" min="0" value="${Number(ayarlarMap[ay]||VARSAYILAN_AIDAT)}">
+        <button onclick="aidatKaydet('${ay}')">Kaydet</button>
+      </div>
+    </div>
+  `).join("");
+  panel.classList.add("show");
+}
+
+window.aidatKaydet=async function(ay){
+  try{
+    const input=$("aidat_"+ay);
+    const tutar=Number(input?.value||0);
+    if(!Number.isFinite(tutar)||tutar<=0){alert("Geçerli dönem aidatı gir.");return;}
+
+    await setDoc(doc(db,AYAR_COLLECTION,ay),{
+      aylikTutar:tutar,
+      donem:ay,
+      donemEtiketi:donemLabel(ay),
+      updatedAt:serverTimestamp()
+    },{merge:true});
+
+    ayarlarMap[ay]=tutar;
+    aidatPanelCiz();
+    if(aylar.length){
+      tabloCiz();
+      for(const p of personeller){
+        await kisiBakiyeZinciriGuncelle(p.tel,ay);
+      }
+      await odemeleriYukle();
+      tabloCiz();
+    }
+    $("msg").textContent=ayAdi(ay)+" dönemi aidatı "+para(tutar)+" olarak kaydedildi ve tablo yeniden hesaplandı.";
+  }catch(err){
+    console.error(err);
+    alert("Aidat kaydedilemedi: "+err.message);
+  }
+};
+
 async function odemeleriYukle(){
   odemeMap={};
   const yuklenecekAylar=[...new Set([addMonthsKey(aylar[0],-1),...aylar])];
@@ -463,7 +528,7 @@ function tabloCiz(){
   let toplamPersonel=0,borclu=0,fazla=0,tamam=0,toplamBeklenen=0,toplamOdenen=0,toplamGenelNet=0,toplamBorcTutar=0,toplamFazlaTutar=0;
   sonSatirlar=[];
 
-  let thead=`<thead><tr><th>Personel</th>${aylar.map(a=>`<th>${ayAdi(a)}<br><span class="small">${a}</span></th>`).join("")}<th>Genel Bakiye</th></tr></thead>`;
+  let thead=`<thead><tr><th>Personel</th>${aylar.map(a=>`<th>${ayAdi(a)}<br><span class="small">${a}</span><span class="small">Aidat: ${para(ayarlarMap[a]||VARSAYILAN_AIDAT)}</span></th>`).join("")}<th>Genel Bakiye</th></tr></thead>`;
   let tbody="<tbody>";
   let mobileHtml="";
 
@@ -501,6 +566,7 @@ function tabloCiz(){
           <td>
             <span class="cell ${durumClass(c.durum,c.net)}" onclick="modalAc('${p.tel}','${esc(p.ad).replaceAll("'","\\'")}','${c.ay}')">
               ${esc(c.text)}
+              <span class="small">Aidat: ${para(c.aidat)}</span>
               <span class="small">${c.tutar?"Tutar: "+para(c.tutar):"Tutar yok"}</span>
               <span class="small">${c.net<0?para(Math.abs(c.net))+" borç":c.net>0?para(c.net)+" fazla":"tamam"}</span>
             </span>
@@ -524,7 +590,7 @@ function tabloCiz(){
             <div class="monthRow" onclick="modalAc('${p.tel}','${esc(p.ad).replaceAll("'","\\'")}','${c.ay}')">
               <div>
                 <div class="monthTitle">${ayAdi(c.ay)} <span class="small">${c.ay}</span></div>
-                <div class="monthDetail">Ödenen: ${para(c.odenen)} · Sonuç: ${bakiyeText(c.sonrakiBakiye)}</div>
+                <div class="monthDetail">Aidat: ${para(c.aidat)} · Ödenen: ${para(c.odenen)} · Sonuç: ${bakiyeText(c.sonrakiBakiye)}</div>
               </div>
               <div class="monthStatus ${durumClass(c.durum,c.sonrakiBakiye)}">${esc(c.text)}</div>
             </div>
@@ -566,6 +632,7 @@ window.verileriYukle=async function(){
 
     await personelleriYukle();
     await ayarlariYukle();
+    aidatPanelCiz();
     await odemeleriYukle();
 
     tabloCiz();
