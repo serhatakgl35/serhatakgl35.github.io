@@ -1036,7 +1036,7 @@ body{
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, serverTimestamp, collection, getDocs, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, getDoc, getDocFromServer, setDoc, serverTimestamp, collection, getDocs, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyBUzlpulUCX3OAg2vBjGvHKZQbkswWPxE4",
@@ -1555,6 +1555,8 @@ const BERBER_VARSAYILAN_AYAR = {
 
 let berberSayacTimer = null;
 let berberAyarTimer = null;
+let berberSunucuAyariGeldi = false;
+let berberSonKartImzasi = "";
 function berberKartEl(){
   return document.getElementById("berberKart");
 }
@@ -1610,6 +1612,18 @@ function berberKapaliMi(ayar){
 
   const tarihAraligindaKapali = Boolean(baslangicMs && bitisMs && now >= baslangicMs && now < bitisMs);
   return {kapali:tarihAraligindaKapali, bitisMs, baslangicMs, mod};
+}
+
+function berberKartImzasi(ayar, durum){
+  return JSON.stringify({
+    kapali: !!durum.kapali,
+    mod: durum.mod || "aktif",
+    baslangicMs: durum.baslangicMs || 0,
+    bitisMs: durum.bitisMs || 0,
+    baslik: ayar.baslik || "Berber Randevusu",
+    aciklama: durum.kapali ? (ayar.aciklama || "Berber randevu sistemi geçici olarak kapalıdır.") : "",
+    sayacGoster: durum.kapali && ayar.sayacGoster !== false && !!durum.bitisMs && durum.mod === "tarihAraligi"
+  });
 }
 
 function berberAktifKartCiz(ayar){
@@ -1693,6 +1707,7 @@ function berberKapaliKartCiz(ayar, durum){
 }
 
 function berberYukleniyorKartCiz(){
+  berberSonKartImzasi = "__loading__";
   const kart = berberKartEl();
   if(!kart) return;
   kart.outerHTML = `
@@ -1710,6 +1725,12 @@ function berberYukleniyorKartCiz(){
 function berberAyarUygula(data){
   const ayar = berberAyarBirlestir(data || {});
   const durum = berberKapaliMi(ayar);
+  const imza = berberKartImzasi(ayar, durum);
+
+  if(imza === berberSonKartImzasi){
+    return;
+  }
+  berberSonKartImzasi = imza;
 
   if(durum.kapali){
     berberKapaliKartCiz(ayar, durum);
@@ -1729,7 +1750,8 @@ function berberAyarUygula(data){
 
 async function berberKartKontrolEt(){
   try{
-    const snap = await getDoc(BERBER_AYAR_REF);
+    const snap = await getDocFromServer(BERBER_AYAR_REF);
+    berberSunucuAyariGeldi = true;
     berberAyarUygula(snap.exists() ? snap.data() : {});
   }catch(e){
     console.warn("Berber randevu ayarı okunamadı, yükleniyor kartı korunuyor:", e);
@@ -1738,7 +1760,15 @@ async function berberKartKontrolEt(){
 }
 
 try{
-  onSnapshot(BERBER_AYAR_REF, function(snap){
+  onSnapshot(BERBER_AYAR_REF, {includeMetadataChanges:true}, function(snap){
+    // Firestore ilk anda bazen eski yerel önbelleği gönderir. Bu da 1 saniyelik
+    // AKTİF/KAPALI titremesine sebep olur. Sunucu cevabı gelene kadar nötr
+    // "Kontrol ediliyor" kartını koruyoruz.
+    if(snap.metadata && snap.metadata.fromCache && !berberSunucuAyariGeldi){
+      berberYukleniyorKartCiz();
+      return;
+    }
+    berberSunucuAyariGeldi = true;
     berberAyarUygula(snap.exists() ? snap.data() : {});
   }, function(e){
     console.warn("Berber randevu ayarı canlı dinlenemedi:", e);
