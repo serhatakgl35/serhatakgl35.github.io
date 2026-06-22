@@ -1564,79 +1564,20 @@ window.logout = function logout(){
   location.href = "index.html";
 }
 
-/* BERBER RANDEVUSU - ADMIN PANELDEN KONTROLLÜ AÇ / KAPAT */
-const BERBER_AYAR_REF = doc(db, "site_ayarlar", "berber_randevu");
-const BERBER_VARSAYILAN_AYAR = {
-  aktif:true,
-  kapatmaBaslangic:"2026-06-25T00:00",
-  tekrarAktifTarih:"2026-07-15T00:00",
-  baslik:"Berber Randevusu",
-  aciklama:"Berber personelin yıllık izne ayrılması sebebiyle randevu alınamamaktadır.",
-  sayacGoster:true
-};
+/* BERBER RANDEVUSU 29 MAYIS 2026'DA OTOMATİK AKTİF OLUR */
+const aktifTarih = new Date("2026-05-29T00:00:00").getTime();
+const berberKart = document.getElementById("berberKart");
 
-let berberSayacTimer = null;
-function berberKartEl(){
-  return document.getElementById("berberKart");
-}
+if(new Date().getTime() >= aktifTarih){
 
-function berberEscapeHtml(v){
-  return String(v || "").replace(/[&<>'"]/g, function(ch){
-    return ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[ch];
-  });
-}
-
-function berberTarihMs(v){
-  const s = String(v || "").trim();
-  if(!s) return 0;
-  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2}))?/);
-  if(m){
-    return new Date(Number(m[1]), Number(m[2])-1, Number(m[3]), Number(m[4] || 0), Number(m[5] || 0), 0).getTime();
-  }
-  const t = new Date(s).getTime();
-  return Number.isFinite(t) ? t : 0;
-}
-
-function berberTarihMetni(v){
-  const ms = berberTarihMs(v);
-  if(!ms) return "belirlenen tarihte";
-  const d = new Date(ms);
-  return d.toLocaleDateString("tr-TR", {day:"numeric", month:"long", year:"numeric"});
-}
-
-function berberAyarBirlestir(data){
-  return { ...BERBER_VARSAYILAN_AYAR, ...(data || {}) };
-}
-
-function berberKapaliMi(ayar){
-  const now = Date.now();
-  const baslangicMs = berberTarihMs(ayar.kapatmaBaslangic || ayar.baslangicTarih || ayar.baslangic);
-  const bitisMs = berberTarihMs(ayar.tekrarAktifTarih || ayar.bitisTarih || ayar.aktifTarih || ayar.bitis);
-  const tarihAraligindaKapali = baslangicMs && bitisMs && now >= baslangicMs && now < bitisMs;
-  const manuelKapali = ayar.aktif === false || ayar.kapali === true || String(ayar.durum || "").toLowerCase() === "kapali";
-
-  // Bitiş tarihi geçmişse otomatik aktif kabul edilir. Böylece admin unutsa bile kart açılır.
-  const manuelKapaliHalaGecerli = manuelKapali && (!bitisMs || now < bitisMs);
-
-  return {
-    kapali: Boolean(tarihAraligindaKapali || manuelKapaliHalaGecerli),
-    bitisMs,
-    baslangicMs
-  };
-}
-
-function berberAktifKartCiz(ayar){
-  if(berberSayacTimer) clearInterval(berberSayacTimer);
-  const kart = berberKartEl();
-  if(!kart) return;
-  kart.outerHTML = `
-    <a class="card dark" id="berberKart" href="randevu.html">
+  berberKart.outerHTML = `
+    <a class="card dark" href="randevu.html">
       <div class="cardTop">
         <div class="badge activeBadge">AKTİF</div>
         <div class="arrow">→</div>
       </div>
 
-      <h2>${berberEscapeHtml(ayar.baslik || "Berber Randevusu")}</h2>
+      <h2>Berber Randevusu</h2>
 
       <p>
         Berber randevu sistemine giriş yapabilir,
@@ -1644,82 +1585,30 @@ function berberAktifKartCiz(ayar){
       </p>
     </a>
   `;
-}
 
-function berberKapaliKartCiz(ayar, durum){
-  const kart = berberKartEl();
-  if(!kart) return;
-  const bitisMetni = berberTarihMetni(ayar.tekrarAktifTarih || ayar.bitisTarih || ayar.aktifTarih || ayar.bitis);
-  const aciklama = berberEscapeHtml(ayar.aciklama || "Berber randevu sistemi geçici olarak kapalıdır.").replace(/\n/g, "<br>");
-  const sayacGoster = ayar.sayacGoster !== false && durum.bitisMs;
+}else{
 
-  kart.outerHTML = `
-    <div class="card dark maintenanceCard" id="berberKart">
-      <div class="cardTop">
-        <div class="badge maintenanceBadge">GEÇİCİ KAPALI</div>
-        <div class="arrow">⏳</div>
-      </div>
+  function geriSayim(){
+    const suAn = new Date().getTime();
+    const fark = aktifTarih - suAn;
 
-      <h2>${berberEscapeHtml(ayar.baslik || "Berber Randevusu")}</h2>
-
-      <p>
-        ${aciklama}
-        <br><br>
-        Platform <b>${berberEscapeHtml(bitisMetni)}</b> tarihinde tekrar aktif olacaktır.
-      </p>
-
-      ${sayacGoster ? `
-      <div class="countdownWrapper">
-        <div class="countdownTitle">PLATFORMUN TEKRAR AKTİF OLMASINA KALAN SÜRE</div>
-        <div class="countdownBox">
-          <div class="countItem"><span id="gun">0</span><small>GÜN</small></div>
-          <div class="countItem"><span id="saat">0</span><small>SAAT</small></div>
-          <div class="countItem"><span id="dakika">0</span><small>DAKİKA</small></div>
-        </div>
-      </div>` : ""}
-    </div>
-  `;
-
-  if(sayacGoster){
-    const geriSayim = function(){
-      const fark = durum.bitisMs - Date.now();
-      if(fark <= 0){
-        if(berberSayacTimer) clearInterval(berberSayacTimer);
-        berberKartKontrolEt();
-        return;
-      }
-      const gun = Math.floor(fark / (1000 * 60 * 60 * 24));
-      const saat = Math.floor((fark % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const dakika = Math.floor((fark % (1000 * 60 * 60)) / (1000 * 60));
-      const gunEl = document.getElementById("gun");
-      const saatEl = document.getElementById("saat");
-      const dakikaEl = document.getElementById("dakika");
-      if(gunEl) gunEl.innerText = gun;
-      if(saatEl) saatEl.innerText = saat;
-      if(dakikaEl) dakikaEl.innerText = dakika;
-    };
-    geriSayim();
-    berberSayacTimer = setInterval(geriSayim, 1000);
-  }
-}
-
-async function berberKartKontrolEt(){
-  try{
-    const snap = await getDoc(BERBER_AYAR_REF);
-    const ayar = berberAyarBirlestir(snap.exists() ? snap.data() : {});
-    const durum = berberKapaliMi(ayar);
-    if(durum.kapali){
-      berberKapaliKartCiz(ayar, durum);
-    }else{
-      berberAktifKartCiz(ayar);
+    if(fark <= 0){
+      location.reload();
+      return;
     }
-  }catch(e){
-    console.warn("Berber randevu ayarı okunamadı, sistem aktif gösterildi:", e);
-    berberAktifKartCiz(BERBER_VARSAYILAN_AYAR);
-  }
-}
 
-berberKartKontrolEt();
+    const gun = Math.floor(fark / (1000 * 60 * 60 * 24));
+    const saat = Math.floor((fark % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const dakika = Math.floor((fark % (1000 * 60 * 60)) / (1000 * 60));
+
+    document.getElementById("gun").innerText = gun;
+    document.getElementById("saat").innerText = saat;
+    document.getElementById("dakika").innerText = dakika;
+  }
+
+  geriSayim();
+  setInterval(geriSayim,1000);
+}
 
 /* ÇAY OCAĞI BİLANÇOSU 21 MAYIS 2026'DA OTOMATİK AKTİF OLUR */
 const bilancoAktifTarih = new Date("2026-05-21T00:00:00").getTime();
