@@ -965,15 +965,6 @@ function k10GlobalLogout(){
     <div id="duyuruMesaj" class="duyuru-text"></div>
   </section>
 
-  <section id="randevuYukleniyorPanel" class="randevu-kapali-panel show" aria-live="polite">
-    <div class="kapali-card-top">
-      <div class="kapali-badge">KONTROL EDİLİYOR</div>
-      <div class="kapali-icon">…</div>
-    </div>
-    <h2>Randevu durumu kontrol ediliyor</h2>
-    <p>Admin ayarı okunuyor. Sayfa birazdan otomatik olarak açılacak veya geçici kapalı ekranı gösterilecektir.</p>
-  </section>
-
   <section id="randevuKapaliPanel" class="randevu-kapali-panel" aria-live="polite">
     <div class="kapali-card-top">
       <div class="kapali-badge">GEÇİCİ KAPALI</div>
@@ -991,7 +982,7 @@ function k10GlobalLogout(){
     </div>
   </section>
 
-  <section class="panel" id="randevuPaneli" style="display:none;">
+  <section class="panel" id="randevuPaneli">
     <div class="panel-title">
       <div>
         <h2>Randevu Al</h2>
@@ -1058,7 +1049,7 @@ function k10GlobalLogout(){
     </div>
   </section>
 
-  <section class="panel" id="takvimPaneli" style="display:none;margin-top:18px;">
+  <section class="panel" id="takvimPaneli" style="margin-top:18px;">
     <div class="panel-title">
       <div>
         <h2>Haftalık Takvim</h2>
@@ -1109,8 +1100,7 @@ import {
   where,
   documentId,
   setDoc,
-  runTransaction,
-  onSnapshot
+  runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -1175,7 +1165,6 @@ const duyuruPanel = document.getElementById("duyuruPanel");
 const duyuruBaslik = document.getElementById("duyuruBaslik");
 const duyuruMesaj = document.getElementById("duyuruMesaj");
 const randevuPaneli = document.getElementById("randevuPaneli");
-const randevuYukleniyorPanel = document.getElementById("randevuYukleniyorPanel");
 const randevuKapaliPanel = document.getElementById("randevuKapaliPanel");
 const randevuKapaliBaslik = document.getElementById("randevuKapaliBaslik");
 const randevuKapaliMesaj = document.getElementById("randevuKapaliMesaj");
@@ -1184,10 +1173,12 @@ const takvimPaneli = document.getElementById("takvimPaneli");
 const BERBER_AYAR_REF = doc(db, "site_ayarlar", "berber_randevu");
 const BERBER_VARSAYILAN_AYAR = {
   aktif:true,
-  kapatmaBaslangic:"2026-06-25T00:00",
-  tekrarAktifTarih:"2026-07-15T00:00",
+  kapali:false,
+  calismaModu:"aktif",
+  kapatmaBaslangic:"",
+  tekrarAktifTarih:"",
   baslik:"Berber Randevusu",
-  aciklama:"Berber personelin yıllık izne ayrılması sebebiyle randevu alınamamaktadır.",
+  aciklama:"Berber randevu sistemi geçici olarak kapalıdır.",
   sayacGoster:true
 };
 let berberRandevuKapali = false;
@@ -1309,7 +1300,7 @@ function berberTarihMetni(v){
   const ms = berberTarihMs(v);
   if(!ms) return "belirlenen tarihte";
   const d = new Date(ms);
-  return d.toLocaleDateString("tr-TR", {day:"numeric", month:"long", year:"numeric"});
+  return d.toLocaleString("tr-TR", {day:"numeric", month:"long", year:"numeric", hour:"2-digit", minute:"2-digit"});
 }
 
 function berberAyarBirlestir(data){
@@ -1366,7 +1357,6 @@ function berberKapaliEkraniGoster(ayar, durum){
   randevuKapaliMesaj.innerHTML = berberEscapeHtml(aciklama).replace(/\n/g, "<br>") +
     "<br><br>Platform <b>" + berberEscapeHtml(bitisMetni) + "</b> tarihinde tekrar aktif olacaktır.";
 
-  if(randevuYukleniyorPanel) randevuYukleniyorPanel.classList.remove("show");
   randevuKapaliPanel.classList.add("show");
   if(randevuPaneli) randevuPaneli.style.display = "none";
   if(takvimPaneli) takvimPaneli.style.display = "none";
@@ -1377,33 +1367,22 @@ function berberKapaliEkraniGoster(ayar, durum){
   }
 }
 
-function berberRandevuAyarUygula(data){
-  const ayar = berberAyarBirlestir(data || {});
-  const durum = berberKapaliMi(ayar);
-
-  if(durum.kapali){
-    berberKapaliEkraniGoster(ayar, durum);
-    return true;
-  }
-
-  berberRandevuKapali = false;
-  if(berberRandevuKapaliTimer) clearInterval(berberRandevuKapaliTimer);
-  if(randevuYukleniyorPanel) randevuYukleniyorPanel.classList.remove("show");
-  randevuKapaliPanel.classList.remove("show");
-  if(randevuPaneli) randevuPaneli.style.display = "";
-  if(takvimPaneli) takvimPaneli.style.display = "";
-  return false;
-}
-
 async function berberRandevuKontrolUygula(){
   try{
     const snap = await getDoc(BERBER_AYAR_REF);
-    return berberRandevuAyarUygula(snap.exists() ? snap.data() : {});
+    const ayar = berberAyarBirlestir(snap.exists() ? snap.data() : {});
+    const durum = berberKapaliMi(ayar);
+    if(durum.kapali){
+      berberKapaliEkraniGoster(ayar, durum);
+      return true;
+    }
   }catch(e){
     console.warn("Berber randevu ayarı okunamadı, sayfa normal açılıyor:", e);
   }
 
-  return berberRandevuAyarUygula({aktif:true});
+  berberRandevuKapali = false;
+  randevuKapaliPanel.classList.remove("show");
+  return false;
 }
 
 async function musteriAdiniGetir(){
@@ -2926,13 +2905,6 @@ async function ilkAcilis(){
 }
 
 ilkAcilis();
-try{
-  onSnapshot(BERBER_AYAR_REF, function(snap){
-    berberRandevuAyarUygula(snap.exists() ? snap.data() : {});
-  }, function(e){
-    console.warn("Berber randevu ayarı canlı dinlenemedi:", e);
-  });
-}catch(e){}
 // randevuCanliDinle(); // READ azaltmak için kapalı
 </script>
 </body>
