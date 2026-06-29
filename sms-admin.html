@@ -37,6 +37,8 @@ button:active{transform:scale(.98)}
 .empty{text-align:center;color:#777;padding:40px 10px}
 .progressBox{display:none;background:#f5f5f7;border-radius:18px;padding:14px;margin-top:14px;font-size:14px;font-weight:900}
 .totalDebt{display:block;margin-top:5px;font-weight:950;color:#b91c1c}.debtDetail{display:block;margin-top:3px;font-size:12px;color:#666;font-weight:800}
+.aidatInfo{background:#f8fafc;border:1px solid #e5e7eb;border-radius:18px;padding:12px;margin-top:10px;font-size:13px;color:#374151;line-height:1.45}
+.aidatInfo b{color:#111}.aidatInfo .warn{color:#b45309;font-weight:950}.aidatInfo .okLine{color:#166534;font-weight:950}
 @media(max-width:900px){
 body{padding:14px}.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}
 .person{grid-template-columns:30px 1fr}.person .right{grid-column:2}
@@ -50,7 +52,7 @@ body{padding:14px}.grid{grid-template-columns:1fr}.stats{grid-template-columns:r
 
   <div class="top">
     <h1>📲 Toplu SMS Admin Paneli</h1>
-    <p>Çay ocağı aidatı, kantin veresiye borcu ve dönem bilgilendirme SMS paneli.</p>
+    <p>Çay ocağı aidatı, kantin veresiye borcu ve seçili dönem aralığına göre SMS paneli.</p>
   </div>
 
   <div class="grid">
@@ -58,14 +60,22 @@ body{padding:14px}.grid{grid-template-columns:1fr}.stats{grid-template-columns:r
     <div class="card">
       <h2>SMS Ayarları</h2>
 
+      <label>Başlangıç Dönemi</label>
+      <input id="baslangicAy" type="month" value="2026-05">
+
+      <label>Bitiş / SMS Dönemi</label>
+      <input id="bitisAy" type="month" value="2026-06">
+      <input id="ayKodu" type="hidden" value="2026-06">
+
       <label>Dönem</label>
-      <input id="donem" value="15 Mayıs - 14 Haziran">
+      <input id="donem" value="15 Haziran - 14 Temmuz">
 
-      <label>Dönem Ay Kodu</label>
-      <input id="ayKodu" value="2026-05" placeholder="Örn: 2026-05">
+      <label>Bitiş Dönemi Aidatı (Firebase)</label>
+      <input id="aidat" value="0" readonly>
+      <div class="aidatInfo" id="aidatBilgi">Dönem aralığını uygula; aidatlar Firebase <b>cay_ayarlar</b> kaydından otomatik okunacak.</div>
 
-      <label>Dönem Aidatı</label>
-      <input id="aidat" value="300">
+      <button class="btnBlue" style="width:100%;margin-top:4px" onclick="donemAraligiUygula(true)">Dönem Aralığını Uygula</button>
+      <div class="small" id="aralikBilgi">Borç hesabı sadece seçili dönem aralığından yapılır.</div>
 
       <label>SMS Tipi</label>
       <select id="smsTipi" onchange="mesajSablonuDoldur()">
@@ -79,7 +89,7 @@ body{padding:14px}.grid{grid-template-columns:1fr}.stats{grid-template-columns:r
       <textarea id="mesaj"></textarea>
 
       <div class="small">
-        Değişkenler: <b>{ADSOYAD}</b>, <b>{DONEM}</b>, <b>{AIDAT}</b>, <b>{BORC}</b>, <b>{TOPLAM_BORC}</b>, <b>{BORC_DETAY}</b>
+        Değişkenler: <b>{ADSOYAD}</b>, <b>{DONEM}</b>, <b>{AIDAT}</b>, <b>{TOPLAM_AIDAT}</b>, <b>{BORC}</b>, <b>{TOPLAM_BORC}</b>, <b>{BORC_DETAY}</b>
       </div>
 
       <div class="preview" id="onizleme">Önizleme hazırlanıyor...</div>
@@ -142,7 +152,9 @@ import {
   addDoc,
   serverTimestamp,
   doc,
-  getDoc
+  getDoc,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -204,9 +216,23 @@ function telefonBul(p){
   return temizle(p.telefon || p.phone || p.gsm || p.numara || p.personelId || "");
 }
 
+function boolDegeri(v){
+  if(v === true) return true;
+  const t = String(v || "").toLowerCase().trim();
+  return ["true","1","evet","yes","var"].includes(t);
+}
+
 function aktifSmsTipi(){return document.getElementById("smsTipi").value}
 function aktifDonemBul(){return temizle(document.getElementById("donem").value)}
-function aktifAyBul(){return temizle(document.getElementById("ayKodu").value)}
+function aktifAyBul(){
+  const bitis = document.getElementById("bitisAy");
+  const eski = document.getElementById("ayKodu");
+  return ayNormalize(temizle((bitis && bitis.value) || (eski && eski.value) || ""));
+}
+function baslangicAyBul(){
+  const bas = document.getElementById("baslangicAy");
+  return ayNormalize(temizle((bas && bas.value) || aktifAyBul()));
+}
 
 function adminYetkiKontrol(){
   return new Promise((resolve, reject) => {
@@ -249,16 +275,116 @@ function adminYetkiKontrol(){
   });
 }
 
-function donemOtomatikGuncelle(){
-  const ayKodu = aktifAyBul();
+function ayAraligiOlustur(){
+  let bas = baslangicAyBul();
+  let bit = aktifAyBul();
+  if(!aySirasi(bas) && aySirasi(bit)) bas = bit;
+  if(!aySirasi(bit) && aySirasi(bas)) bit = bas;
+  if(!aySirasi(bas) || !aySirasi(bit)) return [];
 
-  if(donemMap[ayKodu]){
-    document.getElementById("donem").value = donemMap[ayKodu];
+  if(aySirasi(bas) > aySirasi(bit)){
+    const tmp = bas;
+    bas = bit;
+    bit = tmp;
+  }
+
+  const arr = [];
+  let cur = bas;
+  while(aySirasi(cur) <= aySirasi(bit) && arr.length < 36){
+    arr.push(cur);
+    const [y,m] = cur.split("-").map(Number);
+    const d = new Date(y, m, 1);
+    cur = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+  }
+  return arr;
+}
+
+function ayarTutariOku(ayar){
+  ayar = ayar || {};
+  return sayiOku(
+    ayar.aylikTutar ??
+    ayar.tutar ??
+    ayar.aidat ??
+    ayar.donemAidati ??
+    ayar["dönemAidatı"] ??
+    ayar.ucret ??
+    ayar["ücret"] ??
+    ayar.toplanacakTutar ??
+    ayar.toplananUcret ??
+    ayar["toplananÜcret"]
+  );
+}
+
+function aidatAlaniniGuncelle(){
+  const tutar = ayAidatiBul(aktifAyBul());
+  document.getElementById("aidat").value = tutar > 0 ? tutar : 0;
+  aidatBilgisiniGuncelle();
+}
+
+function seciliAyAidatOzetBul(){
+  const aylar = ayAraligiOlustur();
+  let toplam = 0;
+  const eksik = [];
+  const detaylar = aylar.map(ay => {
+    const tutar = ayAidatiBul(ay);
+    if(tutar > 0){
+      toplam += tutar;
+      return { ay, tutar, text:`${ayGoster(ay)}: ${tutar} TL` };
+    }
+    eksik.push(ay);
+    return { ay, tutar:0, text:`${ayGoster(ay)}: Firebase'de aidat yok` };
+  });
+  return { aylar, toplam, eksik, detaylar };
+}
+
+function aidatBilgisiniGuncelle(){
+  const box = document.getElementById("aidatBilgi");
+  if(!box) return;
+
+  const ozet = seciliAyAidatOzetBul();
+  if(!ozet.aylar.length){
+    box.innerHTML = `Geçerli dönem aralığı seçilmedi.`;
+    return;
+  }
+
+  const detayHtml = ozet.detaylar.map(d => d.tutar > 0 ? d.text : `<span class="warn">${d.text}</span>`).join("<br>");
+  const eksikHtml = ozet.eksik.length
+    ? `<br><span class="warn">Eksik aidat kaydı: ${ozet.eksik.map(ayGoster).join(", ")}. Bu aylar için borç otomatik hesaplanmaz.</span>`
+    : `<br><span class="okLine">Seçili tüm ayların aidatı Firebase'den okundu.</span>`;
+
+  box.innerHTML = `<b>Seçili dönem aidatları</b><br>${detayHtml}<br><b>Toplam dönem aidatı:</b> ${ozet.toplam} TL${eksikHtml}`;
+}
+
+window.donemAraligiUygula = function(yenidenYukle=false){
+  const bit = aktifAyBul();
+  const gizliAy = document.getElementById("ayKodu");
+  if(gizliAy) gizliAy.value = bit;
+
+  if(donemMap[bit]){
+    document.getElementById("donem").value = donemMap[bit];
+  }
+
+  aidatAlaniniGuncelle();
+
+  const aylar = ayAraligiOlustur();
+  const bilgi = document.getElementById("aralikBilgi");
+  if(bilgi){
+    bilgi.innerHTML = aylar.length
+      ? `Borç hesabı sadece <b>${aylar[0]}</b> - <b>${aylar[aylar.length-1]}</b> arasındaki dönemlerden yapılır. Aidatlar Firebase <b>cay_ayarlar</b> kaydından otomatik okunur.`
+      : `Geçerli dönem aralığı seçilmedi.`;
   }
 
   seciliIds.clear();
-  listeyiCiz();
-  onizlemeGuncelle();
+  if(yenidenYukle){
+    verileriYukle();
+  }else{
+    listeyiCiz();
+    onizlemeGuncelle();
+  }
+}
+
+function donemOtomatikGuncelle(){
+  donemAraligiUygula(false);
 }
 
 function kantinKaydiBul(p){
@@ -337,28 +463,25 @@ function ayGoster(ay){
   return n || String(ay || "");
 }
 
+function ayQueryDegerleri(aylar){
+  const set = new Set();
+  aylar.forEach(ay => {
+    const n = ayNormalize(ay);
+    if(!n) return;
+    set.add(n);
+    const [y,m] = n.split("-");
+    set.add(`${y}-${Number(m)}`);
+  });
+  return Array.from(set);
+}
+
 function ayarKaydiBul(ay){
   const n = ayNormalize(ay);
   return cayAyarlar[n] || cayAyarlar[String(ay || "")] || {};
 }
 
 function tumAidatAylariniBul(){
-  const aktifAy = ayNormalize(aktifAyBul());
-  const aktifSira = aySirasi(aktifAy);
-
-  const set = new Set();
-  Object.keys(cayAyarlar || {}).forEach(k => {
-    const n = ayNormalize(k);
-    if(aySirasi(n) && (!aktifSira || aySirasi(n) <= aktifSira)) set.add(n);
-  });
-
-  odemeler.forEach(o => {
-    const n = ayNormalize(o.ay || "");
-    if(aySirasi(n) && (!aktifSira || aySirasi(n) <= aktifSira)) set.add(n);
-  });
-
-  if(aySirasi(aktifAy)) set.add(aktifAy);
-  return Array.from(set).sort((a,b) => aySirasi(a) - aySirasi(b));
+  return ayAraligiOlustur();
 }
 
 function sayiOku(v){
@@ -383,46 +506,136 @@ function odemeEslesiyorMu(o,p){
 }
 
 function kisiOdemeleriBul(p){
-  const aktifAy = aktifAyBul();
-  const aktifSira = aySirasi(aktifAy);
+  const basSira = aySirasi(baslangicAyBul());
+  const bitSira = aySirasi(aktifAyBul());
 
   return odemeler
     .filter(o => odemeEslesiyorMu(o,p))
     .filter(o => {
-      const ay = String(o.ay || "");
-      if(!ay) return false;
-      if(!aktifSira) return true;
-      return aySirasi(ay) <= aktifSira;
+      const sira = aySirasi(o.ay || "");
+      if(!sira) return false;
+      if(basSira && sira < basSira) return false;
+      if(bitSira && sira > bitSira) return false;
+      return true;
     })
     .sort((a,b) => aySirasi(a.ay) - aySirasi(b.ay));
 }
 
-function odemeBorcsuzMu(o){
+function kayitMazeretMuafMi(o){
+  if(!o) return false;
   const durum = String(o.durum || "").toLowerCase();
-  const odemeTuru = String(o.odemeTuru || "").toLowerCase();
+  const odemeTuru = String(o.odemeTuru || o.tur || o.odemeDurumu || "").toLowerCase();
+  const notlar = String(o.adminNot || o.not || o.aciklama || o.açıklama || "").toLowerCase();
 
   return (
-    durum === "odendi" ||
-    durum === "ödendi" ||
     durum === "rapor_mazeret" ||
+    durum.includes("rapor") ||
+    durum.includes("mazeret") ||
+    durum.includes("muaf") ||
     durum.includes("borç yok") ||
     durum.includes("borc yok") ||
     odemeTuru === "rapor_mazeret" ||
-    o.muaf === true ||
-    o.raporMazeret === true
+    odemeTuru.includes("rapor") ||
+    odemeTuru.includes("mazeret") ||
+    odemeTuru.includes("muaf") ||
+    boolDegeri(o.muaf) ||
+    boolDegeri(o.raporMazeret) ||
+    boolDegeri(o.mazeretli) ||
+    boolDegeri(o.raporlu) ||
+    notlar.includes("rapor/mazeret") ||
+    notlar.includes("rapor") ||
+    notlar.includes("mazeret")
+  );
+}
+
+function ayBilgisiEslesiyor(v, ay){
+  const hedef = ayNormalize(ay);
+  if(!hedef || v === undefined || v === null || v === "") return false;
+
+  if(Array.isArray(v)){
+    return v.some(item => ayBilgisiEslesiyor(item, hedef));
+  }
+
+  if(typeof v === "object"){
+    return Object.entries(v).some(([key, val]) => {
+      const keyAy = ayNormalize(key);
+      if(keyAy === hedef && val !== false && val !== null && val !== "") return true;
+      if(typeof val === "string" || typeof val === "number") return ayBilgisiEslesiyor(val, hedef);
+      if(typeof val === "object" && val !== null){
+        const aktif = val.aktif ?? val.muaf ?? val.raporlu ?? val.mazeretli ?? val.raporMazeret ?? true;
+        if(keyAy === hedef && aktif !== false) return true;
+      }
+      return false;
+    });
+  }
+
+  const text = String(v || "").trim();
+  const norm = ayNormalize(text);
+  return norm === hedef || text.includes(hedef);
+}
+
+function personelMazeretMuafMi(p, ay){
+  if(!p) return false;
+
+  const ayAlanlari = [
+    p.raporMazeretAylar, p.raporluAylar, p.mazeretAylar, p.muafAylar,
+    p.raporDonemler, p.mazeretDonemler, p.muafDonemler,
+    p.borcYokAylar, p["borçYokAylar"], p.borcuYokAylar,
+    p.raporMazeretDonemleri, p.muafiyetler, p.donemMuafiyetleri
+  ];
+
+  if(ayAlanlari.some(v => ayBilgisiEslesiyor(v, ay))) return true;
+
+  const tekAyAlanlari = [
+    p.raporAy, p.mazeretAy, p.muafAy, p.raporDonemi, p.mazeretDonemi,
+    p.muafDonemi, p.raporMazeretAy, p.raporMazeretDonemi
+  ];
+
+  if(tekAyAlanlari.some(v => ayBilgisiEslesiyor(v, ay))) return true;
+
+  const mapAlanlari = [p.raporMazeret, p.rapor, p.mazeret, p.muaf, p.borcYok, p["borçYok"]];
+  if(mapAlanlari.some(v => typeof v === "object" && v !== null && ayBilgisiEslesiyor(v, ay))) return true;
+
+  const notlar = String(p.adminNot || p.not || p.aciklama || p.açıklama || p.durumNotu || "").toLowerCase();
+  if((notlar.includes("rapor") || notlar.includes("mazeret") || notlar.includes("muaf")) && notlar.includes(ayNormalize(ay))){
+    return true;
+  }
+
+  const aylikAlanVar = ayAlanlari.concat(tekAyAlanlari).some(v => v !== undefined && v !== null && v !== "");
+  if(!aylikAlanVar){
+    const personelDurum = String(p.durum || p.status || p.odemeDurumu || "").toLowerCase();
+    return (
+      boolDegeri(p.muaf) ||
+      boolDegeri(p.raporMazeret) ||
+      boolDegeri(p.raporlu) ||
+      boolDegeri(p.mazeretli) ||
+      personelDurum.includes("rapor") ||
+      personelDurum.includes("mazeret") ||
+      personelDurum.includes("muaf") ||
+      personelDurum.includes("borç yok") ||
+      personelDurum.includes("borc yok")
+    );
+  }
+
+  return false;
+}
+
+function odemeBorcsuzMu(o){
+  const durum = String(o.durum || "").toLowerCase();
+  const donemSonuNet = sayiOku(o.donemSonuNet ?? o.genelNet ?? o.bakiyeNet ?? o.netBakiye);
+
+  return (
+    kayitMazeretMuafMi(o) ||
+    durum === "odendi" ||
+    durum === "ödendi" ||
+    (donemSonuNet !== null && donemSonuNet >= 0)
   );
 }
 
 function ayAidatiBul(ay){
   const ayar = ayarKaydiBul(ay);
-  const ayarTutar = sayiOku(ayar.aylikTutar || ayar.tutar || ayar.aidat);
+  const ayarTutar = ayarTutariOku(ayar);
   if(ayarTutar !== null && ayarTutar > 0) return ayarTutar;
-
-  if(ayNormalize(ay) === ayNormalize(aktifAyBul())){
-    const aktifAidat = paraTemizle(document.getElementById("aidat").value);
-    if(aktifAidat > 0) return aktifAidat;
-  }
-
   return 0;
 }
 
@@ -430,16 +643,23 @@ function odemeKaydininDonemBorcu(o){
   const ay = String(o.ay || "");
   const durum = String(o.durum || "").toLowerCase();
   const tutar = sayiOku(o.tutar) || 0;
-  const kayitAidat = sayiOku(o.donemAidati || o.aylikTutar || o.aidat);
-  const aidat = ayAidatiBul(ay) || kayitAidat || tutar || paraTemizle(document.getElementById("aidat").value);
+  const kayitAidat = sayiOku(o.donemAidati ?? o.aylikTutar ?? o.aidat);
+  const aidat = ayAidatiBul(ay) || kayitAidat || tutar || 0;
 
-  if(odemeBorcsuzMu(o)){
+  if(kayitMazeretMuafMi(o)){
+    return 0;
+  }
+
+  if(durum === "odendi" || durum === "ödendi"){
     return Math.max(0, aidat - tutar);
   }
 
   if(durum.includes("redded") || durum === "odeme_bekliyor" || durum === "bekliyor" || !durum){
     return aidat;
   }
+
+  const donemSonuNet = sayiOku(o.donemSonuNet ?? o.genelNet ?? o.bakiyeNet ?? o.netBakiye);
+  if(donemSonuNet !== null && donemSonuNet >= 0) return 0;
 
   return Math.max(0, aidat - tutar);
 }
@@ -462,7 +682,11 @@ function toplamCayBorcBul(p){
 
     let borc = 0;
 
-    if(o){
+    const personelMuaf = personelMazeretMuafMi(p, ay);
+
+    if(personelMuaf){
+      borc = 0;
+    }else if(o){
       borc = odemeKaydininDonemBorcu(o);
     }else{
       borc = aidat;
@@ -472,7 +696,7 @@ function toplamCayBorcBul(p){
 
     if(ay === aktifAy){
       aktifBorc = borc;
-      aktifDurum = o ? "kayit_var" : "kayit_yok";
+      aktifDurum = personelMuaf ? "rapor_mazeret" : (o ? "kayit_var" : "kayit_yok");
     }
 
     if(borc > 0){
@@ -480,23 +704,9 @@ function toplamCayBorcBul(p){
     }
   });
 
-  const detayToplam = detaylar.reduce((t,d) => t + Number(d.borc || 0), 0);
-
-  let kayitToplam = null;
-  if(aktifKayit){
-    const devredenBorc = sayiOku(aktifKayit.devredenBorc);
-    const net = sayiOku(aktifKayit.donemSonuNet ?? aktifKayit.genelNet ?? aktifKayit.bakiyeNet ?? aktifKayit.netBakiye);
-
-    if(devredenBorc !== null) kayitToplam = Math.max(0, devredenBorc);
-    else if(net !== null) kayitToplam = Math.max(0, -net);
-  }
-
-  const toplam = kayitToplam !== null ? Math.max(kayitToplam, detayToplam) : detayToplam;
-  const fark = Math.max(0, toplam - detayToplam);
-
-  if(fark > 0){
-    detaylar.push({ ay:"Devreden", borc:fark, kayitVar:true });
-  }
+  // Sadece seçili dönem aralığındaki aylar toplanır.
+  // Aktif kayıttaki devredenBorc/donemSonuNet eski ayları taşıyabildiği için burada toplama eklenmez.
+  const toplam = detaylar.reduce((t,d) => t + Number(d.borc || 0), 0);
 
   const detayText = detaylar.length
     ? detaylar.map(d => `${ayGoster(d.ay)}: ${d.borc} TL`).join(" + ")
@@ -532,11 +742,21 @@ function odemeDurumuBul(p){
   }
 
   const o = personelinOdemesiBul(p);
-  const aidat = paraTemizle(document.getElementById("aidat").value);
+  const aidat = ayAidatiBul(aktifAyBul());
+  const personelMuaf = personelMazeretMuafMi(p, aktifAyBul());
 
   if(!o){
+    if(personelMuaf){
+      return {
+        borclu:false,
+        durum:"rapor_mazeret",
+        durumText:"Borç Yok",
+        borc:0,
+        donem:aktifDonemBul()
+      };
+    }
     return {
-      borclu:true,
+      borclu:aidat > 0,
       durum:"kayit_yok",
       durumText:"Kayıt yok",
       borc:aidat,
@@ -545,22 +765,9 @@ function odemeDurumuBul(p){
   }
 
   const durum = String(o.durum || "").toLowerCase();
-  const odemeTuru = String(o.odemeTuru || "").toLowerCase();
   const tutar = paraTemizle(o.tutar) || aidat;
 
-  function sayiOku(v){
-    if(v === undefined || v === null || v === "") return null;
-    const n = Number(String(v).replace("TL","").replace("₺","").replace(/\s/g,"").replace(",","."));
-    return Number.isFinite(n) ? n : null;
-  }
-
-  const mazeretBorcsuz =
-    durum === "rapor_mazeret" ||
-    durum.includes("borç yok") ||
-    durum.includes("borc yok") ||
-    odemeTuru === "rapor_mazeret" ||
-    o.muaf === true ||
-    o.raporMazeret === true;
+  const mazeretBorcsuz = kayitMazeretMuafMi(o) || personelMuaf;
 
   const donemSonuNet = sayiOku(o.donemSonuNet ?? o.genelNet ?? o.bakiyeNet ?? o.netBakiye);
   const netBorcsuz = donemSonuNet !== null && donemSonuNet >= 0;
@@ -633,8 +840,9 @@ function mesajOlustur(p){
   const sablon = document.getElementById("mesaj").value;
   const adSoyad = adSoyadBul(p);
   const donem = odeme.donem || aktifDonemBul();
-  const aidatDeger = paraTemizle(document.getElementById("aidat").value);
-  const aidat = `${aidatDeger} TL`;
+  const aidatDeger = ayAidatiBul(aktifAyBul());
+  const aidat = aidatDeger > 0 ? `${aidatDeger} TL` : "Firebase'de aidat yok";
+  const toplamAidat = seciliAyAidatOzetBul().toplam;
   const borcDeger = aktifSmsTipi() === "borc" ? genelBorc.toplam : odeme.borc;
   const borc = borcDeger > 0 ? `${borcDeger} TL` : aidat;
 
@@ -642,6 +850,7 @@ function mesajOlustur(p){
     .replaceAll("{ADSOYAD}", adSoyad)
     .replaceAll("{DONEM}", donem)
     .replaceAll("{AIDAT}", aidat)
+    .replaceAll("{TOPLAM_AIDAT}", toplamAidat > 0 ? `${toplamAidat} TL` : "Firebase'de aidat yok")
     .replaceAll("{BORC}", borc)
     .replaceAll("{TOPLAM_BORC}", genelBorc.toplam > 0 ? `${genelBorc.toplam} TL` : "Borç yok")
     .replaceAll("{BORC_DETAY}", genelBorc.detayText || "");
@@ -664,6 +873,8 @@ document.getElementById("donem").addEventListener("input", () => {
   onizlemeGuncelle();
 });
 
+document.getElementById("baslangicAy").addEventListener("input", donemOtomatikGuncelle);
+document.getElementById("bitisAy").addEventListener("input", donemOtomatikGuncelle);
 document.getElementById("ayKodu").addEventListener("input", donemOtomatikGuncelle);
 
 document.getElementById("aidat").addEventListener("input", () => {
@@ -686,10 +897,35 @@ window.verileriYukle = async function(){
     personeller.push({ id:d.id, ...d.data() });
   });
 
-  const odemeSnap = await getDocs(collection(db, "cay_odemeler"));
-  odemeSnap.forEach(d => {
-    odemeler.push({ id:d.id, ...d.data() });
-  });
+  const seciliAylar = ayAraligiOlustur();
+
+  try{
+    if(seciliAylar.length){
+      const ayDegerleri = ayQueryDegerleri(seciliAylar);
+      for(let i=0; i<ayDegerleri.length; i+=10){
+        const parca = ayDegerleri.slice(i, i+10);
+        const odemeQ = query(collection(db, "cay_odemeler"), where("ay", "in", parca));
+        const odemeSnap = await getDocs(odemeQ);
+        odemeSnap.forEach(d => {
+          odemeler.push({ id:d.id, ...d.data() });
+        });
+      }
+    }else{
+      const odemeSnap = await getDocs(collection(db, "cay_odemeler"));
+      odemeSnap.forEach(d => {
+        odemeler.push({ id:d.id, ...d.data() });
+      });
+    }
+  }catch(err){
+    console.warn("Dönem aralığına göre ödeme okunamadı, tüm ödemeler okunuyor", err);
+    const odemeSnap = await getDocs(collection(db, "cay_odemeler"));
+    odemeSnap.forEach(d => {
+      const ay = ayNormalize(d.data().ay || "");
+      if(!seciliAylar.length || seciliAylar.includes(ay)){
+        odemeler.push({ id:d.id, ...d.data() });
+      }
+    });
+  }
 
   const veresiyeSnap = await getDocs(collection(db, "veresiye_ozetleri"));
   veresiyeSnap.forEach(d => {
@@ -697,13 +933,21 @@ window.verileriYukle = async function(){
   });
 
   try{
-    const ayarSnap = await getDocs(collection(db, "cay_ayarlar"));
-    ayarSnap.forEach(d => {
-      cayAyarlar[d.id] = { id:d.id, ...d.data() };
-    });
+    for(const ay of seciliAylar){
+      const adaylar = ayQueryDegerleri([ay]);
+      for(const aday of adaylar){
+        const ayarDoc = await getDoc(doc(db, "cay_ayarlar", aday));
+        if(ayarDoc.exists()){
+          cayAyarlar[ayNormalize(ay)] = { id:ayarDoc.id, ...ayarDoc.data() };
+          break;
+        }
+      }
+    }
   }catch(err){
     console.warn("Çay ayarları okunamadı", err);
   }
+
+  aidatAlaniniGuncelle();
 
   personeller.sort((a,b) => adSoyadBul(a).localeCompare(adSoyadBul(b), "tr"));
 
@@ -996,6 +1240,7 @@ window.secilenlereSmsGonder = async function(){
 
 adminYetkiKontrol().then(() => {
   mesajSablonuDoldur();
+  donemAraligiUygula(false);
   verileriYukle();
 });
 
