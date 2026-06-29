@@ -344,13 +344,31 @@ function odemeDurumuBul(p){
   }
 
   const durum = String(o.durum || "").toLowerCase();
+  const odemeTuru = String(o.odemeTuru || "").toLowerCase();
   const tutar = paraTemizle(o.tutar) || aidat;
 
-  if(durum === "odendi" || durum === "ödendi"){
+  function sayiOku(v){
+    if(v === undefined || v === null || v === "") return null;
+    const n = Number(String(v).replace("TL","").replace("₺","").replace(/\s/g,"").replace(",","."));
+    return Number.isFinite(n) ? n : null;
+  }
+
+  const mazeretBorcsuz =
+    durum === "rapor_mazeret" ||
+    durum.includes("borç yok") ||
+    durum.includes("borc yok") ||
+    odemeTuru === "rapor_mazeret" ||
+    o.muaf === true ||
+    o.raporMazeret === true;
+
+  const donemSonuNet = sayiOku(o.donemSonuNet ?? o.genelNet ?? o.bakiyeNet ?? o.netBakiye);
+  const netBorcsuz = donemSonuNet !== null && donemSonuNet >= 0;
+
+  if(durum === "odendi" || durum === "ödendi" || mazeretBorcsuz || netBorcsuz){
     return {
       borclu:false,
-      durum:"odendi",
-      durumText:"Ödendi",
+      durum:mazeretBorcsuz ? "rapor_mazeret" : "odendi",
+      durumText:mazeretBorcsuz ? "Borç Yok" : "Ödendi",
       borc:0,
       donem:o.donemEtiketi || aktifDonemBul()
     };
@@ -518,8 +536,8 @@ window.listeyiCiz = function(){
 
     if(aktifSmsTipi() === "kantin"){
       durumHtml = `<span class="debt">Kantin Borcu: ${odeme.borc} TL</span>`;
-    }else if(odeme.durum === "odendi"){
-      durumHtml = `<span class="ok">Ödendi</span>`;
+    }else if(!odeme.borclu){
+      durumHtml = `<span class="ok">${odeme.durumText}</span>`;
     }else if(odeme.durum === "kayit_yok"){
       durumHtml = `<span class="wait">Kayıt yok - ${odeme.borc} TL borç</span>`;
     }else{
