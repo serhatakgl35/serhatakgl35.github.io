@@ -22,7 +22,7 @@ button:active{transform:scale(.98)}
 .btnMain{background:#111;color:#fff;width:100%;margin-top:16px}
 .btnBlue{background:#007aff;color:#fff}.btnOrange{background:#ff9500;color:#fff}.btnSoft{background:#f1f1f1;color:#111}
 .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px}
 .stat{background:#f5f5f7;border-radius:20px;padding:16px;text-align:center}
 .stat b{display:block;font-size:25px}.stat span{font-size:12px;color:#666;font-weight:900}
 .search{margin-bottom:14px}
@@ -36,6 +36,7 @@ button:active{transform:scale(.98)}
 .small{font-size:12px;color:#777;line-height:1.45;margin-top:8px}
 .empty{text-align:center;color:#777;padding:40px 10px}
 .progressBox{display:none;background:#f5f5f7;border-radius:18px;padding:14px;margin-top:14px;font-size:14px;font-weight:900}
+.totalDebt{display:block;margin-top:5px;font-weight:950;color:#b91c1c}.debtDetail{display:block;margin-top:3px;font-size:12px;color:#666;font-weight:800}
 @media(max-width:900px){
 body{padding:14px}.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}
 .person{grid-template-columns:30px 1fr}.person .right{grid-column:2}
@@ -78,7 +79,7 @@ body{padding:14px}.grid{grid-template-columns:1fr}.stats{grid-template-columns:r
       <textarea id="mesaj"></textarea>
 
       <div class="small">
-        Değişkenler: <b>{ADSOYAD}</b>, <b>{DONEM}</b>, <b>{AIDAT}</b>, <b>{BORC}</b>
+        Değişkenler: <b>{ADSOYAD}</b>, <b>{DONEM}</b>, <b>{AIDAT}</b>, <b>{BORC}</b>, <b>{TOPLAM_BORC}</b>, <b>{BORC_DETAY}</b>
       </div>
 
       <div class="preview" id="onizleme">Önizleme hazırlanıyor...</div>
@@ -109,6 +110,7 @@ body{padding:14px}.grid{grid-template-columns:1fr}.stats{grid-template-columns:r
       <div class="stats">
         <div class="stat"><b id="toplam">0</b><span>Personel</span></div>
         <div class="stat"><b id="borclu">0</b><span>Borçlu</span></div>
+        <div class="stat"><b id="toplamBorcTL">0 TL</b><span>Toplam Borç</span></div>
         <div class="stat"><b id="odenmis">0</b><span>Borç Yok</span></div>
         <div class="stat"><b id="secili">0</b><span>Seçili</span></div>
       </div>
@@ -158,6 +160,7 @@ const db = getFirestore(app);
 let personeller = [];
 let odemeler = [];
 let veresiyeOzetleri = [];
+let cayAyarlar = {};
 let seciliIds = new Set();
 
 const liste = document.getElementById("liste");
@@ -316,6 +319,159 @@ function personelinOdemesiBul(p){
   return eslesenler[0];
 }
 
+function aySirasi(ay){
+  const m = String(ay || "").match(/^(\d{4})-(\d{1,2})$/);
+  if(!m) return 0;
+  return Number(m[1]) * 12 + Number(m[2]);
+}
+
+function ayGoster(ay){
+  return String(ay || "").replace("-0", "-");
+}
+
+function sayiOku(v){
+  if(v === undefined || v === null || v === "") return null;
+  const n = Number(String(v).replace("TL","").replace("₺","").replace(/\s/g,"").replace(",","."));
+  return Number.isFinite(n) ? n : null;
+}
+
+function odemeEslesiyorMu(o,p){
+  const tel = telefonDuzelt(telefonBul(p));
+  const normalTel = telefonBul(p).replace(/\D/g,"");
+  const oTel = String(o.telefon || o.personelId || "").replace(/\D/g,"");
+  const oTelFull = telefonDuzelt(oTel);
+
+  return (
+    o.personelId === p.id ||
+    o.personelId === normalTel ||
+    o.personelId === tel ||
+    oTel === normalTel ||
+    oTelFull === tel
+  );
+}
+
+function kisiOdemeleriBul(p){
+  const aktifAy = aktifAyBul();
+  const aktifSira = aySirasi(aktifAy);
+
+  return odemeler
+    .filter(o => odemeEslesiyorMu(o,p))
+    .filter(o => {
+      const ay = String(o.ay || "");
+      if(!ay) return false;
+      if(!aktifSira) return true;
+      return aySirasi(ay) <= aktifSira;
+    })
+    .sort((a,b) => aySirasi(a.ay) - aySirasi(b.ay));
+}
+
+function odemeBorcsuzMu(o){
+  const durum = String(o.durum || "").toLowerCase();
+  const odemeTuru = String(o.odemeTuru || "").toLowerCase();
+
+  return (
+    durum === "odendi" ||
+    durum === "ödendi" ||
+    durum === "rapor_mazeret" ||
+    durum.includes("borç yok") ||
+    durum.includes("borc yok") ||
+    odemeTuru === "rapor_mazeret" ||
+    o.muaf === true ||
+    o.raporMazeret === true
+  );
+}
+
+function ayAidatiBul(ay){
+  const ayar = cayAyarlar[String(ay || "")] || {};
+  const ayarTutar = sayiOku(ayar.aylikTutar || ayar.tutar || ayar.aidat);
+  if(ayarTutar !== null && ayarTutar > 0) return ayarTutar;
+
+  if(String(ay || "") === aktifAyBul()){
+    const aktifAidat = paraTemizle(document.getElementById("aidat").value);
+    if(aktifAidat > 0) return aktifAidat;
+  }
+
+  return 0;
+}
+
+function odemeKaydininDonemBorcu(o){
+  const ay = String(o.ay || "");
+  const durum = String(o.durum || "").toLowerCase();
+  const tutar = sayiOku(o.tutar) || 0;
+  const kayitAidat = sayiOku(o.donemAidati || o.aylikTutar || o.aidat);
+  const aidat = ayAidatiBul(ay) || kayitAidat || tutar || paraTemizle(document.getElementById("aidat").value);
+
+  if(odemeBorcsuzMu(o)){
+    return Math.max(0, aidat - tutar);
+  }
+
+  if(durum.includes("redded") || durum === "odeme_bekliyor" || durum === "bekliyor" || !durum){
+    return aidat;
+  }
+
+  return Math.max(0, aidat - tutar);
+}
+
+function toplamCayBorcBul(p){
+  const kayitlar = kisiOdemeleriBul(p);
+  const aktifAy = aktifAyBul();
+  const aktifKayit = personelinOdemesiBul(p);
+  const aktifAidat = paraTemizle(document.getElementById("aidat").value);
+
+  if(!kayitlar.length){
+    return {
+      toplam: aktifAidat,
+      detaylar: [{ ay: aktifAy, borc: aktifAidat }],
+      detayText: `${ayGoster(aktifAy)}: ${aktifAidat} TL`
+    };
+  }
+
+  let detaylar = [];
+
+  kayitlar.forEach(o => {
+    const borc = odemeKaydininDonemBorcu(o);
+    if(borc > 0){
+      detaylar.push({ ay:String(o.ay || ""), borc });
+    }
+  });
+
+  const detayToplam = detaylar.reduce((t,d) => t + Number(d.borc || 0), 0);
+
+  let kayitToplam = null;
+  if(aktifKayit){
+    const devredenBorc = sayiOku(aktifKayit.devredenBorc);
+    const net = sayiOku(aktifKayit.donemSonuNet ?? aktifKayit.genelNet ?? aktifKayit.bakiyeNet ?? aktifKayit.netBakiye);
+
+    if(devredenBorc !== null) kayitToplam = Math.max(0, devredenBorc);
+    else if(net !== null) kayitToplam = Math.max(0, -net);
+  }
+
+  const toplam = kayitToplam !== null ? Math.max(kayitToplam, detayToplam) : detayToplam;
+  const fark = Math.max(0, toplam - detayToplam);
+
+  if(fark > 0){
+    detaylar.push({ ay:"Devreden", borc:fark });
+  }
+
+  const detayText = detaylar.length
+    ? detaylar.map(d => `${ayGoster(d.ay)}: ${d.borc} TL`).join(" + ")
+    : (toplam > 0 ? `Toplam: ${toplam} TL` : "Borç yok");
+
+  return { toplam, detaylar, detayText };
+}
+
+function genelBorcBul(p){
+  if(aktifSmsTipi() === "kantin"){
+    const kantinBorc = kantinBorcBul(p);
+    return {
+      toplam: kantinBorc,
+      detayText: kantinBorc > 0 ? `Kantin: ${kantinBorc} TL` : "Borç yok"
+    };
+  }
+
+  return toplamCayBorcBul(p);
+}
+
 function odemeDurumuBul(p){
 
   if(aktifSmsTipi() === "kantin"){
@@ -400,7 +556,7 @@ window.mesajSablonuDoldur = function(){
 
   if(tip === "borc"){
     text =
-`Sayın {ADSOYAD}, {DONEM} dönemi çay aidatı borcunuz {BORC}. Ödeme ve IBAN bilgileri için kantin10.com.tr`;
+`Sayın {ADSOYAD}, toplam çay ocağı aidatı borcunuz {TOPLAM_BORC}. Detay: {BORC_DETAY}. Ödeme ve IBAN bilgileri için kantin10.com.tr`;
   }
 
   if(tip === "donem"){
@@ -427,19 +583,23 @@ window.mesajSablonuDoldur = function(){
 
 function mesajOlustur(p){
   const odeme = odemeDurumuBul(p);
+  const genelBorc = genelBorcBul(p);
 
   const sablon = document.getElementById("mesaj").value;
   const adSoyad = adSoyadBul(p);
   const donem = odeme.donem || aktifDonemBul();
   const aidatDeger = paraTemizle(document.getElementById("aidat").value);
   const aidat = `${aidatDeger} TL`;
-  const borc = odeme.borc > 0 ? `${odeme.borc} TL` : aidat;
+  const borcDeger = aktifSmsTipi() === "borc" ? genelBorc.toplam : odeme.borc;
+  const borc = borcDeger > 0 ? `${borcDeger} TL` : aidat;
 
   return sablon
     .replaceAll("{ADSOYAD}", adSoyad)
     .replaceAll("{DONEM}", donem)
     .replaceAll("{AIDAT}", aidat)
-    .replaceAll("{BORC}", borc);
+    .replaceAll("{BORC}", borc)
+    .replaceAll("{TOPLAM_BORC}", genelBorc.toplam > 0 ? `${genelBorc.toplam} TL` : "Borç yok")
+    .replaceAll("{BORC_DETAY}", genelBorc.detayText || "");
 }
 
 function onizlemeGuncelle(){
@@ -473,6 +633,7 @@ window.verileriYukle = async function(){
   personeller = [];
   odemeler = [];
   veresiyeOzetleri = [];
+  cayAyarlar = {};
   seciliIds.clear();
 
   const personelSnap = await getDocs(collection(db, "personeller"));
@@ -489,6 +650,15 @@ window.verileriYukle = async function(){
   veresiyeSnap.forEach(d => {
     veresiyeOzetleri.push({ id:d.id, ...d.data() });
   });
+
+  try{
+    const ayarSnap = await getDocs(collection(db, "cay_ayarlar"));
+    ayarSnap.forEach(d => {
+      cayAyarlar[d.id] = { id:d.id, ...d.data() };
+    });
+  }catch(err){
+    console.warn("Çay ayarları okunamadı", err);
+  }
 
   personeller.sort((a,b) => adSoyadBul(a).localeCompare(adSoyadBul(b), "tr"));
 
@@ -529,13 +699,17 @@ window.listeyiCiz = function(){
     const tel = telefonBul(p);
     const smsTel = telefonDuzelt(tel);
     const odeme = odemeDurumuBul(p);
+    const genelBorc = genelBorcBul(p);
+    const borcluGorunur = aktifSmsTipi() === "borc" ? genelBorc.toplam > 0 : odeme.borclu;
 
-    let badgeClass = odeme.borclu ? "badgeRed" : "badgeGreen";
+    let badgeClass = borcluGorunur ? "badgeRed" : "badgeGreen";
 
     let durumHtml = "";
 
     if(aktifSmsTipi() === "kantin"){
       durumHtml = `<span class="debt">Kantin Borcu: ${odeme.borc} TL</span>`;
+    }else if(genelBorc.toplam > 0){
+      durumHtml = `<span class="debt">Dönem Borcu: ${odeme.borc} TL</span><span class="totalDebt">Toplam Borç: ${genelBorc.toplam} TL</span><span class="debtDetail">${genelBorc.detayText}</span>`;
     }else if(!odeme.borclu){
       durumHtml = `<span class="ok">${odeme.durumText}</span>`;
     }else if(odeme.durum === "kayit_yok"){
@@ -568,7 +742,7 @@ window.listeyiCiz = function(){
 
       <div class="right">
         <span class="badge ${badgeClass}">
-          ${odeme.durumText}
+          ${borcluGorunur ? "Borçlu" : odeme.durumText}
         </span>
       </div>
     `;
@@ -596,11 +770,20 @@ window.sayacGuncelle = function(){
     sayilacakListe = personeller.filter(p => kantinBorcBul(p) > 0);
   }
 
-  const borcluSayisi = sayilacakListe.filter(p => odemeDurumuBul(p).borclu).length;
-  const temizSayisi = sayilacakListe.filter(p => !odemeDurumuBul(p).borclu).length;
+  const borcluSayisi = sayilacakListe.filter(p => {
+    if(aktifSmsTipi() === "borc") return genelBorcBul(p).toplam > 0;
+    return odemeDurumuBul(p).borclu;
+  }).length;
+  const temizSayisi = sayilacakListe.length - borcluSayisi;
+
+  const toplamBorcTutari = sayilacakListe.reduce((t,p) => {
+    if(aktifSmsTipi() === "kantin") return t + kantinBorcBul(p);
+    return t + genelBorcBul(p).toplam;
+  }, 0);
 
   document.getElementById("toplam").textContent = sayilacakListe.length;
   document.getElementById("borclu").textContent = borcluSayisi;
+  document.getElementById("toplamBorcTL").textContent = `${toplamBorcTutari} TL`;
   document.getElementById("odenmis").textContent = temizSayisi;
   document.getElementById("secili").textContent = seciliIds.size;
 }
@@ -629,7 +812,9 @@ window.borclulariSec = function(){
   seciliIds.clear();
 
   personeller.forEach(p => {
-    if(odemeDurumuBul(p).borclu){
+    if(aktifSmsTipi() === "borc"){
+      if(genelBorcBul(p).toplam > 0) seciliIds.add(p.id);
+    }else if(odemeDurumuBul(p).borclu){
       seciliIds.add(p.id);
     }
   });
@@ -725,7 +910,7 @@ window.secilenlereSmsGonder = async function(){
         tip:aktifSmsTipi(),
         donem:aktifSmsTipi() === "kantin" ? "Kantin Veresiye" : aktifDonemBul(),
         ay:aktifSmsTipi() === "kantin" ? "" : aktifAyBul(),
-        borc:odeme.borc,
+        borc:genelBorcBul(p).toplam || odeme.borc,
         ok:sonuc.ok === true,
         response:sonuc,
         createdAt:serverTimestamp()
@@ -748,7 +933,7 @@ window.secilenlereSmsGonder = async function(){
         tip:aktifSmsTipi(),
         donem:aktifSmsTipi() === "kantin" ? "Kantin Veresiye" : aktifDonemBul(),
         ay:aktifSmsTipi() === "kantin" ? "" : aktifAyBul(),
-        borc:odeme.borc,
+        borc:genelBorcBul(p).toplam || odeme.borc,
         ok:false,
         error:String(err),
         createdAt:serverTimestamp()
