@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Kantin10 Ödeme Merkezi - banka önizleme, mükerrer kontrol ve değişken aidat sürümü -->
+<!-- Kantin10 Ödeme Merkezi - banka önizleme, güvenli yeniden aktarım ve değişken aidat sürümü -->
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -256,7 +256,7 @@ td:first-child{position:sticky;left:0;z-index:3;background:#fff!important;text-a
       <button class="saveBtn" onclick="modalKaydet()">Kaydet</button>
       <button class="cancelBtn" onclick="modalKapat()">Vazgeç</button>
       <button class="mazeretBtn" onclick="modalMazeretYap()">Rapor/Mazeret - Borç Yok Yap</button>
-      <button class="deleteBtn" onclick="modalBekliyorYap()">Kaydı Bekliyor Yap</button>
+      <button class="deleteBtn" onclick="modalBekliyorYap()">Ödemeyi Sil / Yeniden Aktarıma Aç</button>
     </div>
   </div>
 </div>
@@ -831,7 +831,7 @@ window.modalKapat=function(){
   aktifEdit=null;
 };
 
-window.modalKaydet=async function(){
+window.modalKaydet=async function({bankaAktarimIziniTemizle=false}={}){
   if(!aktifEdit)return;
 
   try{
@@ -845,7 +845,9 @@ window.modalKaydet=async function(){
     }
 
     const {tel,ad,ay,aidat}=aktifEdit;
-    const ref=doc(db,ODEME_COLLECTION,odemeDocKey(tel,ay));
+    const key=odemeDocKey(tel,ay);
+    const ref=doc(db,ODEME_COLLECTION,key);
+    const mevcutKayit=odemeMap[key]||null;
     let kayitDurum=secilenDurum;
     let kayitTutar=girilenTutar;
     let mazeretAlanlari={odemeTuru:deleteField(),muaf:deleteField(),raporMazeret:deleteField()};
@@ -859,6 +861,12 @@ window.modalKaydet=async function(){
     }
 
     const hesap=odemeHesabiYap(tel,ay,kayitDurum,kayitTutar,aidat,hesapKayit);
+    const bankaAlanlari=bankaAktarimIziniTemizle?{
+      bankaHareketIds:deleteField(),
+      bankaSonDosya:deleteField(),
+      bankaSonAktarilanTutar:deleteField(),
+      bankaSonSatirlar:deleteField()
+    }:{};
     const kayit={
       personelId:tel,
       telefon:tel,
@@ -868,6 +876,7 @@ window.modalKaydet=async function(){
       tutar:kayitTutar,
       durum:kayitDurum,
       ...mazeretAlanlari,
+      ...bankaAlanlari,
       adminNot:adminNot || (secilenDurum==="rapor_mazeret"?"Rapor/Mazeret sebebiyle bu dönem borç yok.":""),
       ...bakiyeAlanlari(hesap),
       updatedAt:serverTimestamp()
@@ -876,6 +885,7 @@ window.modalKaydet=async function(){
     await setDoc(ref,kayit,{merge:true});
 
     const localKayit={
+      ...(mevcutKayit||{}),
       personelId:tel,telefon:tel,adSoyad:ad,ay,donemEtiketi:donemLabel(ay),
       tutar:kayitTutar,durum:kayitDurum,
       adminNot:kayit.adminNot,
@@ -885,14 +895,26 @@ window.modalKaydet=async function(){
       localKayit.odemeTuru="rapor_mazeret";
       localKayit.muaf=true;
       localKayit.raporMazeret=true;
+    }else{
+      delete localKayit.odemeTuru;
+      delete localKayit.muaf;
+      delete localKayit.raporMazeret;
+    }
+    if(bankaAktarimIziniTemizle){
+      delete localKayit.bankaHareketIds;
+      delete localKayit.bankaSonDosya;
+      delete localKayit.bankaSonAktarilanTutar;
+      delete localKayit.bankaSonSatirlar;
     }
 
-    odemeMap[odemeDocKey(tel,ay)]=localKayit;
+    odemeMap[key]=localKayit;
     await kisiBakiyeZinciriGuncelle(tel,ay);
 
     modalKapat();
     tabloCiz();
-    $("msg").textContent=ad+" / "+ayAdi(ay)+" güncellendi.";
+    $("msg").textContent=bankaAktarimIziniTemizle
+      ?ad+" / "+ayAdi(ay)+" ödemesi silindi ve yeniden aktarıma açıldı."
+      :ad+" / "+ayAdi(ay)+" güncellendi.";
   }catch(err){
     console.error(err);
     alert("Güncelleme hatası: "+err.message);
@@ -902,11 +924,14 @@ window.modalKaydet=async function(){
 window.modalBekliyorYap=async function(){
   if(!aktifEdit)return;
 
+  const onay=confirm("Bu ödeme sıfırlanacak ve ilgili banka hareketleri yeniden aktarılabilir hale gelecek. Devam edilsin mi?");
+  if(!onay)return;
+
   $("modalDurum").value="odeme_bekliyor";
   $("modalTutar").value=0;
-  $("modalNot").value="Matris panelinden bekliyor yapıldı.";
+  $("modalNot").value="Ödeme silindi; banka hareketleri yeniden aktarıma açıldı.";
 
-  await modalKaydet();
+  await modalKaydet({bankaAktarimIziniTemizle:true});
 };
 
 
@@ -942,6 +967,15 @@ function bankaTekrarKontrolEt(row){
   if(!row.seciliTel){row.tekrar=false;return}
   const donem=$("bankaDonem").value;
   const mevcut=odemeMap[odemeDocKey(row.seciliTel,donem)]||null;
+  if(mevcut){
+    const aidat=Number(ayarlarMap[donem]||VARSAYILAN_AIDAT);
+    const kayitDurum=mevcut.durum||"odeme_bekliyor";
+    const tutar=mevcut.tutar!==undefined?Number(mevcut.tutar||0):0;
+    const gDurum=gorunenDurum(kayitDurum,mevcut);
+    const odenen=hesaplananOdenenTutar(kayitDurum,tutar,aidat,mevcut);
+    const ekrandakiDurum=odemeDurumMetni(mevcut,gDurum,odenen,aidat);
+    if(ekrandakiDurum==="Bekliyor"){row.tekrar=false;return}
+  }
   const ids=Array.isArray(mevcut?.bankaHareketIds)?mevcut.bankaHareketIds:[];
   row.tekrar=ids.includes(row.hareketId);
 }
